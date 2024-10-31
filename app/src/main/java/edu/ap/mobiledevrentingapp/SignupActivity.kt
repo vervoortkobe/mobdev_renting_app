@@ -1,11 +1,18 @@
 package edu.ap.mobiledevrentingapp
 
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
+import androidx.activity.compose.setContent
+import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
 
 class SignupActivity : AppCompatActivity() {
@@ -14,27 +21,88 @@ class SignupActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_signup)
 
         auth = FirebaseAuth.getInstance()
 
-        val signupButton
-                = findViewById<Button>(R.id.signup_button)
-        signupButton.setOnClickListener {
-            val email = findViewById<EditText>(R.id.signup_email).text.toString()
-            val password = findViewById<EditText>(R.id.signup_password).text.toString()
-
-
-            auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        val intent = Intent(this, MainActivity::class.java)
-                        startActivity(intent)
-                        finish()
-                    } else {
-                        Toast.makeText(baseContext, "Sign up failed: ${task.exception}", Toast.LENGTH_SHORT).show()
-                    }
+        setContent {
+            SignupScreen(
+                onSignupSuccess = {
+                    val intent = Intent(this, MainActivity::class.java)
+                    startActivity(intent)
+                    finish()
+                },
+                onNavigateToLogin = {
+                    val intent = Intent(this, LoginActivity::class.java)
+                    startActivity(intent)
+                    finish()
                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun SignupScreen(
+    onSignupSuccess: () -> Unit,
+    onNavigateToLogin: () -> Unit
+) {
+    val context = LocalContext.current
+    var email by remember { mutableStateOf("") }
+    var password by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        OutlinedTextField(
+            value = email,
+            onValueChange = { email = it },
+            label = { Text("Email") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        OutlinedTextField(
+            value = password,
+            onValueChange = { password = it },
+            label = { Text("Password") },
+            visualTransformation = PasswordVisualTransformation(),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = {
+                FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            onSignupSuccess()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Sign up failed: ${task.exception?.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+            },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Sign Up")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        TextButton(
+            onClick = onNavigateToLogin,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Already have an account? Log in!")
         }
     }
 }
