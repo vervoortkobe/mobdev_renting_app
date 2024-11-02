@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
@@ -82,6 +83,7 @@ fun MainScreen(onLogout: () -> Unit) {
             startDestination = "home",
             modifier = Modifier.padding(paddingValues)
         ) {
+            composable("add_device") { AddDeviceScreen() }
             composable("home") { HomeScreen(onLogout = onLogout) }
             composable("profile") { ProfileScreen() }
         }
@@ -93,6 +95,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     NavigationBar {
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val items = listOf(
+            NavigationItem("add_device", Icons.Filled.Add, "Add Device"),
             NavigationItem("home", Icons.Filled.Home, "Home"),
             NavigationItem("profile", Icons.Filled.Person, "Profile")
         )
@@ -117,6 +120,19 @@ fun BottomNavigationBar(navController: NavHostController) {
 data class NavigationItem(val route: String, val icon: ImageVector, val label: String)
 
 @Composable
+fun AddDeviceScreen() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Add Device Screen")
+    }
+}
+
+@Composable
 fun HomeScreen(onLogout: () -> Unit) {
     Column(
         modifier = Modifier
@@ -127,7 +143,13 @@ fun HomeScreen(onLogout: () -> Unit) {
     ) {
         Text(text = "Welcome to Home!")
         Spacer(modifier = Modifier.height(16.dp))
-        LogoutButton(onClick = onLogout)
+        OutlinedButton(
+            onClick = onLogout,
+            content = {
+                Icon(Icons.Filled.ExitToApp, contentDescription = "Logout")
+                Text(text = "Log out")
+            }
+        )
     }
 }
 
@@ -142,15 +164,4 @@ fun ProfileScreen() {
     ) {
         Text(text = "Profile Screen")
     }
-}
-
-@Composable
-fun LogoutButton(onClick: () -> Unit) {
-    OutlinedButton(
-        onClick = onClick,
-        content = {
-            Icon(Icons.Filled.ExitToApp, contentDescription = "Logout")
-            Text(text = "Log out")
-        }
-    )
 }
