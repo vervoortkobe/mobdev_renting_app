@@ -15,9 +15,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,19 +39,27 @@ import java.io.ByteArrayOutputStream
 
 @Composable
 fun AddDeviceActivity() {
-    var imageUri by remember { mutableStateOf<Uri?>(null) }
-    var bitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
+    var bitmaps by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     val context = LocalContext.current
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        imageUri = uri
-        if (uri != null) {
-            bitmap = if (Build.VERSION.SDK_INT < 28) {
-                MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-            } else {
-                val source = ImageDecoder.createSource(context.contentResolver, uri)
-                ImageDecoder.decodeBitmap(source)
+    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
+        if (uris.size <= 5) {  // Limit to 5 images
+            imageUris = uris
+            bitmaps = uris.mapNotNull { uri ->
+                try {
+                    if (Build.VERSION.SDK_INT < 28) {
+                        MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
+                    } else {
+                        val source = ImageDecoder.createSource(context.contentResolver, uri)
+                        ImageDecoder.decodeBitmap(source)
+                    }
+                } catch (e: Exception) {
+                    null
+                }
             }
+        } else {
+            Toast.makeText(context, "You can select up to 5 photos", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -60,44 +71,56 @@ fun AddDeviceActivity() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(onClick = { launcher.launch("image/*") }) {
-            Text("Select a photo")
+            Text("Select photos")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        bitmap?.let {
-            Image(bitmap = it.asImageBitmap(), contentDescription = "Selected photo", modifier = Modifier.size(200.dp))
+        // Display each selected bitmap
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(bitmaps) { bitmap ->
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = "Selected photo",
+                    modifier = Modifier.size(100.dp)
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
-            bitmap?.let { bmp ->
-                val outputStream = ByteArrayOutputStream()
-                bmp.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-                val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
-
-                val uuid = UUID.randomUUID().toString()
-
+            if (bitmaps.isNotEmpty()) {
                 val firestore = FirebaseFirestore.getInstance()
-                val data = hashMapOf(
-                    "image" to base64String,
-                    "id" to uuid
-                )
 
-                firestore.collection("images").document(uuid)
-                    .set(data)
-                    .addOnSuccessListener {
-                        Log.d("UploadPhotoScreen", "Photo uploaded!")
-                        Toast.makeText(context, "Photo uploaded!", Toast.LENGTH_SHORT).show()
-                    }
-                    .addOnFailureListener { e ->
-                        Log.e("UploadPhotoScreen", "Error while uploading: ", e)
-                        Toast.makeText(context, "Error while uploading: $e", Toast.LENGTH_SHORT).show()
-                    }
+                bitmaps.forEach { bmp ->
+                    val outputStream = ByteArrayOutputStream()
+                    bmp.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                    val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+                    val uuid = UUID.randomUUID().toString()
+
+                    val data = hashMapOf(
+                        "image" to base64String,
+                        "id" to uuid
+                    )
+
+                    firestore.collection("images").document(uuid)
+                        .set(data)
+                        .addOnSuccessListener {
+                            Log.d("UploadPhotoScreen", "Photo uploaded!")
+                            Toast.makeText(context, "Photo uploaded!", Toast.LENGTH_SHORT).show()
+                        }
+                        .addOnFailureListener { e ->
+                            Log.e("UploadPhotoScreen", "Error while uploading: ", e)
+                            Toast.makeText(context, "Error while uploading: $e", Toast.LENGTH_SHORT).show()
+                        }
+                }
             }
         }) {
-            Text("Upload the photo")
+            Text("Upload photos")
         }
     }
 }

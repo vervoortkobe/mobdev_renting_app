@@ -15,6 +15,9 @@
         android:theme="@style/Theme.MobileDevRentingApp"
         tools:targetApi="31">
         <activity
+            android:name=".DevicesListActivity"
+            android:exported="false" />
+        <activity
             android:name=".AddDeviceActivity"
             android:exported="false" />
         <activity

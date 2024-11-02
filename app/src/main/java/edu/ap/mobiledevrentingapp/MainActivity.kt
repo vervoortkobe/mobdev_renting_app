@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -84,6 +85,7 @@ fun MainScreen(onLogout: () -> Unit) {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("add_device") { AddDeviceActivity() }
+            composable("devices_list") { DevicesListActivity() }
             composable("home") { HomeScreen(onLogout = onLogout) }
             composable("profile") { ProfileScreen() }
         }
@@ -96,6 +98,7 @@ fun BottomNavigationBar(navController: NavHostController) {
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val items = listOf(
             NavigationItem("add_device", Icons.Filled.Add, "Add Device"),
+            NavigationItem("devices_list", Icons.Filled.List, "Devices List"),
             NavigationItem("home", Icons.Filled.Home, "Home"),
             NavigationItem("profile", Icons.Filled.Person, "Profile")
         )
