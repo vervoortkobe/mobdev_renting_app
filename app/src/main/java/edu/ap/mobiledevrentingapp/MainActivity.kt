@@ -83,7 +83,7 @@ fun MainScreen(onLogout: () -> Unit) {
             startDestination = "home",
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable("add_device") { AddDeviceScreen() }
+            composable("add_device") { AddDeviceActivity() }
             composable("home") { HomeScreen(onLogout = onLogout) }
             composable("profile") { ProfileScreen() }
         }
@@ -118,19 +118,6 @@ fun BottomNavigationBar(navController: NavHostController) {
 }
 
 data class NavigationItem(val route: String, val icon: ImageVector, val label: String)
-
-@Composable
-fun AddDeviceScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Add Device Screen")
-    }
-}
 
 @Composable
 fun HomeScreen(onLogout: () -> Unit) {
