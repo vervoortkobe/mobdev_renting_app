@@ -38,7 +38,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import java.io.ByteArrayOutputStream
 
 @Composable
-fun AddDeviceActivity() {
+fun AddDevicePage() {
     var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var bitmaps by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     val context = LocalContext.current

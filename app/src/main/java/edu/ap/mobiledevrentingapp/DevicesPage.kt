@@ -35,7 +35,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.graphics.asImageBitmap
 
 @Composable
-fun DevicesListActivity() {
+fun DevicesPage() {
     val context = LocalContext.current
     val firestore = FirebaseFirestore.getInstance()
     var imageList by remember { mutableStateOf<List<Pair<String, Bitmap>>>(emptyList()) }

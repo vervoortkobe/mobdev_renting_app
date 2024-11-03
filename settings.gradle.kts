@@ -20,5 +20,5 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "MobileDevRentingApp"
-include(":app")
+include(":app", ":osm-compose")
  

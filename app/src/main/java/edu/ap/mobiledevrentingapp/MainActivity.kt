@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -28,6 +29,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -36,6 +38,7 @@ import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import edu.ap.mobiledevrentingapp.osm.MarkerPage
 
 class MainActivity : AppCompatActivity() {
 
@@ -54,7 +57,7 @@ class MainActivity : AppCompatActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     if (currentUser != null) {
-                        MainScreen(onLogout = { signOut() })
+                        MainPage(onLogout = { signOut() })
                     } else {
                         val intent = Intent(this, LoginActivity::class.java)
                         startActivity(intent)
@@ -74,7 +77,7 @@ class MainActivity : AppCompatActivity() {
 }
 
 @Composable
-fun MainScreen(onLogout: () -> Unit) {
+fun MainPage(onLogout: () -> Unit) {
     val navController = rememberNavController()
     Scaffold(
         bottomBar = { BottomNavigationBar(navController = navController) }
@@ -84,10 +87,11 @@ fun MainScreen(onLogout: () -> Unit) {
             startDestination = "home",
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable("add_device") { AddDeviceActivity() }
-            composable("devices_list") { DevicesListActivity() }
-            composable("home") { HomeScreen(onLogout = onLogout) }
-            composable("profile") { ProfileScreen() }
+            composable("marker") { MarkerPage() }
+            composable("add_device") { AddDevicePage() }
+            composable("devices_list") { DevicesPage() }
+            composable("home") { HomePage(onLogout = onLogout) }
+            composable("profile") { ProfilePage() }
         }
     }
 }
@@ -97,10 +101,11 @@ fun BottomNavigationBar(navController: NavHostController) {
     NavigationBar {
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val items = listOf(
+            NavigationItem("marker", Icons.Filled.LocationOn, "Marker"),
             NavigationItem("add_device", Icons.Filled.Add, "Add Device"),
-            NavigationItem("devices_list", Icons.Filled.List, "Devices List"),
+            NavigationItem("devices_list", Icons.Filled.List, "Devices"),
             NavigationItem("home", Icons.Filled.Home, "Home"),
-            NavigationItem("profile", Icons.Filled.Person, "Profile")
+            NavigationItem("profile", Icons.Filled.Person, "My Profile")
         )
 
         items.forEach { item ->
@@ -122,36 +127,10 @@ fun BottomNavigationBar(navController: NavHostController) {
 
 data class NavigationItem(val route: String, val icon: ImageVector, val label: String)
 
+@Preview(showBackground = true)
 @Composable
-fun HomeScreen(onLogout: () -> Unit) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Welcome to Home!")
-        Spacer(modifier = Modifier.height(16.dp))
-        OutlinedButton(
-            onClick = onLogout,
-            content = {
-                Icon(Icons.Filled.ExitToApp, contentDescription = "Logout")
-                Text(text = "Log out")
-            }
-        )
-    }
-}
-
-@Composable
-fun ProfileScreen() {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Text(text = "Profile Screen")
+fun DefaultPreview() {
+    MobileDevRentingAppTheme {
+        MarkerPage()
     }
 }

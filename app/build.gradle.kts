@@ -82,4 +82,7 @@ dependencies {
     implementation(libs.firebase.analytics)
     implementation(libs.google.firebase.storage.ktx)
     implementation(libs.coil.compose)
+    implementation(libs.androidx.navigation.compose.v253)
+    implementation(project(":osm-compose"))
+    implementation(libs.osmdroid.android)
 }

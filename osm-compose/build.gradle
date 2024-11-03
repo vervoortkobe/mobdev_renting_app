@@ -1,0 +1,92 @@
+import com.vanniktech.maven.publish.SonatypeHost
+
+plugins {
+    id 'com.android.library'
+    id 'org.jetbrains.kotlin.android'
+    id 'kotlin-parcelize'
+    id 'com.vanniktech.maven.publish'
+}
+
+android {
+    namespace 'com.utsman.osmandcompose'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 24
+        targetSdk 34
+
+        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles "consumer-rules.pro"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    buildFeatures {
+        compose true
+    }
+    composeOptions {
+        kotlinCompilerExtensionVersion '1.5.0'
+    }
+    packagingOptions {
+        resources {
+            excludes += '/META-INF/{AL2.0,LGPL2.1}'
+        }
+    }
+}
+
+dependencies {
+
+    implementation libs.androidx.core.ktx.v170
+    implementation libs.androidx.lifecycle.runtime.ktx.v231
+    implementation libs.androidx.activity.compose.v131
+    implementation libs.ui
+    implementation libs.ui.tooling.preview
+    implementation libs.androidx.material
+
+    implementation libs.osmdroid.android
+    implementation libs.androidx.interpolator
+}
+
+mavenPublishing {
+    publishToMavenCentral(SonatypeHost.S01)
+    signAllPublications()
+
+    coordinates("tech.utsmankece", "osm-android-compose", "0.0.5")
+
+    pom {
+        name = "OpenStreetMap Android Compose"
+        description = "OpenStreetMap for android compose"
+        inceptionYear = "2023"
+        url = "https://github.com/utsmannn/osm-android-compose"
+        licenses {
+            license {
+                name = "The Apache License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                distribution = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+        }
+        developers {
+            developer {
+                id = "utsmannn"
+                name = "Utsman Muhammad"
+                url = "https://github.com/utsmannn/"
+            }
+        }
+        scm {
+            url = "https://github.com/utsmannn/osm-android-compose"
+            connection = "scm:git:git://github.com/utsmannn/osm-android-compose.git"
+            developerConnection = "scm:git:ssh://git@github.com/utsmannn/osm-android-compose.git"
+        }
+    }
+}
