@@ -50,6 +50,7 @@ fun SignupScreen(
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var fullname by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -58,6 +59,15 @@ fun SignupScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        OutlinedTextField(
+            value = fullname,
+            onValueChange = { fullname = it },
+            label = { Text("Fullname") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -86,6 +96,7 @@ fun SignupScreen(
 
                             val data = hashMapOf(
                                 "userId" to userId,
+                                "fullname" to fullname
                             )
 
                             val firestore = FirebaseFirestore.getInstance()
