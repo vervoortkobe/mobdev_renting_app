@@ -70,27 +70,36 @@ fun DevicesPage(navController: NavController) {
             }
     }
 
-    Row {
-        Button(onClick = { navController.navigate("marker") }, modifier = Modifier.padding(end = 8.dp)) {
-            Text("Marker")
-        }
-        Button(onClick = { navController.navigate("add_device") }) {
-            Text("Add Device")
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
     ) {
+        // Buttons Row, centered
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Button(onClick = { navController.navigate("marker") }, modifier = Modifier.padding(end = 8.dp)) {
+                Text("Marker")
+            }
+            Button(onClick = { navController.navigate("add_device") }) {
+                Text("Add Device")
+            }
+        }
+
+        // Devices List Header
         Text(
             text = "Devices List",
+            style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Devices List
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(16.dp)
