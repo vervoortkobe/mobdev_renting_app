@@ -103,8 +103,8 @@ fun BottomNavigationBar(navController: NavHostController) {
         val items = listOf(
             NavigationItem("marker", Icons.Filled.LocationOn, "Marker"),
             NavigationItem("add_device", Icons.Filled.Add, "Add Device"),
-            NavigationItem("devices_list", Icons.Filled.List, "Devices"),
             NavigationItem("home", Icons.Filled.Home, "Home"),
+            NavigationItem("devices_list", Icons.Filled.List, "Devices"),
             NavigationItem("profile", Icons.Filled.Person, "My Profile")
         )
 
