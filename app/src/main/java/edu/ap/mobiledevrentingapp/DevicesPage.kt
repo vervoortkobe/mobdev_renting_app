@@ -21,6 +21,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -33,9 +34,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.navigation.NavController
 
 @Composable
-fun DevicesPage() {
+fun DevicesPage(navController: NavController) {
     val context = LocalContext.current
     val firestore = FirebaseFirestore.getInstance()
     var imageList by remember { mutableStateOf<List<Pair<String, Bitmap>>>(emptyList()) }
@@ -64,6 +68,15 @@ fun DevicesPage() {
                 Log.e("DevicesListActivity", "Error fetching images: ", e)
                 Toast.makeText(context, "Error fetching images: $e", Toast.LENGTH_SHORT).show()
             }
+    }
+
+    Row {
+        Button(onClick = { navController.navigate("marker") }, modifier = Modifier.padding(end = 8.dp)) {
+            Text("Marker")
+        }
+        Button(onClick = { navController.navigate("add_device") }) {
+            Text("Add Device")
+        }
     }
 
     Column(

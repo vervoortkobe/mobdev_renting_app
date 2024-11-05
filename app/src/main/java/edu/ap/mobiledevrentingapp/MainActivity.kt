@@ -6,6 +6,7 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -17,6 +18,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -80,18 +82,18 @@ class MainActivity : AppCompatActivity() {
 fun MainPage(onLogout: () -> Unit) {
     val navController = rememberNavController()
     Scaffold(
-        bottomBar = { BottomNavigationBar(navController = navController) }
+        bottomBar = { BottomNavigationBar(navController = navController) },
     ) { paddingValues ->
         NavHost(
             navController = navController,
             startDestination = "home",
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable("marker") { MarkerPage() }
-            composable("add_device") { AddDevicePage() }
-            composable("devices_list") { DevicesPage() }
+            composable("devices_list") { DevicesPage(navController = navController) }
             composable("home") { HomePage(onLogout = onLogout) }
             composable("profile") { ProfilePage() }
+            composable("marker") { MarkerPage() }
+            composable("add_device") { AddDevicePage() }
         }
     }
 }
@@ -101,21 +103,22 @@ fun BottomNavigationBar(navController: NavHostController) {
     NavigationBar {
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val items = listOf(
-            NavigationItem("marker", Icons.Filled.LocationOn, "Marker"),
-            NavigationItem("add_device", Icons.Filled.Add, "Add Device"),
-            NavigationItem("home", Icons.Filled.Home, "Home"),
             NavigationItem("devices_list", Icons.Filled.List, "Devices"),
-            NavigationItem("profile", Icons.Filled.Person, "My Profile")
+            NavigationItem("home", Icons.Filled.Home, "Home"),
+            NavigationItem("profile", Icons.Filled.Person, "Profile")
         )
 
         items.forEach { item ->
             NavigationBarItem(
                 icon = { Icon(item.icon, contentDescription = item.label) },
-                label = { Text(item.label) },
+                label = { Text(item.label, maxLines = 1) }, // Set maxLines to 1
                 selected = currentDestination?.route == item.route,
                 onClick = {
                     navController.navigate(item.route) {
-                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        // Clear previous back stack to prevent navigation issues
+                        popUpTo(navController.graph.startDestinationId) {
+                            inclusive = true
+                        }
                         launchSingleTop = true
                         restoreState = true
                     }
