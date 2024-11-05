@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class SignupActivity : AppCompatActivity() {
 
@@ -81,6 +82,18 @@ fun SignupScreen(
                 FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
+                            val userId = task.result?.user?.uid
+
+                            val data = hashMapOf(
+                                "userId" to userId,
+                            )
+
+                            val firestore = FirebaseFirestore.getInstance()
+
+                            if(userId != null)
+                                firestore.collection("users").document(userId)
+                                    .set(data)
+
                             onSignupSuccess()
                         } else {
                             Toast.makeText(
