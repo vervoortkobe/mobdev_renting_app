@@ -14,6 +14,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 
 class SignupActivity : AppCompatActivity() {
 
@@ -49,6 +50,7 @@ fun SignupScreen(
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var fullname by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -57,6 +59,15 @@ fun SignupScreen(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        OutlinedTextField(
+            value = fullname,
+            onValueChange = { fullname = it },
+            label = { Text("Fullname") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
         OutlinedTextField(
             value = email,
             onValueChange = { email = it },
@@ -81,6 +92,19 @@ fun SignupScreen(
                 FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
                     .addOnCompleteListener { task ->
                         if (task.isSuccessful) {
+                            val userId = task.result?.user?.uid
+
+                            val data = hashMapOf(
+                                "userId" to userId,
+                                "fullname" to fullname
+                            )
+
+                            val firestore = FirebaseFirestore.getInstance()
+
+                            if(userId != null)
+                                firestore.collection("users").document(userId)
+                                    .set(data)
+
                             onSignupSuccess()
                         } else {
                             Toast.makeText(
