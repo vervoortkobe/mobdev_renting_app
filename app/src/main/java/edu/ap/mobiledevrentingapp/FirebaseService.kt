@@ -1,6 +1,7 @@
 package edu.ap.mobiledevrentingapp
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.util.Base64
 import android.util.Log
 import com.google.firebase.FirebaseNetworkException
@@ -9,7 +10,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
+import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 
@@ -43,7 +46,7 @@ object FirebaseService {
         FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    val userId: String = task.result.user?.uid.toString();
+                    val userId: String = task.result.user?.uid.toString()
 
                     saveUser(userId, fullname) { success, errorMessage ->
                         if (success) {
@@ -83,19 +86,41 @@ object FirebaseService {
             }
     }
 
-    fun getUserById(userId: String, callback: (Boolean, String?, String?) -> Unit) {
+    fun getUserById(userId: String, callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
         firestore.collection("users").document(userId).get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     val document = task.result
-                    if (document != null) {
-                        val fullname = document.getString("fullname")
-                        callback(true, fullname, null)
+                    if (document != null && document.exists()) {
+                        callback(true, document, null)
                     } else {
                         callback(false, null, "The current user does not exist.")
                     }
                 } else {
                     callback(false, null, "Failed to retrieve the details of the current user.")
+                }
+            }
+    }
+
+    fun getUserByEmail(email: String, callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
+        firestore.collection("users")
+            .whereEqualTo("email", email)
+            .get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val documents = task.result
+                    if (documents != null && !documents.isEmpty) {
+                        val document = documents.documents[0]
+                        val userId = document.id
+
+                        getUserById(userId) { success, userDocument, error ->
+                            callback(success, userDocument, error)
+                        }
+                    } else {
+                        callback(false, null, "User with the specified e-mail does not exist.")
+                    }
+                } else {
+                    callback(false, null, "Failed to retrieve user by e-mail.")
                 }
             }
     }
@@ -114,7 +139,7 @@ object FirebaseService {
         firestore.collection("images").document(uuid)
             .set(data)
             .addOnSuccessListener {
-                Log.d("UploadSingleImage", "Photo uploaded!")
+                Log.d("UploadSingleImage", "Image uploaded!")
                 onComplete(true, null)
             }
             .addOnFailureListener { e ->
@@ -133,5 +158,44 @@ object FirebaseService {
             }
         }
         onComplete(true, null)
+    }
+
+    suspend fun getAllImages(): List<Pair<String, Bitmap>> {
+        return try {
+            val result = firestore.collection("images").get().await()
+            result.documents.mapNotNull { document ->
+                val base64String = document.getString("image")
+                val id = document.getString("id")
+                if (base64String != null && id != null) {
+                    try {
+                        val byteArray = Base64.decode(base64String, Base64.DEFAULT)
+                        val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+                        Pair(id, bitmap)
+                    } catch (e: Exception) {
+                        null
+                    }
+                } else {
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    suspend fun getImageById(imageId: String): Pair<String, Bitmap>? {
+        return try {
+            val document = firestore.collection("images").document(imageId).get().await()
+            val base64String = document.getString("image")
+            if (base64String != null) {
+                val byteArray = Base64.decode(base64String, Base64.DEFAULT)
+                val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+                Pair(imageId, bitmap)
+            } else {
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
     }
 }

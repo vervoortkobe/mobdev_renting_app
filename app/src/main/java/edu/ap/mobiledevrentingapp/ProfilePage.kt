@@ -15,25 +15,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.google.android.gms.tasks.Task
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QuerySnapshot
 
 @Composable
 fun ProfilePage() {
     val user = FirebaseAuth.getInstance().currentUser
     val context = LocalContext.current
 
-    var id: String? = null
+    var id: String?
     var name by remember { mutableStateOf<String?>(null) }
 
     user?.let {
-        id = user.uid;
-        FirebaseService.getUserById(id!!) { success, fullname, errorMessage ->
+        id = user.uid
+        FirebaseService.getUserById(id!!) { success, document, errorMessage ->
             if (success) {
-                name = fullname;
+                name = document?.getString("fullname")
             } else {
                 Toast.makeText(
                     context,

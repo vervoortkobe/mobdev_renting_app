@@ -40,33 +40,14 @@ import com.google.firebase.firestore.FirebaseFirestore
 @Composable
 fun DevicesPage(navController: NavController) {
     val context = LocalContext.current
-    val firestore = FirebaseFirestore.getInstance()
     var imageList by remember { mutableStateOf<List<Pair<String, Bitmap>>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        firestore.collection("images").get()
-            .addOnSuccessListener { result ->
-                val images = result.documents.mapNotNull { document ->
-                    val base64String = document.getString("image")
-                    val id = document.getString("id")
-                    if (base64String != null && id != null) {
-                        try {
-                            val byteArray = Base64.decode(base64String, Base64.DEFAULT)
-                            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                            Pair(id, bitmap)
-                        } catch (e: Exception) {
-                            null
-                        }
-                    } else {
-                        null
-                    }
-                }
-                imageList = images
-            }
-            .addOnFailureListener { e ->
-                Log.e("DevicesPage", "Error fetching images: ", e)
-                Toast.makeText(context, "Error fetching images: $e", Toast.LENGTH_SHORT).show()
-            }
+        val images = FirebaseService.getAllImages()
+        imageList = images
+        if (images.isEmpty()) {
+            Toast.makeText(context, "No images found or an error occurred.", Toast.LENGTH_SHORT).show()
+        }
     }
 
     Column(
@@ -74,7 +55,6 @@ fun DevicesPage(navController: NavController) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Buttons Row, centered
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -89,7 +69,6 @@ fun DevicesPage(navController: NavController) {
             }
         }
 
-        // Devices List Header
         Text(
             text = "Devices",
             style = MaterialTheme.typography.headlineSmall,
@@ -98,34 +77,42 @@ fun DevicesPage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Devices List
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(imageList) { (id, bitmap) ->
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = "Device ID: $id",
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Device photo",
+        if (imageList.isEmpty()) {
+            Text(
+                text = "No images found",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(imageList) { (id, bitmap) ->
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(200.dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
-                    )
+                            .padding(vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = "Device ID: $id",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Device image",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(200.dp)
+                                .clip(RoundedCornerShape(8.dp))
+                                .border(2.dp, Color.Gray, RoundedCornerShape(8.dp))
+                        )
+                    }
                 }
             }
         }
