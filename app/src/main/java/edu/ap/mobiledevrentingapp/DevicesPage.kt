@@ -64,7 +64,7 @@ fun DevicesPage(navController: NavController) {
                 imageList = images
             }
             .addOnFailureListener { e ->
-                Log.e("DevicesListActivity", "Error fetching images: ", e)
+                Log.e("DevicesPage", "Error fetching images: ", e)
                 Toast.makeText(context, "Error fetching images: $e", Toast.LENGTH_SHORT).show()
             }
     }
@@ -91,7 +91,7 @@ fun DevicesPage(navController: NavController) {
 
         // Devices List Header
         Text(
-            text = "Devices List",
+            text = "Devices",
             style = MaterialTheme.typography.headlineSmall,
             modifier = Modifier.align(Alignment.CenterHorizontally)
         )
