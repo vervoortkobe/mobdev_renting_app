@@ -28,7 +28,7 @@ import com.utsman.osmandcompose.rememberCameraState
 import com.utsman.osmandcompose.rememberMarkerState
 
 @Composable
-fun MarkerPage() {
+fun MapPage() {
     val context = LocalContext.current
 
     val cameraState = rememberCameraState {

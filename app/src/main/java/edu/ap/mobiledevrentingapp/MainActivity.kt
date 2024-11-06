@@ -27,7 +27,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
-import edu.ap.mobiledevrentingapp.osm.MarkerPage
+import edu.ap.mobiledevrentingapp.osm.MapPage
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 
 class MainActivity : AppCompatActivity() {
@@ -77,10 +77,10 @@ fun MainPage(onLogout: () -> Unit) {
             startDestination = "home",
             modifier = Modifier.padding(paddingValues)
         ) {
-            composable("devices_list") { DevicesPage(navController = navController) }
+            composable("devices") { DevicesPage(navController = navController) }
             composable("home") { HomePage(onLogout = onLogout) }
             composable("profile") { ProfilePage() }
-            composable("marker") { MarkerPage() }
+            composable("map") { MapPage() }
             composable("add_device") { AddDevicePage() }
         }
     }
@@ -91,7 +91,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     NavigationBar {
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val items = listOf(
-            NavigationItem("devices_list", Icons.Filled.List, "Devices"),
+            NavigationItem("devices", Icons.Filled.List, "Devices"),
             NavigationItem("home", Icons.Filled.Home, "Home"),
             NavigationItem("profile", Icons.Filled.Person, "Profile")
         )
@@ -122,6 +122,6 @@ data class NavigationItem(val route: String, val icon: ImageVector, val label: S
 @Composable
 fun DefaultPreview() {
     MobileDevRentingAppTheme {
-        MarkerPage()
+        MapPage()
     }
 }

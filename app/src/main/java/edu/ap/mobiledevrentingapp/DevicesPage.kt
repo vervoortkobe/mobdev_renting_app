@@ -81,8 +81,8 @@ fun DevicesPage(navController: NavController) {
                 .padding(bottom = 16.dp),
             horizontalArrangement = Arrangement.Center
         ) {
-            Button(onClick = { navController.navigate("marker") }, modifier = Modifier.padding(end = 8.dp)) {
-                Text("Marker")
+            Button(onClick = { navController.navigate("map") }, modifier = Modifier.padding(end = 8.dp)) {
+                Text("Map")
             }
             Button(onClick = { navController.navigate("add_device") }) {
                 Text("Add Device")

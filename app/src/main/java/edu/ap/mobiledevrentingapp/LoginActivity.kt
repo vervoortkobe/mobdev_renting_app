@@ -17,6 +17,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
+import edu.ap.mobiledevrentingapp.ui.theme.Black
+import edu.ap.mobiledevrentingapp.ui.theme.Red40
 
 class LoginActivity : AppCompatActivity() {
 
@@ -28,7 +30,7 @@ class LoginActivity : AppCompatActivity() {
         auth = FirebaseAuth.getInstance()
 
         setContent {
-            LoginScreen(
+        LoginScreen(
                 onLoginSuccess = {
                     val intent = Intent(this, MainActivity::class.java)
                     startActivity(intent)
@@ -52,7 +54,6 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
 
-    // Background image in a Box
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -64,7 +65,6 @@ fun LoginScreen(
             contentScale = ContentScale.Crop
         )
 
-        // Overlaying content
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -75,8 +75,12 @@ fun LoginScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("E-mail", color = Black) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Red40,
+                    unfocusedBorderColor = Black,
+                )
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -84,29 +88,33 @@ fun LoginScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                label = { Text("Password", color = Black) },
                 visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Red40,
+                    unfocusedBorderColor = Black,
+                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
-                    FirebaseAuth.getInstance().signInWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                onLoginSuccess()
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "Login failed",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                    FirebaseService.login(email, password) { success, errorMessage ->
+                        if (success) {
+                            onLoginSuccess()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                errorMessage,
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
+                    }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Red40)
             ) {
                 Text("Log In")
             }
@@ -117,7 +125,7 @@ fun LoginScreen(
                 onClick = onNavigateToSignup,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Don't have an account yet? Sign up!")
+                Text("Don't have an account yet? Sign up!", color = Black)
             }
         }
     }

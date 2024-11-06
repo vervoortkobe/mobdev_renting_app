@@ -18,6 +18,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import edu.ap.mobiledevrentingapp.ui.theme.Black
+import edu.ap.mobiledevrentingapp.ui.theme.Red40
 
 class SignupActivity : AppCompatActivity() {
 
@@ -76,8 +78,12 @@ fun SignupScreen(
             OutlinedTextField(
                 value = fullname,
                 onValueChange = { fullname = it },
-                label = { Text("Fullname") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("Full Name", color = Black) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Red40,
+                    unfocusedBorderColor = Black,
+                )
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -85,8 +91,12 @@ fun SignupScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("Email") },
-                modifier = Modifier.fillMaxWidth()
+                label = { Text("E-mail", color = Black) },
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Red40,
+                    unfocusedBorderColor = Black,
+                )
             )
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -94,42 +104,33 @@ fun SignupScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password") },
+                label = { Text("Password", color = Black) },
                 visualTransformation = PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Red40,
+                    unfocusedBorderColor = Black,
+                )
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             Button(
                 onClick = {
-                    FirebaseAuth.getInstance().createUserWithEmailAndPassword(email, password)
-                        .addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                val userId = task.result?.user?.uid
-
-                                val data = hashMapOf(
-                                    "userId" to userId,
-                                    "fullname" to fullname
-                                )
-
-                                val firestore = FirebaseFirestore.getInstance()
-
-                                if(userId != null)
-                                    firestore.collection("users").document(userId)
-                                        .set(data)
-
-                                onSignupSuccess()
-                            } else {
-                                Toast.makeText(
-                                    context,
-                                    "Sign up failed: ${task.exception?.message}",
-                                    Toast.LENGTH_SHORT
-                                ).show()
-                            }
+                    FirebaseService.signup(email, password, fullname) { success, errorMessage ->
+                        if (success) {
+                            onSignupSuccess()
+                        } else {
+                            Toast.makeText(
+                                context,
+                                errorMessage,
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
+                    }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Red40)
             ) {
                 Text("Sign Up")
             }
@@ -140,7 +141,7 @@ fun SignupScreen(
                 onClick = onNavigateToLogin,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Already have an account? Log in!")
+                Text("Already have an account? Log in!", color = Black)
             }
         }
     }
