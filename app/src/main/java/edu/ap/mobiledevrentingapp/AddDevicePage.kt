@@ -57,7 +57,7 @@ fun AddDevicePage(navController: NavController) {
             imageUris = uris
             bitmaps = uris.mapNotNull { uri -> loadBitmapFromUri(context, uri) }
         } else {
-            Toast.makeText(context, "You can select up to 5 photos", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "You can select up to 5 images", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -69,7 +69,7 @@ fun AddDevicePage(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(onClick = { launcher.launch("image/*") }) {
-            Text("Select photos")
+            Text("Select images")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -85,7 +85,7 @@ fun AddDevicePage(navController: NavController) {
             itemsIndexed(bitmaps) { _, bitmap ->
                 Image(
                     bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "Selected photo",
+                    contentDescription = "Selected image",
                     modifier = Modifier
                         .size(200.dp)
                         .padding(horizontal = 16.dp)
@@ -107,9 +107,9 @@ fun AddDevicePage(navController: NavController) {
 
         Button(onClick = {
             if (bitmaps.isNotEmpty()) {
-                uploadImages(bitmaps) { success, error ->
+                FirebaseService.uploadImages(bitmaps) { success, error ->
                     if (success) {
-                        Toast.makeText(context, "Photos uploaded successfully!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, "Images uploaded successfully!", Toast.LENGTH_SHORT).show()
                         navController.popBackStack()
                     } else {
                         Toast.makeText(context, "Error while uploading: $error", Toast.LENGTH_SHORT).show()
@@ -117,7 +117,7 @@ fun AddDevicePage(navController: NavController) {
                 }
             }
         }) {
-            Text("Upload photos")
+            Text("Upload images")
         }
     }
 }
@@ -134,40 +134,4 @@ fun loadBitmapFromUri(context: android.content.Context, uri: Uri): Bitmap? {
         Log.e("AddDevicePage", "Error loading bitmap", e)
         null
     }
-}
-
-fun uploadSingleImage(bitmap: Bitmap, onComplete: (Boolean, String?) -> Unit) {
-    val firestore = FirebaseFirestore.getInstance()
-    val outputStream = ByteArrayOutputStream()
-    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-    val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
-    val uuid = UUID.randomUUID().toString()
-
-    val data = hashMapOf(
-        "image" to base64String,
-        "id" to uuid
-    )
-
-    firestore.collection("images").document(uuid)
-        .set(data)
-        .addOnSuccessListener {
-            Log.d("UploadSingleImage", "Photo uploaded!")
-            onComplete(true, null)
-        }
-        .addOnFailureListener { e ->
-            Log.e("UploadSingleImage", "Error while uploading: ", e)
-            onComplete(false, e.localizedMessage)
-        }
-}
-
-fun uploadImages(bitmaps: List<Bitmap>, onComplete: (Boolean, String?) -> Unit) {
-    bitmaps.forEach { bitmap ->
-        uploadSingleImage(bitmap) { success, error ->
-            if (!success) {
-                onComplete(false, error)
-                return@uploadSingleImage
-            }
-        }
-    }
-    onComplete(true, null)
 }

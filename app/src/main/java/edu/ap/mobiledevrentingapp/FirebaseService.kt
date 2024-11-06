@@ -1,5 +1,8 @@
 package edu.ap.mobiledevrentingapp
 
+import android.graphics.Bitmap
+import android.util.Base64
+import android.util.Log
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -7,6 +10,8 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.firestore.FirebaseFirestore
+import java.io.ByteArrayOutputStream
+import java.util.UUID
 
 object FirebaseService {
     private val firestore: FirebaseFirestore get() = FirebaseFirestore.getInstance()
@@ -93,5 +98,40 @@ object FirebaseService {
                     callback(false, null, "Failed to retrieve the details of the current user.")
                 }
             }
+    }
+
+    private fun uploadSingleImage(bitmap: Bitmap, onComplete: (Boolean, String?) -> Unit) {
+        val outputStream = ByteArrayOutputStream()
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+        val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
+        val uuid = UUID.randomUUID().toString()
+
+        val data = hashMapOf(
+            "image" to base64String,
+            "id" to uuid
+        )
+
+        firestore.collection("images").document(uuid)
+            .set(data)
+            .addOnSuccessListener {
+                Log.d("UploadSingleImage", "Photo uploaded!")
+                onComplete(true, null)
+            }
+            .addOnFailureListener { e ->
+                Log.e("UploadSingleImage", "Error while uploading: ", e)
+                onComplete(false, e.localizedMessage)
+            }
+    }
+
+    fun uploadImages(bitmaps: List<Bitmap>, onComplete: (Boolean, String?) -> Unit) {
+        bitmaps.forEach { bitmap ->
+            uploadSingleImage(bitmap) { success, error ->
+                if (!success) {
+                    onComplete(false, error)
+                    return@uploadSingleImage
+                }
+            }
+        }
+        onComplete(true, null)
     }
 }
