@@ -3,6 +3,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:allowBackup="true"
@@ -15,18 +17,6 @@
         android:theme="@style/Theme.MobileDevRentingApp"
         tools:targetApi="31">
         <activity
-            android:name=".ProfilePage"
-            android:exported="false" />
-        <activity
-            android:name=".HomePage"
-            android:exported="false" />
-        <activity
-            android:name=".DevicesListActivity"
-            android:exported="false" />
-        <activity
-            android:name=".AddDeviceActivity"
-            android:exported="false" />
-        <activity
             android:name=".LoginActivity"
             android:exported="false"
             android:theme="@style/Theme.MobileDevRentingApp" />
@@ -37,7 +27,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="true"
-            android:label="@string/app_name"
             android:theme="@style/Theme.MobileDevRentingApp">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -1,0 +1,28 @@
+package edu.ap.mobiledevrentingapp
+
+enum class DeviceCategory {
+    BATHROOM,
+    BEDROOM,
+    CLEANING,
+    CONSTRUCTION,
+    ELECTRIC,
+    FURNITURE,
+    GARDEN,
+    HEATING_COOLING,
+    HOUSEHOLD,
+    KITCHEN,
+    LAUNDRY,
+    LIGHTING,
+    MOVING,
+    OTHER,
+    PETS,
+    PLUMBING,
+    SAFETY,
+    SECURITY,
+    STORAGE,
+    TECHNOLOGY,
+    TOILET,
+    TOOLS,
+    VENTILATION,
+    WASHING,
+}
