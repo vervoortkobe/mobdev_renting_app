@@ -15,28 +15,21 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 fun ProfilePage() {
-    val user = FirebaseAuth.getInstance().currentUser
     val context = LocalContext.current
-
-    var id: String?
     var name by remember { mutableStateOf<String?>(null) }
 
-    user?.let {
-        id = user.uid
-        FirebaseService.getUserById(id!!) { success, document, errorMessage ->
-            if (success) {
-                name = document?.getString("fullname")
-            } else {
-                Toast.makeText(
-                    context,
-                    errorMessage,
-                    Toast.LENGTH_LONG
-                ).show()
-            }
+    FirebaseService.getCurrentUser { success, document, _ ->
+        if (success && document != null) {
+            name = document.getString("fullName")
+        } else {
+            Toast.makeText(
+                context,
+                "Your user data couldn't be loaded.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 

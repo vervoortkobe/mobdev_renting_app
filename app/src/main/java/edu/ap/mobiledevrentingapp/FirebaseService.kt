@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import com.google.firebase.FirebaseNetworkException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
@@ -36,8 +37,7 @@ object FirebaseService {
             }
     }
 
-    fun signup(email: String, password: String, fullname: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
-
+    fun signup(email: String, password: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
         if(email.isEmpty()) {
             callback(false, "Please provide your full name.")
             return
@@ -46,7 +46,7 @@ object FirebaseService {
             callback(false, "Please provide your full name.")
             return
         }
-        if(fullname.isEmpty()) {
+        if(fullName.isEmpty()) {
             callback(false, "Please provide your full name.")
             return
         }
@@ -92,7 +92,7 @@ object FirebaseService {
                 if (task.isSuccessful) {
                     val userId: String = task.result.user?.uid.toString()
 
-                    saveUser(userId, fullname, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
+                    saveUser(userId, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
                         if (success) {
                             callback(true, null)
                         } else {
@@ -113,11 +113,12 @@ object FirebaseService {
             }
     }
 
-    private fun saveUser(userId: String, fullname: String, phoneNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
+    private fun saveUser(userId: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
         val data = hashMapOf(
             "userId" to userId,
-            "fullname" to fullname,
+            "fullName" to fullName,
             "phoneNumber" to phoneNumber,
+            "ibanNumber" to ibanNumber,
             "country" to country,
             "city" to city,
             "zipCode" to zipCode,
@@ -175,7 +176,7 @@ object FirebaseService {
             }
     }
 
-    private fun uploadSingleImage(bitmap: Bitmap, onComplete: (Boolean, String?) -> Unit) {
+    private fun uploadSingleImage(bitmap: Bitmap, onComplete: (Boolean, String?, String?) -> Unit) {
         val outputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
         val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
@@ -190,24 +191,27 @@ object FirebaseService {
             .set(data)
             .addOnSuccessListener {
                 Log.d("UploadSingleImage", "Image uploaded!")
-                onComplete(true, null)
+                onComplete(true, uuid, null)
             }
             .addOnFailureListener { e ->
                 Log.e("UploadSingleImage", "Error while uploading: ", e)
-                onComplete(false, e.localizedMessage)
+                onComplete(false, null, e.localizedMessage)
             }
     }
 
-    fun uploadImages(bitmaps: List<Bitmap>, onComplete: (Boolean, String?) -> Unit) {
+    fun uploadImages(bitmaps: List<Bitmap>, onComplete: (Boolean, List<String>?, String?) -> Unit) {
+        val imageIds = mutableListOf<String>()
         bitmaps.forEach { bitmap ->
-            uploadSingleImage(bitmap) { success, error ->
-                if (!success) {
-                    onComplete(false, error)
+            uploadSingleImage(bitmap) { success, id, error ->
+                if (success) {
+                    id?.let { imageIds.add(it) }
+                } else {
+                    onComplete(false, null, error)
                     return@uploadSingleImage
                 }
             }
         }
-        onComplete(true, null)
+        onComplete(true, imageIds, null)
     }
 
     suspend fun getAllImages(): List<Pair<String, Bitmap>> {
@@ -246,6 +250,70 @@ object FirebaseService {
             }
         } catch (e: Exception) {
             null
+        }
+    }
+
+    fun saveDevice(ownerId: String, deviceName: String, selectedCategory: DeviceCategory, description: String, price: String, imageIds: List<String>, callback: (Boolean, String?, String?) -> Unit) {
+        if (ownerId.isEmpty()) {
+            callback(false, null, "The owner of the device couldn't be registered.")
+            return
+        }
+        if (deviceName.isEmpty()) {
+            callback(false, null, "Please provide a device name.")
+            return
+        }
+        if (description.isEmpty()) {
+            callback(false, null, "Please provide a device description.")
+            return
+        }
+        if (description.length !in 5..500) {
+            callback(false, null, "Please provide a valid phone number.")
+            return
+        }
+        if (price.isEmpty()) {
+            callback(false, null, "Please provide a realistic price for the lease of the device.")
+            return
+        }
+        if (imageIds.isEmpty() || imageIds.size !in 1..5) {
+            callback(false, null, "Please provide at least 1 and at most 5 images of the device.")
+            return
+        }
+
+        val uuid = UUID.randomUUID().toString()
+
+        val data = hashMapOf(
+            "deviceId" to uuid,
+            "ownerId" to ownerId,
+            "deviceName" to deviceName,
+            "selectedCategory" to selectedCategory.name,
+            "description" to description,
+            "price" to price,
+            "imageIds" to imageIds
+        )
+
+        firestore.collection("devices").document(uuid)
+            .set(data)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(true, uuid, null) // Return the device ID on success
+                } else {
+                    callback(false, null, "Failed to save device data. Please try again.")
+                }
+            }
+    }
+
+    fun getCurrentUserId(): String? {
+        return FirebaseAuth.getInstance().currentUser?.uid;
+    }
+
+    fun getCurrentUser(callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
+        val currentUserId = getCurrentUserId()
+        if (currentUserId != null) {
+            getUserById(currentUserId) { success, document, error ->
+                callback(success, document, error)
+            }
+        } else {
+            callback(false, null, "There is no user logged in.")
         }
     }
 }

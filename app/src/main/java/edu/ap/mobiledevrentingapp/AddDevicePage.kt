@@ -27,6 +27,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
@@ -56,7 +57,7 @@ fun AddDevicePage(navController: NavController) {
     val listState = rememberLazyListState()
     var deviceName by remember { mutableStateOf("") }
     var categoryQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf<DeviceCategory?>(DeviceCategory.OTHER) }
+    var selectedCategory by remember { mutableStateOf<DeviceCategory>(DeviceCategory.OTHER) }
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("0") }
 
@@ -100,7 +101,7 @@ fun AddDevicePage(navController: NavController) {
             value = categoryQuery,
             onValueChange = { query ->
                 categoryQuery = query
-                selectedCategory = DeviceCategory.entries.find { it.name.contains(query, ignoreCase = true) }
+                selectedCategory = DeviceCategory.entries.find { it.name.contains(query, ignoreCase = true) }!!
             },
             label = { Text("Device Category", color = Color.Black) },
             modifier = Modifier.fillMaxWidth(),
@@ -206,20 +207,49 @@ fun AddDevicePage(navController: NavController) {
 
         Button(onClick = {
             if (bitmaps.isNotEmpty()) {
-                FirebaseService.uploadImages(bitmaps) { success, error ->
+                FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
                     if (success) {
-                        Toast.makeText(
-                            context,
-                            "Images uploaded successfully!",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        navController.popBackStack()
+                        Log.e("AddDevicePage", "Images uploaded successfully!")
+
+                        if (imageIds != null) {
+                            FirebaseService.getCurrentUserId()?.let {
+                                FirebaseService.saveDevice(it, deviceName, selectedCategory, description, price, imageIds) { success, deviceId, error ->
+                                    if (success) {
+                                        Toast.makeText(
+                                            context,
+                                            "The device was added successfully!",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        Log.e("AddDevicePage", "The device was added successfully!")
+
+                                        // TODO: Navigate to the device details page using deviceId
+                                        navController.popBackStack()
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "The device's images failed to upload. Please try again.",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                        Log.e("AddDevicePage", "Error while uploading images: $error")
+                                    }
+                                }
+                            }
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "The device's images failed to fetch.",
+                                Toast.LENGTH_LONG
+                            ).show()
+                            Log.e("AddDevicePage", "Error while uploading images: $error")
+                        }
+
                     } else {
                         Toast.makeText(
                             context,
-                            "Error while uploading: $error",
+                            "The device's images failed to upload. Please try again.",
                             Toast.LENGTH_LONG
                         ).show()
+                        Log.e("AddDevicePage", "Error while uploading images: $error")
                     }
                 }
             }

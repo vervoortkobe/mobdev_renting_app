@@ -58,7 +58,7 @@ fun SignupScreen(
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var fullname by remember { mutableStateOf("") }
+    var fullName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
     var ibanNumber by remember { mutableStateOf("") }
     var country by remember { mutableStateOf("") }
@@ -88,8 +88,8 @@ fun SignupScreen(
             Text("Personal Information", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
             OutlinedTextField(
-                value = fullname,
-                onValueChange = { fullname = it },
+                value = fullName,
+                onValueChange = { fullName = it },
                 label = { Text("Full Name", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Henry Jekyll") },
@@ -235,7 +235,7 @@ fun SignupScreen(
 
             Button(
                 onClick = {
-                    FirebaseService.signup(email, password, fullname, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
+                    FirebaseService.signup(email, password, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
                         if (success) {
                             onSignupSuccess()
                         } else {
