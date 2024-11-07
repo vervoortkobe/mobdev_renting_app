@@ -1,0 +1,73 @@
+Denk aan volgende apparaten:
+Schoonmaakapparaten
+    Stofzuiger
+    Stoomreiniger
+    Hogedrukreiniger
+    Dweilrobot
+    Robotstofzuiger
+
+Tuinapparatuur
+    Bladblazer
+    Grasmaaier
+    Heggenschaar
+    Kettingzaag
+    Kruiwagen
+
+Keukenapparaten
+    Koffiezetapparaat
+    Waterkoker
+    Blender
+    Magnetron
+    Oven
+    Broodrooster
+
+Gereedschap
+    Boormachine
+    Schuurmachine
+    Decoupeerzaag
+    Slijpmachine
+    Moersleutelset
+
+Verwarming en Koeling
+    Ventilator
+    Airconditioner
+    Elektrische kachel
+    Luchtbevochtiger
+    Ontvochtiger
+
+Witgoed
+    Wasmachine
+    Droger
+    Vaatwasser
+    Koelkast
+    Vriezer
+
+Verlichting en Elektronica
+    Bouwlamp
+    Zaklamp
+    Tafelventilator
+    Soldering set
+
+Bouw- en Constructiemateriaal
+    Ladder
+    Betonmixer
+    Waterpas
+    Afkortzaag
+
+Veiligheids- en Beveiligingsapparatuur
+    Beveiligingscamera
+    Bewegingsmelder
+    Brandmelder
+    EHBO-kit
+
+Technologische Apparaten
+    Laptop
+    Tablet
+    Smartphone
+    Draagbare oplader
+    Smartwatch
+    Bluetooth speakers
+    E-reader
+    VR-headset
+    Gameconsole
+    Slimme deurbel

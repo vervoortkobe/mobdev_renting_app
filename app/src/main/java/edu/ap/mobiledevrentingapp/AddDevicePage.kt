@@ -1,10 +1,5 @@
 package edu.ap.mobiledevrentingapp
 
-import android.graphics.ImageDecoder
-import android.os.Build
-import android.provider.MediaStore
-import android.util.Base64
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
@@ -27,22 +22,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import java.util.UUID
-import java.io.ByteArrayOutputStream
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.google.firebase.firestore.FirebaseFirestore
 
 @Composable
 fun AddDevicePage(navController: NavController) {
@@ -55,9 +51,9 @@ fun AddDevicePage(navController: NavController) {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
         if (uris.size <= 5) {
             imageUris = uris
-            bitmaps = uris.mapNotNull { uri -> loadBitmapFromUri(context, uri) }
+            bitmaps = uris.mapNotNull { uri -> FormUtil.loadBitmapFromUri(context, uri) }
         } else {
-            Toast.makeText(context, "You can select up to 5 images", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "You can select up to 5 images.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -69,7 +65,7 @@ fun AddDevicePage(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(onClick = { launcher.launch("image/*") }) {
-            Text("Select images")
+            Text("Select images to upload.")
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -88,7 +84,11 @@ fun AddDevicePage(navController: NavController) {
                     contentDescription = "Selected image",
                     modifier = Modifier
                         .size(200.dp)
-                        .padding(horizontal = 16.dp)
+                        .padding(horizontal = 8.dp)
+                        .border(
+                            BorderStroke(2.dp, Color.Black),
+                            shape = MaterialTheme.shapes.medium
+                        )
                 )
                 selectedIndex = remember { derivedStateOf { listState.firstVisibleItemIndex } }.value
             }
@@ -117,21 +117,7 @@ fun AddDevicePage(navController: NavController) {
                 }
             }
         }) {
-            Text("Upload images")
+            Text("Add this device & make it publicly available!")
         }
-    }
-}
-
-fun loadBitmapFromUri(context: android.content.Context, uri: Uri): Bitmap? {
-    return try {
-        if (Build.VERSION.SDK_INT < 28) {
-            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-        } else {
-            val source = ImageDecoder.createSource(context.contentResolver, uri)
-            ImageDecoder.decodeBitmap(source)
-        }
-    } catch (e: Exception) {
-        Log.e("AddDevicePage", "Error loading bitmap", e)
-        null
     }
 }

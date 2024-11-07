@@ -6,19 +6,19 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import com.google.firebase.auth.FirebaseAuth
-import edu.ap.mobiledevrentingapp.ui.theme.Black
-import edu.ap.mobiledevrentingapp.ui.theme.Red40
 
 class LoginActivity : AppCompatActivity() {
 
@@ -75,11 +75,12 @@ fun LoginScreen(
             OutlinedTextField(
                 value = email,
                 onValueChange = { email = it },
-                label = { Text("E-mail", color = Black) },
+                label = { Text("E-mail", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("someone@example.com") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Red40,
-                    unfocusedBorderColor = Black,
+                    focusedBorderColor = Color.Red,
+                    unfocusedBorderColor = Color.Black,
                 )
             )
 
@@ -88,12 +89,12 @@ fun LoginScreen(
             OutlinedTextField(
                 value = password,
                 onValueChange = { password = it },
-                label = { Text("Password", color = Black) },
+                label = { Text("Password", color = Color.Black) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Red40,
-                    unfocusedBorderColor = Black,
+                    focusedBorderColor = Color.Red,
+                    unfocusedBorderColor = Color.Black,
                 )
             )
 
@@ -114,7 +115,7 @@ fun LoginScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Red40)
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
             ) {
                 Text("Log In")
             }
@@ -125,7 +126,7 @@ fun LoginScreen(
                 onClick = onNavigateToSignup,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Don't have an account yet? Sign up!", color = Black)
+                Text("Don't have an account yet? Sign up!", color = Color.Black)
             }
         }
     }

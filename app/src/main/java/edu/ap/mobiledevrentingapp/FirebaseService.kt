@@ -36,10 +36,42 @@ object FirebaseService {
             }
     }
 
-    fun signup(email: String, password: String, fullname: String, callback: (Boolean, String?) -> Unit) {
+    fun signup(email: String, password: String, fullname: String, phoneNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
 
+        if(email.isEmpty()) {
+            callback(false, "Please provide your full name.")
+            return
+        }
+        if(password.isEmpty()) {
+            callback(false, "Please provide your full name.")
+            return
+        }
         if(fullname.isEmpty()) {
             callback(false, "Please provide your full name.")
+            return
+        }
+        if(phoneNumber.isEmpty()) {
+            callback(false, "Please provide your phone number.")
+            return
+        }
+        if(country.isEmpty()) {
+            callback(false, "Please provide your country.")
+            return
+        }
+        if(city.isEmpty()) {
+            callback(false, "Please provide your city.")
+            return
+        }
+        if(zipCode.isEmpty()) {
+            callback(false, "Please provide your zip code.")
+            return
+        }
+        if(streetName.isEmpty()) {
+            callback(false, "Please provide your street name.")
+            return
+        }
+        if(addressNr.isEmpty()) {
+            callback(false, "Please provide your house number.")
             return
         }
 
@@ -48,7 +80,7 @@ object FirebaseService {
                 if (task.isSuccessful) {
                     val userId: String = task.result.user?.uid.toString()
 
-                    saveUser(userId, fullname) { success, errorMessage ->
+                    saveUser(userId, fullname, phoneNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
                         if (success) {
                             callback(true, null)
                         } else {
@@ -69,10 +101,16 @@ object FirebaseService {
             }
     }
 
-    private fun saveUser(userId: String, fullname: String, callback: (Boolean, String?) -> Unit) {
+    private fun saveUser(userId: String, fullname: String, phoneNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
         val data = hashMapOf(
             "userId" to userId,
-            "fullname" to fullname
+            "fullname" to fullname,
+            "phoneNumber" to phoneNumber,
+            "country" to country,
+            "city" to city,
+            "zipCode" to zipCode,
+            "streetName" to streetName,
+            "addressNr" to addressNr
         )
 
         firestore.collection("users").document(userId)
