@@ -29,7 +29,10 @@ object FormUtil {
     }
 
     fun isValidPhoneNumber(phoneNumber: String): Boolean {
-        val regex = Regex("^\\+\\d{1,3}\\s?\\d{7,15}\$")
-        return regex.matches(phoneNumber)
+        return phoneNumber.startsWith("+") && phoneNumber.length in 8..14
+    }
+
+    fun isValidIbanNumber(ibanNumber: String): Boolean {
+        return ibanNumber.length in 16..34
     }
 }

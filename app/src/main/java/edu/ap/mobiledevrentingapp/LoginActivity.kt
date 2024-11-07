@@ -84,7 +84,7 @@ fun LoginScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             OutlinedTextField(
                 value = password,
@@ -92,6 +92,7 @@ fun LoginScreen(
                 label = { Text("Password", color = Color.Black) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("********") },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Red,
                     unfocusedBorderColor = Color.Black,
@@ -109,7 +110,7 @@ fun LoginScreen(
                             Toast.makeText(
                                 context,
                                 errorMessage,
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_LONG
                             ).show()
                         }
                     }

@@ -32,11 +32,18 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 
@@ -47,13 +54,22 @@ fun AddDevicePage(navController: NavController) {
     var selectedIndex by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
     val listState = rememberLazyListState()
+    var deviceName by remember { mutableStateOf("") }
+    var categoryQuery by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf<DeviceCategory?>(DeviceCategory.OTHER) }
+    var description by remember { mutableStateOf("") }
+    var price by remember { mutableStateOf("0") }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
         if (uris.size <= 5) {
             imageUris = uris
             bitmaps = uris.mapNotNull { uri -> FormUtil.loadBitmapFromUri(context, uri) }
         } else {
-            Toast.makeText(context, "You can select up to 5 images.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                "You can select up to 5 images.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
@@ -64,11 +80,94 @@ fun AddDevicePage(navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(onClick = { launcher.launch("image/*") }) {
+        Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+
+        OutlinedTextField(
+            value = deviceName,
+            onValueChange = { deviceName = it },
+            label = { Text("Device Name", color = Color.Black) },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Makita Screwdriver") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.Black,
+            )
+        )
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        OutlinedTextField(
+            value = categoryQuery,
+            onValueChange = { query ->
+                categoryQuery = query
+                selectedCategory = DeviceCategory.entries.find { it.name.contains(query, ignoreCase = true) }
+            },
+            label = { Text("Device Category", color = Color.Black) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.Black,
+            )
+        )
+        DropdownMenu(
+            expanded = categoryQuery.isNotBlank(),
+            onDismissRequest = { categoryQuery = "" }
+        ) {
+            DeviceCategory.entries.filter {
+                it.name.contains(categoryQuery, ignoreCase = true)
+            }.forEach { category ->
+                DropdownMenuItem(
+                    onClick = {
+                        selectedCategory = category
+                        categoryQuery = category.name
+                    },
+                    text = { Text(category.name, color = Color.Black) }
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Description", color = Color.Black) },
+            modifier = Modifier.fillMaxWidth().height(150.dp),
+            placeholder = { Text("Max. 500 characters") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.Black,
+            )
+        )
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        OutlinedTextField(
+            value = price,
+            onValueChange = { price = it },
+            label = { Text("Price (in Euro €)", color = Color.Black) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("10") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.Black,
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Device Images", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+
+        Button(
+            onClick = { launcher.launch("image/*") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+        ) {
             Text("Select images to upload.")
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         LazyRow(
             state = listState,
@@ -94,7 +193,7 @@ fun AddDevicePage(navController: NavController) {
             }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(2.dp))
 
         Text(
             text = "Image ${selectedIndex + 1} of ${bitmaps.size}",
@@ -109,15 +208,26 @@ fun AddDevicePage(navController: NavController) {
             if (bitmaps.isNotEmpty()) {
                 FirebaseService.uploadImages(bitmaps) { success, error ->
                     if (success) {
-                        Toast.makeText(context, "Images uploaded successfully!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Images uploaded successfully!",
+                            Toast.LENGTH_LONG
+                        ).show()
                         navController.popBackStack()
                     } else {
-                        Toast.makeText(context, "Error while uploading: $error", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(
+                            context,
+                            "Error while uploading: $error",
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 }
             }
-        }) {
-            Text("Add this device & make it publicly available!")
+        },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+        ) {
+            Text("Add device")
         }
     }
 }

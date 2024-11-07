@@ -34,7 +34,7 @@ fun ProfilePage() {
                 Toast.makeText(
                     context,
                     errorMessage,
-                    Toast.LENGTH_SHORT
+                    Toast.LENGTH_LONG
                 ).show()
             }
         }

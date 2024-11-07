@@ -36,7 +36,7 @@ object FirebaseService {
             }
     }
 
-    fun signup(email: String, password: String, fullname: String, phoneNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
+    fun signup(email: String, password: String, fullname: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
 
         if(email.isEmpty()) {
             callback(false, "Please provide your full name.")
@@ -52,6 +52,18 @@ object FirebaseService {
         }
         if(phoneNumber.isEmpty()) {
             callback(false, "Please provide your phone number.")
+            return
+        }
+        if(!FormUtil.isValidPhoneNumber(phoneNumber)) {
+            callback(false, "Please provide a valid phone number.")
+            return
+        }
+        if(ibanNumber.isEmpty()) {
+            callback(false, "Please provide your IBAN number.")
+            return
+        }
+        if(!FormUtil.isValidIbanNumber(ibanNumber)) {
+            callback(false, "Please provide a valid IBAN number.")
             return
         }
         if(country.isEmpty()) {
@@ -80,7 +92,7 @@ object FirebaseService {
                 if (task.isSuccessful) {
                     val userId: String = task.result.user?.uid.toString()
 
-                    saveUser(userId, fullname, phoneNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
+                    saveUser(userId, fullname, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
                         if (success) {
                             callback(true, null)
                         } else {
