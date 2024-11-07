@@ -30,36 +30,53 @@ import android.net.Uri
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.Divider
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavController
 
 @Composable
 fun AddDevicePage(navController: NavController) {
     var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var bitmaps by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
-    var selectedIndex by remember { mutableIntStateOf(0) }
+    var selectedImageIndex by remember { mutableIntStateOf(0) }
     val context = LocalContext.current
     val listState = rememberLazyListState()
     var deviceName by remember { mutableStateOf("") }
-    var categoryQuery by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf<DeviceCategory>(DeviceCategory.OTHER) }
+    var selectedCategory by remember { mutableStateOf<DeviceCategory?>(null) }
     var description by remember { mutableStateOf("") }
-    var price by remember { mutableStateOf("0") }
+    var price by remember { mutableStateOf("") }
+    var selectedCategoryIndex by remember { mutableIntStateOf(0) }
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
         if (uris.size <= 5) {
@@ -97,35 +114,7 @@ fun AddDevicePage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        OutlinedTextField(
-            value = categoryQuery,
-            onValueChange = { query ->
-                categoryQuery = query
-                selectedCategory = DeviceCategory.entries.find { it.name.contains(query, ignoreCase = true) }!!
-            },
-            label = { Text("Device Category", color = Color.Black) },
-            modifier = Modifier.fillMaxWidth(),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Red,
-                unfocusedBorderColor = Color.Black,
-            )
-        )
-        DropdownMenu(
-            expanded = categoryQuery.isNotBlank(),
-            onDismissRequest = { categoryQuery = "" }
-        ) {
-            DeviceCategory.entries.filter {
-                it.name.contains(categoryQuery, ignoreCase = true)
-            }.forEach { category ->
-                DropdownMenuItem(
-                    onClick = {
-                        selectedCategory = category
-                        categoryQuery = category.name
-                    },
-                    text = { Text(category.name, color = Color.Black) }
-                )
-            }
-        }
+        DropdownList(selectedIndex = selectedCategoryIndex, modifier = Modifier.width(350.dp), onItemClick = {selectedCategoryIndex = it})
 
         Spacer(modifier = Modifier.height(2.dp))
 
@@ -165,55 +154,60 @@ fun AddDevicePage(navController: NavController) {
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
         ) {
-            Text("Select images to upload.")
+            Text("Select images to upload")
         }
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        LazyRow(
-            state = listState,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            itemsIndexed(bitmaps) { _, bitmap ->
-                Image(
-                    bitmap = bitmap.asImageBitmap(),
-                    contentDescription = "Selected image",
-                    modifier = Modifier
-                        .size(200.dp)
-                        .padding(horizontal = 8.dp)
-                        .border(
-                            BorderStroke(2.dp, Color.Black),
-                            shape = MaterialTheme.shapes.medium
-                        )
-                )
-                selectedIndex = remember { derivedStateOf { listState.firstVisibleItemIndex } }.value
+        if(bitmaps.isEmpty()) {
+            Text("Select at least 1 and at most 5 images to upload.")
+        } else {
+            Text("Swipe left or right to view all images.")
+            LazyRow(
+                state = listState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(200.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                itemsIndexed(bitmaps) { _, bitmap ->
+                    Image(
+                        bitmap = bitmap.asImageBitmap(),
+                        contentDescription = "Selected image",
+                        modifier = Modifier
+                            .size(200.dp)
+                            .padding(horizontal = 8.dp)
+                            .border(
+                                BorderStroke(2.dp, Color.Black),
+                                shape = MaterialTheme.shapes.medium
+                            )
+                    )
+                    selectedImageIndex = remember { derivedStateOf { listState.firstVisibleItemIndex } }.value
+                }
             }
+
+            Text(
+                text = "Image ${selectedImageIndex + 1} of ${bitmaps.size}",
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center
+            )
         }
-
-        Spacer(modifier = Modifier.height(2.dp))
-
-        Text(
-            text = "Image ${selectedIndex + 1} of ${bitmaps.size}",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
         Button(onClick = {
             if (bitmaps.isNotEmpty()) {
                 FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
+                    Log.e("AddDevicePage", "Images uploaded successfully: $success, $imageIds, $error")
                     if (success) {
                         Log.e("AddDevicePage", "Images uploaded successfully!")
 
                         if (imageIds != null) {
                             FirebaseService.getCurrentUserId()?.let {
-                                FirebaseService.saveDevice(it, deviceName, selectedCategory, description, price, imageIds) { success, deviceId, error ->
+                                FirebaseService.saveDevice(it, deviceName,
+                                    enumValues<DeviceCategory>()[selectedCategoryIndex], description, price, imageIds) { success, deviceId, error ->
                                     if (success) {
                                         Toast.makeText(
                                             context,
@@ -258,6 +252,75 @@ fun AddDevicePage(navController: NavController) {
             colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
         ) {
             Text("Add device")
+        }
+    }
+}
+
+@Composable
+fun DropdownList(selectedIndex: Int, modifier: Modifier, onItemClick: (Int) -> Unit) {
+
+    var showDropdown by remember { mutableStateOf(true) }
+    val scrollState = rememberScrollState()
+
+    Spacer(modifier = Modifier.height(8.dp))
+
+    Column(
+        modifier = Modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center) {
+
+        Box(
+            modifier = modifier
+                .background(Color.LightGray)
+                .clickable { showDropdown = !showDropdown },
+        ) {
+            Column(
+                modifier = modifier
+                    .heightIn(max = 100.dp)
+                    .verticalScroll(state = scrollState)
+                    .border(width = 2.dp, shape = RoundedCornerShape(2.dp), color = Color.Black)
+            ) {
+                Text(
+                    text = FormUtil.convertUppercaseToTitleCase(enumValues<DeviceCategory>()[selectedIndex].name),
+                    modifier = Modifier.padding(3.dp)
+                )
+            }
+        }
+
+        Box() {
+            if (showDropdown) {
+                Popup(
+                    alignment = Alignment.TopCenter,
+                    properties = PopupProperties(
+                        excludeFromSystemGesture = true,
+                    ),
+                    onDismissRequest = { showDropdown = false }
+                ) {
+                    Column(
+                        modifier = modifier
+                            .heightIn(max = 100.dp)
+                            .verticalScroll(state = scrollState)
+                            .border(width = 2.dp, shape = RoundedCornerShape(2.dp), color = Color.Black)
+                    ) {
+                        enumValues<DeviceCategory>().onEachIndexed { index, item ->
+                            if (index != 0) {
+                                Divider(thickness = 1.dp, color = Color.Gray)
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .background(Color.White)
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        onItemClick(index)
+                                        showDropdown = !showDropdown
+                                    },
+                            ) {
+                                Text(text = FormUtil.convertUppercaseToTitleCase(item.name), modifier = Modifier.padding(3.dp))
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }

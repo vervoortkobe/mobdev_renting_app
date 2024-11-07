@@ -5,6 +5,7 @@ coilCompose = "2.0.0"
 coreKtxVersion = "1.7.0"
 firebaseBom = "33.5.1"
 firebaseStorageKtxVersion = "21.0.1"
+foundationAndroidVersion = "1.7.5"
 interpolator = "1.0.0"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
@@ -37,6 +38,7 @@ foundationAndroid = "1.7.2"
 androidx-activity-compose-v131 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-core-ktx-v170 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
+androidx-foundation-android-v175 = { module = "androidx.compose.foundation:foundation-android", version.ref = "foundationAndroidVersion" }
 androidx-interpolator = { module = "androidx.interpolator:interpolator", version.ref = "interpolator" }
 androidx-lifecycle-runtime-ktx-v231 = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtxVersion" }
 androidx-material = { module = "androidx.compose.material:material", version.ref = "materialVersion" }

@@ -201,17 +201,24 @@ object FirebaseService {
 
     fun uploadImages(bitmaps: List<Bitmap>, onComplete: (Boolean, List<String>?, String?) -> Unit) {
         val imageIds = mutableListOf<String>()
+        var completedUploads = 0
+
         bitmaps.forEach { bitmap ->
             uploadSingleImage(bitmap) { success, id, error ->
+                Log.d("UploadSingleImage", "Image upload result: $success, ID: $id, Error: $error")
                 if (success) {
                     id?.let { imageIds.add(it) }
                 } else {
                     onComplete(false, null, error)
                     return@uploadSingleImage
                 }
+
+                completedUploads++
+                if (completedUploads == bitmaps.size) {
+                    onComplete(true, imageIds, null)
+                }
             }
         }
-        onComplete(true, imageIds, null)
     }
 
     suspend fun getAllImages(): List<Pair<String, Bitmap>> {
@@ -253,13 +260,17 @@ object FirebaseService {
         }
     }
 
-    fun saveDevice(ownerId: String, deviceName: String, selectedCategory: DeviceCategory, description: String, price: String, imageIds: List<String>, callback: (Boolean, String?, String?) -> Unit) {
+    fun saveDevice(ownerId: String, deviceName: String, selectedCategory: DeviceCategory?, description: String, price: String, imageIds: List<String>, callback: (Boolean, String?, String?) -> Unit) {
         if (ownerId.isEmpty()) {
             callback(false, null, "The owner of the device couldn't be registered.")
             return
         }
         if (deviceName.isEmpty()) {
             callback(false, null, "Please provide a device name.")
+            return
+        }
+        if (selectedCategory == null) {
+            callback(false, null, "Please select a category for the device.")
             return
         }
         if (description.isEmpty()) {

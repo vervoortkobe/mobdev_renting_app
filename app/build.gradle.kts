@@ -70,9 +70,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.activity)
     implementation(libs.firebase.firestore.ktx)
-    implementation(libs.androidx.activity.ktx)
-    implementation(libs.androidx.activity.ktx)
-    implementation(libs.androidx.activity.ktx)
     implementation(libs.androidx.foundation.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -81,6 +78,7 @@ dependencies {
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+    implementation(libs.androidx.foundation.android.v175)
 
     implementation(platform(libs.firebase.bom))
     implementation(libs.firebase.analytics)
