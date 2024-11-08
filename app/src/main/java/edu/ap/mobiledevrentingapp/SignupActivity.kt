@@ -8,7 +8,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -58,8 +60,9 @@ fun SignupScreen(
     val context = LocalContext.current
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    var fullname by remember { mutableStateOf("") }
+    var fullName by remember { mutableStateOf("") }
     var phoneNumber by remember { mutableStateOf("") }
+    var ibanNumber by remember { mutableStateOf("") }
     var country by remember { mutableStateOf("") }
     var city by remember { mutableStateOf("") }
     var zipCode by remember { mutableStateOf("") }
@@ -87,10 +90,40 @@ fun SignupScreen(
             Text("Personal Information", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
             OutlinedTextField(
-                value = fullname,
-                onValueChange = { fullname = it },
+                value = fullName,
+                onValueChange = { fullName = it },
                 label = { Text("Full Name", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Henry Jekyll") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Red,
+                    unfocusedBorderColor = Color.Black,
+                )
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            OutlinedTextField(
+                value = phoneNumber,
+                onValueChange = { phoneNumber = it },
+                label = { Text("Phone Number", color = Color.Black) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("+32123456789") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Red,
+                    unfocusedBorderColor = Color.Black,
+                )
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            OutlinedTextField(
+                value = ibanNumber,
+                onValueChange = { ibanNumber = it },
+                label = { Text("IBAN Number", color = Color.Black) },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("BE00 0123 4567 8910") },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Red,
                     unfocusedBorderColor = Color.Black,
@@ -99,24 +132,7 @@ fun SignupScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            OutlinedTextField(
-                value = phoneNumber,
-                onValueChange = {
-                    if (FormUtil.isValidPhoneNumber(it)) phoneNumber = it
-                },
-                label = { Text("Phone Nr.", color = Color.Black) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("e.g. +32123456789") },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
-                    unfocusedBorderColor = Color.Black,
-                )
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text("Address", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text("Address Details", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
             OutlinedTextField(
                 value = country,
@@ -130,35 +146,35 @@ fun SignupScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
-            OutlinedTextField(
-                value = city,
-                onValueChange = { city = it },
-                label = { Text("City", color = Color.Black) },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Brussels") },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
-                    unfocusedBorderColor = Color.Black,
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(
+                    value = city,
+                    onValueChange = { city = it },
+                    label = { Text("City", color = Color.Black) },
+                    modifier = Modifier.weight(1f),
+                    placeholder = { Text("Antwerp") },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Red,
+                        unfocusedBorderColor = Color.Black,
+                    )
                 )
-            )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            OutlinedTextField(
-                value = zipCode,
-                onValueChange = { zipCode = it },
-                label = { Text("Zip Code", color = Color.Black) },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("1000") },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
-                    unfocusedBorderColor = Color.Black,
+                OutlinedTextField(
+                    value = zipCode,
+                    onValueChange = { zipCode = it },
+                    label = { Text("Zip", color = Color.Black) },
+                    modifier = Modifier.width(80.dp),
+                    placeholder = { Text("1000") },
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Color.Red,
+                        unfocusedBorderColor = Color.Black,
+                    )
                 )
-            )
+            }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -176,7 +192,7 @@ fun SignupScreen(
                 OutlinedTextField(
                     value = addressNr,
                     onValueChange = { addressNr = it },
-                    label = { Text("Number", color = Color.Black) },
+                    label = { Text("Nr.", color = Color.Black) },
                     modifier = Modifier.width(80.dp),
                     placeholder = { Text("1") },
                     colors = OutlinedTextFieldDefaults.colors(
@@ -186,7 +202,7 @@ fun SignupScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text("Account Credentials", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
@@ -202,7 +218,7 @@ fun SignupScreen(
                 )
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(2.dp))
 
             OutlinedTextField(
                 value = password,
@@ -210,6 +226,7 @@ fun SignupScreen(
                 label = { Text("Password", color = Color.Black) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("********") },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Red,
                     unfocusedBorderColor = Color.Black
@@ -220,14 +237,14 @@ fun SignupScreen(
 
             Button(
                 onClick = {
-                    FirebaseService.signup(email, password, fullname, phoneNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
+                    FirebaseService.signup(email, password, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
                         if (success) {
                             onSignupSuccess()
                         } else {
                             Toast.makeText(
                                 context,
                                 errorMessage,
-                                Toast.LENGTH_SHORT
+                                Toast.LENGTH_LONG
                             ).show()
                         }
                     }

@@ -46,7 +46,11 @@ fun DevicesPage(navController: NavController) {
         val images = FirebaseService.getAllImages()
         imageList = images
         if (images.isEmpty()) {
-            Toast.makeText(context, "No images found or an error occurred.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                "No images found or an error occurred.",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 
