@@ -35,6 +35,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
@@ -60,10 +61,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
+import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 
 @Composable
 fun AddDevicePage(navController: NavController) {
@@ -114,7 +118,7 @@ fun AddDevicePage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        DropdownList(selectedIndex = selectedCategoryIndex, modifier = Modifier.width(350.dp), onItemClick = {selectedCategoryIndex = it})
+        DropdownList(selectedIndex = selectedCategoryIndex, onItemClick = {selectedCategoryIndex = it})
 
         Spacer(modifier = Modifier.height(2.dp))
 
@@ -257,7 +261,7 @@ fun AddDevicePage(navController: NavController) {
 }
 
 @Composable
-fun DropdownList(selectedIndex: Int, modifier: Modifier, onItemClick: (Int) -> Unit) {
+fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
 
     var showDropdown by remember { mutableStateOf(true) }
     val scrollState = rememberScrollState()
@@ -270,22 +274,30 @@ fun DropdownList(selectedIndex: Int, modifier: Modifier, onItemClick: (Int) -> U
         verticalArrangement = Arrangement.Center) {
 
         Box(
-            modifier = modifier
-                .background(Color.LightGray)
-                .clickable { showDropdown = !showDropdown },
+            modifier = Modifier.fillMaxWidth()
+                .background(Color.LightGray, shape = RoundedCornerShape(6.dp))
+                .border(
+                    width = 2.dp,
+                    color = Color.Black,
+                    shape = RoundedCornerShape(6.dp)
+                )
+                .clickable { showDropdown = !showDropdown }
+                .padding(12.dp)
+                .fillMaxWidth()
         ) {
             Column(
-                modifier = modifier
-                    .heightIn(max = 100.dp)
+                modifier = Modifier
+                    .heightIn(max = 120.dp)
                     .verticalScroll(state = scrollState)
-                    .border(width = 2.dp, shape = RoundedCornerShape(2.dp), color = Color.Black)
             ) {
                 Text(
                     text = FormUtil.convertUppercaseToTitleCase(enumValues<DeviceCategory>()[selectedIndex].name),
-                    modifier = Modifier.padding(3.dp)
+                    modifier = Modifier.padding(3.dp),
+                    color = Color.Black
                 )
             }
         }
+
 
         Box() {
             if (showDropdown) {
@@ -297,10 +309,12 @@ fun DropdownList(selectedIndex: Int, modifier: Modifier, onItemClick: (Int) -> U
                     onDismissRequest = { showDropdown = false }
                 ) {
                     Column(
-                        modifier = modifier
-                            .heightIn(max = 100.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp, 0.dp)
+                            .heightIn(max = 155.dp)
                             .verticalScroll(state = scrollState)
-                            .border(width = 2.dp, shape = RoundedCornerShape(2.dp), color = Color.Black)
+                            .border(width = 2.dp, shape = RoundedCornerShape(6.dp), color = Color.Black)
                     ) {
                         enumValues<DeviceCategory>().onEachIndexed { index, item ->
                             if (index != 0) {
@@ -309,7 +323,7 @@ fun DropdownList(selectedIndex: Int, modifier: Modifier, onItemClick: (Int) -> U
                             Box(
                                 modifier = Modifier
                                     .background(Color.White)
-                                    .fillMaxWidth()
+                                    .padding(12.dp, 3.dp)
                                     .clickable {
                                         onItemClick(index)
                                         showDropdown = !showDropdown
@@ -322,5 +336,13 @@ fun DropdownList(selectedIndex: Int, modifier: Modifier, onItemClick: (Int) -> U
                 }
             }
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun AddDevicePagePreview() {
+    MobileDevRentingAppTheme {
+        AddDevicePage(navController = rememberNavController())
     }
 }
