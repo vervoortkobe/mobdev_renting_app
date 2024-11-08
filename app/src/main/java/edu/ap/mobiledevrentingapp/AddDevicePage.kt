@@ -33,32 +33,22 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -77,7 +67,6 @@ fun AddDevicePage(navController: NavController) {
     val context = LocalContext.current
     val listState = rememberLazyListState()
     var deviceName by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf<DeviceCategory?>(null) }
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
@@ -96,11 +85,12 @@ fun AddDevicePage(navController: NavController) {
     }
 
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .fillMaxSize()
+            .padding(16.dp)
     ) {
         Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
@@ -255,7 +245,7 @@ fun AddDevicePage(navController: NavController) {
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
         ) {
-            Text("Add device")
+            Text("Submit device")
         }
     }
 }
@@ -263,7 +253,7 @@ fun AddDevicePage(navController: NavController) {
 @Composable
 fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
 
-    var showDropdown by remember { mutableStateOf(true) }
+    var showDropdown by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()
 
     Spacer(modifier = Modifier.height(8.dp))
@@ -298,8 +288,7 @@ fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
             }
         }
 
-
-        Box() {
+        Box {
             if (showDropdown) {
                 Popup(
                     alignment = Alignment.TopCenter,
@@ -322,6 +311,7 @@ fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
                             }
                             Box(
                                 modifier = Modifier
+                                    .fillMaxWidth()
                                     .background(Color.White)
                                     .padding(12.dp, 3.dp)
                                     .clickable {
