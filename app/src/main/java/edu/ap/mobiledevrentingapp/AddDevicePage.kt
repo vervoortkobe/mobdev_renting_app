@@ -29,11 +29,13 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.result.launch
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -48,6 +50,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -64,6 +67,7 @@ fun AddDevicePage(navController: NavController) {
     var imageUris by remember { mutableStateOf<List<Uri>>(emptyList()) }
     var bitmaps by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     var selectedImageIndex by remember { mutableIntStateOf(0) }
+    var showImageOverlay by remember { mutableStateOf(false) }
     val context = LocalContext.current
     val listState = rememberLazyListState()
     var deviceName by remember { mutableStateOf("") }
@@ -71,16 +75,24 @@ fun AddDevicePage(navController: NavController) {
     var price by remember { mutableStateOf("") }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
-        if (uris.size <= 5) {
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
+        if (uris.size + bitmaps.size <= 5) {
             imageUris = uris
-            bitmaps = uris.mapNotNull { uri -> FormUtil.loadBitmapFromUri(context, uri) }
+            bitmaps = bitmaps + uris.mapNotNull { uri -> FormUtil.loadBitmapFromUri(context, uri) }
         } else {
             Toast.makeText(
                 context,
                 "You can select up to 5 images.",
                 Toast.LENGTH_LONG
             ).show()
+        }
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
+        if (bitmap != null) {
+            bitmaps = bitmaps + bitmap // Append new bitmap
+        } else {
+            Toast.makeText(context, "Failed to capture image.", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -94,6 +106,7 @@ fun AddDevicePage(navController: NavController) {
     ) {
         Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
+        // Device Name Input
         OutlinedTextField(
             value = deviceName,
             onValueChange = { deviceName = it },
@@ -108,10 +121,11 @@ fun AddDevicePage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        DropdownList(selectedIndex = selectedCategoryIndex, onItemClick = {selectedCategoryIndex = it})
+        DropdownList(selectedIndex = selectedCategoryIndex, onItemClick = { selectedCategoryIndex = it })
 
         Spacer(modifier = Modifier.height(2.dp))
 
+        // Description Input
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
@@ -126,6 +140,7 @@ fun AddDevicePage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(2.dp))
 
+        // Price Input
         OutlinedTextField(
             value = price,
             onValueChange = { price = it },
@@ -141,44 +156,85 @@ fun AddDevicePage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
+        // Image Selection Section
         Text("Device Images", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
+        // Button to select images from the gallery
         Button(
-            onClick = { launcher.launch("image/*") },
+            onClick = { galleryLauncher.launch("image/*") },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
         ) {
             Text("Select images to upload")
         }
 
-        Spacer(modifier = Modifier.height(2.dp))
+        // Button to capture an image using the camera
+        Button(
+            onClick = { cameraLauncher.launch() },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+        ) {
+            Text("Take a picture")
+        }
 
-        if(bitmaps.isEmpty()) {
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (bitmaps.isEmpty()) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(250.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
+                    .background(Color.LightGray)
+            ) {
+                Text("No images selected.")
+            }
+            Spacer(modifier = Modifier.height(2.dp))
             Text("Select at least 1 and at most 5 images to upload.")
         } else {
             Text("Swipe left or right to view all images.")
+            Spacer(modifier = Modifier.height(2.dp))
             LazyRow(
                 state = listState,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp),
-                horizontalArrangement = Arrangement.Center,
+                    .height(250.dp),
+                horizontalArrangement = if (bitmaps.size == 1) Arrangement.Center else Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                itemsIndexed(bitmaps) { _, bitmap ->
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Selected image",
+                itemsIndexed(bitmaps) { index, bitmap ->
+                    Box(
                         modifier = Modifier
-                            .size(200.dp)
-                            .padding(horizontal = 8.dp)
-                            .border(
-                                BorderStroke(2.dp, Color.Black),
-                                shape = MaterialTheme.shapes.medium
-                            )
-                    )
-                    selectedImageIndex = remember { derivedStateOf { listState.firstVisibleItemIndex } }.value
+                            .size(250.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
+                            .background(Color.LightGray)
+                            .clickable {
+                                selectedImageIndex = index
+                                showImageOverlay = true
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            bitmap = bitmap.asImageBitmap(),
+                            contentDescription = "Selected image",
+                            modifier = Modifier.fillMaxSize(),
+                        )
+                    }
                 }
+            }
+
+            if (showImageOverlay) {
+                ImageOverlay(
+                    bitmaps = bitmaps,
+                    initialIndex = selectedImageIndex,
+                    onDismiss = { showImageOverlay = false },
+                    onDelete = { index ->
+                        bitmaps = bitmaps.toMutableList().apply { removeAt(index) }
+                        showImageOverlay = false
+                    }
+                )
             }
 
             Text(
@@ -191,61 +247,111 @@ fun AddDevicePage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Button(onClick = {
-            if (bitmaps.isNotEmpty()) {
-                FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
-                    Log.e("AddDevicePage", "Images uploaded successfully: $success, $imageIds, $error")
-                    if (success) {
-                        Log.e("AddDevicePage", "Images uploaded successfully!")
+        Button(
+            onClick = {
+                if (bitmaps.isNotEmpty()) {
+                    FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
+                        Log.e("AddDevicePage", "Images uploaded successfully: $success, $imageIds, $error")
+                        if (success) {
+                            Log.e("AddDevicePage", "Images uploaded successfully!")
 
-                        if (imageIds != null) {
-                            FirebaseService.getCurrentUserId()?.let {
-                                FirebaseService.saveDevice(it, deviceName,
-                                    enumValues<DeviceCategory>()[selectedCategoryIndex], description, price, imageIds) { success, deviceId, error ->
-                                    if (success) {
-                                        Toast.makeText(
-                                            context,
-                                            "The device was added successfully!",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                        Log.e("AddDevicePage", "The device was added successfully!")
-
-                                        // TODO: Navigate to the device details page using deviceId
-                                        navController.popBackStack()
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            "The device's images failed to upload. Please try again.",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                        Log.e("AddDevicePage", "Error while uploading images: $error")
+                            if (imageIds != null) {
+                                FirebaseService.getCurrentUserId()?.let {
+                                    FirebaseService.saveDevice(it, deviceName,
+                                        enumValues<DeviceCategory>()[selectedCategoryIndex], description, price, imageIds
+                                    ) { success, _, error ->
+                                        if (success) {
+                                            Toast.makeText(
+                                                context,
+                                                "The device was added successfully!",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            Log.e("AddDevicePage", "The device was added successfully!")
+                                            navController.popBackStack()
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "The device's images failed to upload. Please try again.",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            Log.e("AddDevicePage", "Error while uploading images: $error")
+                                        }
                                     }
                                 }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "The device's images failed to fetch.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                Log.e("AddDevicePage", "Error while uploading images: $error")
                             }
                         } else {
                             Toast.makeText(
                                 context,
-                                "The device's images failed to fetch.",
+                                "The device's images failed to upload. Please try again.",
                                 Toast.LENGTH_LONG
                             ).show()
                             Log.e("AddDevicePage", "Error while uploading images: $error")
                         }
-
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "The device's images failed to upload. Please try again.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                        Log.e("AddDevicePage", "Error while uploading images: $error")
                     }
                 }
-            }
-        },
+            },
             modifier = Modifier.fillMaxWidth(),
             colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
         ) {
             Text("Submit device")
+        }
+    }
+}
+
+@Composable
+fun ImageOverlay(bitmaps: List<Bitmap>, initialIndex: Int, onDismiss: () -> Unit, onDelete: (Int) -> Unit) {
+    val currentIndex by remember { mutableIntStateOf(initialIndex) }
+
+    Popup(
+        alignment = Alignment.Center,
+        properties = PopupProperties(focusable = true),
+        onDismissRequest = onDismiss
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Black.copy(alpha = 0.9f))
+        ) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                Image(
+                    bitmap = bitmaps[currentIndex].asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { /* Allow swipe gestures */ }
+                )
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Button(
+                        onClick = { onDelete(currentIndex) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Delete")
+                    }
+
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                    ) {
+                        Text("Close")
+                    }
+                }
+            }
         }
     }
 }
