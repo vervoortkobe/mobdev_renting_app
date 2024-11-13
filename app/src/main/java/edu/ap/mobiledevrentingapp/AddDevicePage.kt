@@ -242,7 +242,7 @@ fun AddDevicePage(navController: NavController) {
             )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        Spacer(modifier = Modifier.height(32.dp))
 
         Button(
             onClick = {
@@ -299,6 +299,8 @@ fun AddDevicePage(navController: NavController) {
         ) {
             Text("Submit device")
         }
+
+        Spacer(modifier = Modifier.height(8.dp))
     }
 }
 
