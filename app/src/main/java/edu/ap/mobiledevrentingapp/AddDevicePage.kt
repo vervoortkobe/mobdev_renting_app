@@ -36,9 +36,12 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -90,7 +93,7 @@ fun AddDevicePage(navController: NavController) {
 
     val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
         if (bitmap != null) {
-            bitmaps = bitmaps + bitmap // Append new bitmap
+            bitmaps = bitmaps + bitmap
         } else {
             Toast.makeText(context, "Failed to capture image.", Toast.LENGTH_SHORT).show()
         }
@@ -106,7 +109,6 @@ fun AddDevicePage(navController: NavController) {
     ) {
         Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
-        // Device Name Input
         OutlinedTextField(
             value = deviceName,
             onValueChange = { deviceName = it },
@@ -125,7 +127,6 @@ fun AddDevicePage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        // Description Input
         OutlinedTextField(
             value = description,
             onValueChange = { description = it },
@@ -140,7 +141,6 @@ fun AddDevicePage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(2.dp))
 
-        // Price Input
         OutlinedTextField(
             value = price,
             onValueChange = { price = it },
@@ -156,10 +156,8 @@ fun AddDevicePage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Image Selection Section
         Text("Device Images", fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
-        // Button to select images from the gallery
         Button(
             onClick = { galleryLauncher.launch("image/*") },
             modifier = Modifier.fillMaxWidth(),
@@ -168,7 +166,6 @@ fun AddDevicePage(navController: NavController) {
             Text("Select images to upload")
         }
 
-        // Button to capture an image using the camera
         Button(
             onClick = { cameraLauncher.launch() },
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
@@ -307,7 +304,7 @@ fun AddDevicePage(navController: NavController) {
 
 @Composable
 fun ImageOverlay(bitmaps: List<Bitmap>, initialIndex: Int, onDismiss: () -> Unit, onDelete: (Int) -> Unit) {
-    val currentIndex by remember { mutableIntStateOf(initialIndex) }
+    val pagerState = rememberPagerState( initialPage = initialIndex, pageCount = { bitmaps.size } )
 
     Popup(
         alignment = Alignment.Center,
@@ -315,42 +312,45 @@ fun ImageOverlay(bitmaps: List<Bitmap>, initialIndex: Int, onDismiss: () -> Unit
         onDismissRequest = onDismiss
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color.Black.copy(alpha = 0.9f))
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Box(
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp)
             ) {
+                Button(
+                    onClick = { onDelete(pagerState.currentPage) },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                ) {
+                    Text("Delete")
+                }
+
+                Button(
+                    onClick = onDismiss,
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                ) {
+                    Text("Close")
+                }
+            }
+
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize()
+            ) { page ->
                 Image(
-                    bitmap = bitmaps[currentIndex].asImageBitmap(),
+                    bitmap = bitmaps[page].asImageBitmap(),
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .clickable { /* Allow swipe gestures */ }
+                        .aspectRatio(1f)
+                        .clickable {  }
                 )
-
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Button(
-                        onClick = { onDelete(currentIndex) },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                    ) {
-                        Text("Delete")
-                    }
-
-                    Button(
-                        onClick = onDismiss,
-                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-                    ) {
-                        Text("Close")
-                    }
-                }
             }
         }
     }
