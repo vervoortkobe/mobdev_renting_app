@@ -265,9 +265,9 @@ fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
 
         Box(
             modifier = Modifier.fillMaxWidth()
-                .background(Color.LightGray, shape = RoundedCornerShape(6.dp))
+                .background(Color.White, shape = RoundedCornerShape(6.dp))
                 .border(
-                    width = 2.dp,
+                    width = 1.dp,
                     color = Color.Black,
                     shape = RoundedCornerShape(6.dp)
                 )

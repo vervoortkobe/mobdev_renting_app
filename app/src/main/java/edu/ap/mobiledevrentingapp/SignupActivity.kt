@@ -83,7 +83,8 @@ fun SignupScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -263,6 +264,8 @@ fun SignupScreen(
             ) {
                 Text("Already have an account? Log in!", color = Color.Black)
             }
+
+            Spacer(modifier = Modifier.height(184.dp))
         }
     }
 }
