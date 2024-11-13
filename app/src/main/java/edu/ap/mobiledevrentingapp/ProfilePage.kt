@@ -18,6 +18,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,7 +44,7 @@ fun ProfilePage() {
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
     var imageUrl by remember { mutableStateOf<Bitmap?>(null) }
 
-    val user = FirebaseService.getCurrentUser { success, document, _ ->
+    FirebaseService.getCurrentUser { success, document, _ ->
         if (success && document != null) {
             name = document.getString("fullName")
             imageUrl = document.getString("profileImageUrl")?.let { decode(it) };
@@ -53,27 +54,6 @@ fun ProfilePage() {
                 "Your user data couldn't be loaded.",
                 Toast.LENGTH_LONG
             ).show()
-        }
-    }
-
-    // Image picker launcher
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        selectedImageUri = uri
-        profileBitmap = uri?.let { getBitmapFromUri(context, it) }
-        // Trigger the upload if an image was selected
-        profileBitmap?.let { bitmap ->
-            FirebaseService.uploadUserProfileImage(
-                FirebaseService.getCurrentUserId() ?: "",
-                bitmap
-            ) { success, _, errorMessage ->
-                if (success) {
-                    Toast.makeText(context, "Image uploaded successfully!", Toast.LENGTH_SHORT).show()
-                } else {
-                    Toast.makeText(context, "Image upload failed: $errorMessage", Toast.LENGTH_LONG).show()
-                }
-            }
         }
     }
 
@@ -97,11 +77,12 @@ fun ProfilePage() {
                         .size(100.dp)
                         .clip(RoundedCornerShape(50.dp))
                         .border(2.dp, Color.Gray, RoundedCornerShape(50.dp))
-                        .clickable { launcher.launch("image/*") }
                 )
             }
 
-            name?.let { Text(text = it) }
+            Spacer(modifier = Modifier.height(16.dp))
+
+            name?.let { Text(text = it, color = Color.Black) }
         }
     }
 }
@@ -110,21 +91,6 @@ fun decode(toDecodeString: String): Bitmap? {
     val byteArray = Base64.decode(toDecodeString, Base64.DEFAULT)
     val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
     return bitmap;
-}
-
-// Helper function to get Bitmap from URI
-fun getBitmapFromUri(context: Context, uri: Uri): Bitmap? {
-    return try {
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(context.contentResolver, uri)
-            ImageDecoder.decodeBitmap(source)
-        } else {
-            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-        }
-    } catch (e: Exception) {
-        e.printStackTrace()
-        null
-    }
 }
 
 
