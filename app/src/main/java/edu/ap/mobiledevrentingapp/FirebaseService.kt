@@ -357,3 +357,36 @@
             }
         }
     }
+
+    fun getAllDevices(callback: (Boolean, List<DocumentSnapshot>?, String?) -> Unit) {
+        firestore.collection("devices").get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val documents = task.result
+                    if (documents != null && !documents.isEmpty) {
+                        callback(true, documents.documents, null)
+                    } else {
+                        callback(false, null, "No devices found.")
+                    }
+                } else {
+                    callback(false, null, "Failed to retrieve devices.")
+                }
+            }
+    }
+
+    fun getDeviceById(deviceId: String, callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
+        firestore.collection("devices").document(deviceId).get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val document = task.result
+                    if (document != null && document.exists()) {
+                        callback(true, document, null)
+                    } else {
+                        callback(false, null, "The device with the specified ID does not exist.")
+                    }
+                } else {
+                    callback(false, null, "Failed to retrieve the device by ID.")
+                }
+            }
+    }
+}

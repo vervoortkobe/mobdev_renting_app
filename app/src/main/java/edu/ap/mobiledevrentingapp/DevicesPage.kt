@@ -73,17 +73,11 @@ fun DevicesPage(navController: NavController) {
             }
         }
 
-        Text(
-            text = "Devices",
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
-
         Spacer(modifier = Modifier.height(16.dp))
 
         if (imageList.isEmpty()) {
             Text(
-                text = "No images found",
+                text = "No images found.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
