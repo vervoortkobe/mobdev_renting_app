@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -14,11 +15,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
@@ -88,7 +91,13 @@ fun MainPage(onLogout: () -> Unit) {
 
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
-    NavigationBar {
+    // Define the background color
+    val backgroundColor = Color(0xFFFF5232)
+    val itemColor = Color(0xFFFF9e81)
+
+    NavigationBar(
+        containerColor = backgroundColor // Set the background color here
+    ) {
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val items = listOf(
             NavigationItem("devices", Icons.Filled.List, "Devices"),
@@ -110,10 +119,18 @@ fun BottomNavigationBar(navController: NavHostController) {
                         launchSingleTop = true
                         restoreState = true
                     }
-                }
+                },
+                colors = NavigationBarItemDefaults.colors(
+                    indicatorColor = itemColor,
+                    selectedIconColor = Color.White,
+                    unselectedIconColor = Color.LightGray,
+                    selectedTextColor = Color.White,
+                    unselectedTextColor = Color.LightGray
+                )
             )
         }
     }
 }
+
 
 data class NavigationItem(val route: String, val icon: ImageVector, val label: String)
