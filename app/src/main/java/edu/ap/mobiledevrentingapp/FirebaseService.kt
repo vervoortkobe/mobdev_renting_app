@@ -342,6 +342,10 @@
             return FirebaseAuth.getInstance().currentUser?.uid;
         }
 
+        fun getCurrentUserEmail(): String? {
+            return FirebaseAuth.getInstance().currentUser?.email;
+        }
+
         fun getCurrentUser(callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
             val currentUserId = getCurrentUserId()
             if (currentUserId != null) {

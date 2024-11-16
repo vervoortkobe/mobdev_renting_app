@@ -50,6 +50,14 @@ import androidx.compose.ui.zIndex
 fun ProfilePage() {
     val context = LocalContext.current
     var name by remember { mutableStateOf<String?>(null) }
+    var phoneNumber by remember { mutableStateOf<String?>(null) }
+    var streetName by remember { mutableStateOf<String?>(null) }
+    var zipCode by remember { mutableStateOf<String?>(null) }
+    var city by remember { mutableStateOf<String?>(null) }
+    var adressNr by remember { mutableStateOf<String?>(null) }
+    var ibanNumber by remember { mutableStateOf<String?>(null) }
+    var totalAdress by remember { mutableStateOf<String?>(null) }
+    var email by remember { mutableStateOf<String?>(null) }
     var encodedImage by remember { mutableStateOf<String?>(null) }
     var id by remember { mutableStateOf<String?>(null) }
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -58,6 +66,14 @@ fun ProfilePage() {
         FirebaseService.getCurrentUser { success, document, _ ->
             if (success && document != null) {
                 name = document.getString("fullName")
+                phoneNumber = document.getString("phoneNumber")
+                streetName = document.getString("streetName")
+                zipCode = document.getString("zipCode")
+                city = document.getString("city")
+                adressNr = document.getString("addressNr")
+                ibanNumber = document.getString("ibanNumber")
+                totalAdress = "${streetName} ${adressNr} ${city} ${zipCode}"
+                email = FirebaseService.getCurrentUserEmail();
                 id = document.getString("userId")
                 encodedImage = document.getString("profileImageUrl")
                 encodedImage?.let { Log.e("ErrorImage", it) }
@@ -143,7 +159,7 @@ fun ProfilePage() {
                         imageVector = Icons.Filled.Home,
                         contentDescription = "Edit Profile Image",
                         modifier = Modifier
-                            .size(18.dp) 
+                            .size(18.dp)
                             .align(Alignment.Center),
                         tint = Color.Gray
                     )
@@ -153,6 +169,14 @@ fun ProfilePage() {
             Spacer(modifier = Modifier.height(16.dp))
 
             name?.let { Text(text = it, color = Color.Black) }
+            Spacer(modifier = Modifier.height(4.dp))
+            email?.let { Text(text = it, color = Color.Black) }
+            Spacer(modifier = Modifier.height(4.dp))
+            phoneNumber?.let { Text(text = it, color = Color.Black) }
+            Spacer(modifier = Modifier.height(4.dp))
+            ibanNumber?.let { Text(text = it, color = Color.Black) }
+            Spacer(modifier = Modifier.height(4.dp))
+            totalAdress?.let { Text(text = it, color = Color.Black) }
         }
     }
 }
