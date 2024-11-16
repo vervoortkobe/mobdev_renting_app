@@ -356,7 +356,6 @@
                 callback(false, null, "There is no user logged in.")
             }
         }
-    }
 
     fun getAllDevices(callback: (Boolean, List<DocumentSnapshot>?, String?) -> Unit) {
         firestore.collection("devices").get()
