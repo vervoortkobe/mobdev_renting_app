@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -265,7 +264,7 @@ fun SignupScreen(
                 Text("Already have an account? Log in!", color = Color.Black)
             }
 
-            Spacer(modifier = Modifier.height(184.dp))
+            Spacer(modifier = Modifier.height(196.dp))
         }
     }
 }
