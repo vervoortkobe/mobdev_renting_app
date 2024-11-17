@@ -1,9 +1,8 @@
-package edu.ap.mobiledevrentingapp.osm
+package edu.ap.mobiledevrentingapp
 
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.drawable.Drawable
-import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -46,8 +45,21 @@ fun MapPage() {
         rotation = 90f
     )
 
-    val depokIcon: Drawable? by remember {
-        mutableStateOf(AppCompatResources.getDrawable(context, org.osmdroid.library.R.drawable.marker_default_focused_base)) //R.drawable.round_eject_24
+    val tangerangMarkerState = rememberMarkerState(
+        geoPoint = Coordinates.tangerang,
+        rotation = 90f
+    )
+
+    val bekasiMarkerState = rememberMarkerState(
+        geoPoint = Coordinates.bekasi,
+        rotation = 90f
+    )
+
+    val rotatedDrawable = AppUtil.rotateDrawable(context, org.osmdroid.library.R.drawable.marker_default, 90f)
+
+    val icon: Drawable? by remember {
+        //mutableStateOf(AppCompatResources.getDrawable(context, org.osmdroid.library.R.drawable.marker_default))
+        mutableStateOf(rotatedDrawable)
     }
 
     val jakartaLabelProperties = remember {
@@ -67,7 +79,7 @@ fun MapPage() {
     ) {
         Marker(
             state = depokMarkerState,
-            icon = depokIcon,
+            icon = icon,
             title = "Depok",
             snippet = "Jawa barat"
         ) {
@@ -83,15 +95,50 @@ fun MapPage() {
             }
         }
 
-
         MarkerLabeled (
             state = jakartaMarkerState,
-            icon = depokIcon,
+            icon = icon,
             title = "Jakarta",
             snippet = "DKI Jakarta",
             label = "Jakarta",
             labelProperties = jakartaLabelProperties.value
         ){
+            Column(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(color = androidx.compose.ui.graphics.Color.Gray, shape = RoundedCornerShape(7.dp)),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = it.title)
+                Text(text = it.snippet, fontSize = 10.sp)
+            }
+        }
+
+        Marker(
+            state = tangerangMarkerState,
+            icon = icon,
+            title = "Tangerang",
+            snippet = "tangerang"
+        ) {
+            Column(
+                modifier = Modifier
+                    .size(100.dp)
+                    .background(color = androidx.compose.ui.graphics.Color.Gray, shape = RoundedCornerShape(7.dp)),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(text = it.title)
+                Text(text = it.snippet, fontSize = 10.sp)
+            }
+        }
+
+        Marker(
+            state = bekasiMarkerState,
+            icon = icon,
+            title = "Bekasi",
+            snippet = "bekasi"
+        ) {
             Column(
                 modifier = Modifier
                     .size(100.dp)
