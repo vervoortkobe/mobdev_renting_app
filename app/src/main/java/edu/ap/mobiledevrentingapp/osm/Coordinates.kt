@@ -12,8 +12,8 @@ object Coordinates {
         FirebaseService.getAllDevices { success, devices, error ->
             if (success) {
                 val geoPoints = devices?.mapNotNull { document ->
-                    val lat = document.getDouble("lat")
-                    val lon = document.getDouble("lon")
+                    val lat = document.getDouble("latitude")
+                    val lon = document.getDouble("longitude")
                     if (lat != null && lon != null) {
                         GeoPoint(lat, lon)
                     } else {

@@ -1,5 +1,9 @@
 package edu.ap.mobiledevrentingapp
 
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
@@ -26,15 +30,16 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import android.graphics.Bitmap
+import android.location.Location
 import android.net.Uri
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.result.launch
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.heightIn
@@ -48,10 +53,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -61,8 +64,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationServices
+import com.google.android.gms.tasks.Task
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 
 @Composable
@@ -77,6 +85,33 @@ fun AddDevicePage(navController: NavController) {
     var description by remember { mutableStateOf("") }
     var price by remember { mutableStateOf("") }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
+
+    // Inside your composable or activity
+    val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
+
+    fun getLocation(context: Context, callback: (Double?, Double?) -> Unit) {
+        val activity = context as? Activity
+        if (activity != null) {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                val locationTask: Task<Location> = fusedLocationClient.lastLocation
+                locationTask.addOnSuccessListener { location: Location? ->
+                    if (location != null) {
+                        callback(location.latitude, location.longitude)
+                    } else {
+                        callback(null, null)  // Location is not available
+                    }
+                }.addOnFailureListener {
+                    callback(null, null)  // Handle error
+                }
+            } else {
+                // Request location permission
+                ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
+            }
+        } else {
+            callback(null, null)  // Handle context issue (not an Activity)
+        }
+    }
+
 
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
         if (uris.size + bitmaps.size <= 5) {
@@ -253,28 +288,46 @@ fun AddDevicePage(navController: NavController) {
                             Log.e("AddDevicePage", "Images uploaded successfully!")
 
                             if (imageIds != null) {
-                                FirebaseService.getCurrentUserId()?.let {
-                                    FirebaseService.saveDevice(it, deviceName,
-                                        enumValues<DeviceCategory>()[selectedCategoryIndex], description, price, imageIds
-                                    ) { success, _, error ->
-                                        if (success) {
-                                            Toast.makeText(
-                                                context,
-                                                "The device was added successfully!",
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                            Log.e("AddDevicePage", "The device was added successfully!")
-                                            navController.popBackStack()
-                                        } else {
-                                            Toast.makeText(
-                                                context,
-                                                "The device's images failed to upload. Please try again.",
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                            Log.e("AddDevicePage", "Error while uploading images: $error")
+                                getLocation(context) { latitude, longitude ->
+                                    if (latitude != null && longitude != null) {
+                                        FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
+                                            if (success && imageIds != null) {
+                                                FirebaseService.getCurrentUserId()?.let {
+                                                    FirebaseService.saveDevice(
+                                                        it,
+                                                        deviceName,
+                                                        enumValues<DeviceCategory>()[selectedCategoryIndex],
+                                                        description,
+                                                        price,
+                                                        imageIds,
+                                                        latitude,
+                                                        longitude
+                                                    ) { success, _, error ->
+                                                        if (success) {
+                                                            Toast.makeText(
+                                                                context,
+                                                                "The device was added successfully!",
+                                                                Toast.LENGTH_LONG
+                                                            ).show()
+                                                            navController.popBackStack()
+                                                        } else {
+                                                            Toast.makeText(
+                                                                context,
+                                                                "The device's images failed to upload. Please try again.",
+                                                                Toast.LENGTH_LONG
+                                                            ).show()
+                                                        }
+                                                    }
+                                                }
+                                            } else {
+                                                Toast.makeText(context, "Failed to upload images.", Toast.LENGTH_LONG).show()
+                                            }
                                         }
+                                    } else {
+                                        Toast.makeText(context, "Unable to retrieve location.", Toast.LENGTH_LONG).show()
                                     }
                                 }
+
                             } else {
                                 Toast.makeText(
                                     context,

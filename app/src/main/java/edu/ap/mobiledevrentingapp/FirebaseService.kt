@@ -285,7 +285,7 @@
             }
         }
 
-        fun saveDevice(ownerId: String, deviceName: String, selectedCategory: DeviceCategory?, description: String, price: String, imageIds: List<String>, callback: (Boolean, String?, String?) -> Unit) {
+        fun saveDevice(ownerId: String, deviceName: String, selectedCategory: DeviceCategory?, description: String, price: String, imageIds: List<String>, latitude: Double?, longitude: Double?, callback: (Boolean, String?, String?) -> Unit) {
             if (ownerId.isEmpty()) {
                 callback(false, null, "The owner of the device couldn't be registered.")
                 return
@@ -303,7 +303,7 @@
                 return
             }
             if (description.length !in 5..500) {
-                callback(false, null, "Please provide a valid phone number.")
+                callback(false, null, "Please provide a valid description.")
                 return
             }
             if (price.isEmpty()) {
@@ -324,7 +324,9 @@
                 "selectedCategory" to selectedCategory.name,
                 "description" to description,
                 "price" to price,
-                "imageIds" to imageIds
+                "imageIds" to imageIds,
+                "latitude" to latitude,
+                "longitude" to longitude
             )
 
             firestore.collection("devices").document(uuid)
@@ -337,6 +339,7 @@
                     }
                 }
         }
+
 
         fun getCurrentUserId(): String? {
             return FirebaseAuth.getInstance().currentUser?.uid;
