@@ -26,6 +26,7 @@ import com.utsman.osmandcompose.OpenStreetMap
 import com.utsman.osmandcompose.model.LabelProperties
 import com.utsman.osmandcompose.rememberCameraState
 import com.utsman.osmandcompose.rememberMarkerState
+import edu.ap.mobiledevrentingapp.R
 
 @Composable
 fun MapPage() {
@@ -46,8 +47,8 @@ fun MapPage() {
         rotation = 90f
     )
 
-    val depokIcon: Drawable? by remember {
-        mutableStateOf(AppCompatResources.getDrawable(context, org.osmdroid.library.R.drawable.marker_default_focused_base)) //R.drawable.round_eject_24
+    val icon: Drawable? by remember {
+        mutableStateOf(AppCompatResources.getDrawable(context, R.drawable.custom_marker_icon))
     }
 
     val jakartaLabelProperties = remember {
@@ -67,7 +68,7 @@ fun MapPage() {
     ) {
         Marker(
             state = depokMarkerState,
-            icon = depokIcon,
+            icon = icon,
             title = "Depok",
             snippet = "Jawa barat"
         ) {
@@ -86,7 +87,7 @@ fun MapPage() {
 
         MarkerLabeled (
             state = jakartaMarkerState,
-            icon = depokIcon,
+            icon = icon,
             title = "Jakarta",
             snippet = "DKI Jakarta",
             label = "Jakarta",
