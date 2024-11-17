@@ -31,7 +31,7 @@ object FirebaseService {
                 if (task.isSuccessful) {
                     callback(true, null)
                 } else {
-                    val errorMessage = when (val exception = task.exception) {
+                    val errorMessage = when (task.exception) {
                         is FirebaseAuthInvalidCredentialsException -> "The e-mail or password is incorrect."
                         is FirebaseAuthInvalidUserException -> "There is no account associated with this email."
                         is FirebaseNetworkException -> "Network error. Please try again."
@@ -106,7 +106,7 @@ object FirebaseService {
                     }
 
                 } else {
-                    val errorMessage = when (val exception = task.exception) {
+                    val errorMessage = when (task.exception) {
                         is FirebaseAuthWeakPasswordException -> "Password is too weak. Please use at least 6 characters."
                         is FirebaseAuthInvalidCredentialsException -> "The e-mail you provided is invalid."
                         is FirebaseAuthUserCollisionException -> "This email is already associated with another account."
@@ -142,7 +142,7 @@ object FirebaseService {
             }
     }
 
-    private fun getUserById(userId: String, callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
+    fun getUserById(userId: String, callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
         firestore.collection("users").document(userId).get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -187,7 +187,7 @@ object FirebaseService {
         val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
 
         val data = hashMapOf(
-            "profileImageUrl" to base64String
+            "profileImage" to base64String
         )
 
         firestore.collection("users").document(userId)
@@ -270,7 +270,7 @@ object FirebaseService {
         }
     }
 
-    suspend fun getImageById(imageId: String): Pair<String, Bitmap>? {
+    private suspend fun getImageById(imageId: String): Pair<String, Bitmap>? {
         return try {
             val document = firestore.collection("images").document(imageId).get().await()
             val base64String = document.getString("image")
@@ -286,7 +286,7 @@ object FirebaseService {
         }
     }
 
-    fun saveDevice(ownerId: String, deviceName: String, selectedCategory: DeviceCategory?, description: String, price: String, imageIds: List<String>, callback: (Boolean, String?, String?) -> Unit) {
+    fun saveDevice(ownerId: String, deviceName: String, category: DeviceCategory?, description: String, price: String, imageIds: List<String>, callback: (Boolean, String?, String?) -> Unit) {
         if (ownerId.isEmpty()) {
             callback(false, null, "The owner of the device couldn't be registered.")
             return
@@ -295,7 +295,7 @@ object FirebaseService {
             callback(false, null, "Please provide a device name.")
             return
         }
-        if (selectedCategory == null) {
+        if (category == null) {
             callback(false, null, "Please select a category for the device.")
             return
         }
@@ -318,17 +318,7 @@ object FirebaseService {
 
         val uuid = UUID.randomUUID().toString()
 
-        val data = Device(description, uuid, deviceName, imageIds.toList(), ownerId, price, selectedCategory.name)
-
-        /*val data = hashMapOf(
-            "deviceId" to uuid,
-            "ownerId" to ownerId,
-            "deviceName" to deviceName,
-            "selectedCategory" to selectedCategory.name,
-            "description" to description,
-            "price" to price,
-            "imageIds" to imageIds
-        )*/
+        val data = Device(description, uuid, deviceName, imageIds.toList(), ownerId, price, category.name)
 
         firestore.collection("devices").document(uuid)
             .set(data)
@@ -342,11 +332,11 @@ object FirebaseService {
     }
 
     fun getCurrentUserId(): String? {
-        return FirebaseAuth.getInstance().currentUser?.uid;
+        return FirebaseAuth.getInstance().currentUser?.uid
     }
 
     fun getCurrentUserEmail(): String? {
-        return FirebaseAuth.getInstance().currentUser?.email;
+        return FirebaseAuth.getInstance().currentUser?.email
     }
 
     fun getCurrentUser(callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {

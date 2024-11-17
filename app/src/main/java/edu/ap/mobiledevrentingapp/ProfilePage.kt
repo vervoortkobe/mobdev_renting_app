@@ -1,9 +1,12 @@
+@file:Suppress("DEPRECATION")
+
 package edu.ap.mobiledevrentingapp
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.provider.MediaStore
+import android.provider.MediaStore.Images.Media.getBitmap
 import android.util.Base64
 import android.util.Log
 import android.widget.Toast
@@ -24,9 +27,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.rounded.ShoppingCart
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,9 +43,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 
 @Composable
 fun ProfilePage() {
@@ -73,9 +72,9 @@ fun ProfilePage() {
                 adressNr = document.getString("addressNr")
                 ibanNumber = document.getString("ibanNumber")
                 totalAdress = "${streetName} ${adressNr} ${city} ${zipCode}"
-                email = FirebaseService.getCurrentUserEmail();
+                email = FirebaseService.getCurrentUserEmail()
                 id = document.getString("userId")
-                encodedImage = document.getString("profileImageUrl")
+                encodedImage = document.getString("profileImage")
                 encodedImage?.let { Log.e("ErrorImage", it) }
                 profileBitmap = if (!encodedImage.isNullOrEmpty()) decode(encodedImage) else null
             } else {
@@ -91,7 +90,7 @@ fun ProfilePage() {
 
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
         uri?.let {
-            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+            val bitmap = getBitmap(context.contentResolver, it)
             profileBitmap = bitmap
             id?.let { userId ->
                 FirebaseService.uploadUserProfileImage(userId, bitmap) { success, _, _ ->

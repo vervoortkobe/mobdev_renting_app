@@ -7,5 +7,5 @@ data class Device(
     val imageIds: List<String> = emptyList(),
     val ownerId: String = "",
     val price: String = "",
-    val selectedCategory: String = ""
+    val category: String = ""
 )
