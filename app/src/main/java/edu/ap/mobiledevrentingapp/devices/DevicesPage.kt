@@ -28,8 +28,6 @@ import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 
 @Composable
 fun DevicesPage(navController: NavController) {
-    var searchQuery by remember { mutableStateOf("") }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -69,12 +67,7 @@ fun DevicesPage(navController: NavController) {
             }
         }
 
-        SearchBar(
-            searchQuery = searchQuery,
-            onSearchQueryChange = { searchQuery = it }
-        )
-
-        DisplayDevicesWithImages(searchQuery)
+        DisplayDevicesWithImages()
     }
 }
 
