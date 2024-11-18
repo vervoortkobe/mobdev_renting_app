@@ -91,6 +91,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = fullName,
+                singleLine = true,
                 onValueChange = { fullName = it },
                 label = { Text("Full Name", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
@@ -105,6 +106,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = phoneNumber,
+                singleLine = true,
                 onValueChange = { phoneNumber = it },
                 label = { Text("Phone Number", color = Color.Black) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -120,6 +122,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = ibanNumber,
+                singleLine = true,
                 onValueChange = { ibanNumber = it },
                 label = { Text("IBAN Number", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
@@ -136,6 +139,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = country,
+                singleLine = true,
                 onValueChange = { country = it },
                 label = { Text("Country", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
@@ -151,6 +155,7 @@ fun SignupScreen(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = city,
+                    singleLine = true,
                     onValueChange = { city = it },
                     label = { Text("City", color = Color.Black) },
                     modifier = Modifier.weight(1f),
@@ -163,6 +168,7 @@ fun SignupScreen(
 
                 OutlinedTextField(
                     value = zipCode,
+                    singleLine = true,
                     onValueChange = { zipCode = it },
                     label = { Text("Zip", color = Color.Black) },
                     modifier = Modifier.width(80.dp),
@@ -179,6 +185,7 @@ fun SignupScreen(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = streetName,
+                    singleLine = true,
                     onValueChange = { streetName = it },
                     label = { Text("Street", color = Color.Black) },
                     modifier = Modifier.weight(1f),
@@ -191,6 +198,7 @@ fun SignupScreen(
 
                 OutlinedTextField(
                     value = addressNr,
+                    singleLine = true,
                     onValueChange = { addressNr = it },
                     label = { Text("Nr.", color = Color.Black) },
                     modifier = Modifier.width(80.dp),
@@ -208,6 +216,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = email,
+                singleLine = true,
                 onValueChange = { email = it },
                 label = { Text("E-mail", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
@@ -222,6 +231,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = password,
+                singleLine = true,
                 onValueChange = { password = it },
                 label = { Text("Password", color = Color.Black) },
                 visualTransformation = PasswordVisualTransformation(),

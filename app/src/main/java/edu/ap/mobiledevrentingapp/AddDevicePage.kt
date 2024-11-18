@@ -109,6 +109,7 @@ fun AddDevicePage(navController: NavController) {
 
         OutlinedTextField(
             value = deviceName,
+            singleLine = true,
             onValueChange = { deviceName = it },
             label = { Text("Device Name", color = Color.Black) },
             modifier = Modifier.fillMaxWidth(),
@@ -141,6 +142,7 @@ fun AddDevicePage(navController: NavController) {
 
         OutlinedTextField(
             value = price,
+            singleLine = true,
             onValueChange = { price = it },
             label = { Text("Price per day (in Euro €)", color = Color.Black) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),

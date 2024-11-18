@@ -22,13 +22,16 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,9 +55,12 @@ import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
+import androidx.compose.material3.*
 
 @Composable
 fun DevicesPage(navController: NavController) {
+    var searchQuery by remember { mutableStateOf("") }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -66,12 +72,16 @@ fun DevicesPage(navController: NavController) {
         ) {
             Button(
                 onClick = { navController.navigate("map") },
-                modifier = Modifier.padding(end = 8.dp).width(180.dp)
+                modifier = Modifier
+                    .padding(end = 8.dp)
+                    .width(180.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
                     contentDescription = "Map Icon",
-                    modifier = Modifier.size(20.dp).padding(end = 4.dp)
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(end = 4.dp)
                 )
                 Text("Map")
             }
@@ -82,18 +92,54 @@ fun DevicesPage(navController: NavController) {
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = "Add Device Icon",
-                    modifier = Modifier.size(20.dp).padding(end = 4.dp)
+                    modifier = Modifier
+                        .size(20.dp)
+                        .padding(end = 4.dp)
                 )
                 Text("Add Device")
             }
         }
 
-        DisplayDevicesWithImages()
+        SearchBar(
+            searchQuery = searchQuery,
+            onSearchQueryChange = { searchQuery = it }
+        )
+
+        DisplayDevicesWithImages(searchQuery)
     }
 }
 
 @Composable
-fun DisplayDevicesWithImages() {
+fun SearchBar(searchQuery: String, onSearchQueryChange: (String) -> Unit) {
+    OutlinedTextField(
+        value = searchQuery,
+        singleLine = true,
+        onValueChange = onSearchQueryChange,
+        placeholder = { Text("Search devices...") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .background(Color.LightGray.copy(alpha = 0.2f), RoundedCornerShape(8.dp)),
+        trailingIcon = {
+            if (searchQuery.isNotEmpty()) {
+                IconButton(onClick = { onSearchQueryChange("") }) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Clear search",
+                        tint = Color.Gray
+                    )
+                }
+            }
+        },
+        colors = TextFieldDefaults.colors(
+            focusedIndicatorColor = Color.Transparent,
+            unfocusedIndicatorColor = Color.Transparent
+        )
+    )
+}
+
+@Composable
+fun DisplayDevicesWithImages(searchQuery: String) {
     val context = LocalContext.current
     var devicesWithImages by remember { mutableStateOf<List<Pair<Device, List<Pair<String, Bitmap>>>>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -113,22 +159,27 @@ fun DisplayDevicesWithImages() {
         }
     }
 
+    // Filter devices based on the search query
+    val filteredDevices = if (searchQuery.isNotBlank()) {
+        devicesWithImages.filter { it.first.deviceName.contains(searchQuery, ignoreCase = true) }
+    } else {
+        devicesWithImages
+    }
+
     if (isLoading) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-    }
-    else if (devicesWithImages.isEmpty()) {
+    } else if (filteredDevices.isEmpty()) {
         Text(
             text = "No devices found.",
             style = MaterialTheme.typography.bodyMedium,
             color = Color.Gray
         )
-    }
-        else {
+    } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             verticalArrangement = Arrangement.spacedBy(0.dp)
         ) {
-            items(devicesWithImages) { (device, images) ->
+            items(filteredDevices) { (device, images) ->
                 DeviceCard(device, images)
             }
         }
@@ -152,7 +203,6 @@ fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
             .fillMaxWidth()
             .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 4.dp)
             .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
-            .background(Color.White, RoundedCornerShape(8.dp))
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
