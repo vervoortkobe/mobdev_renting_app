@@ -37,7 +37,7 @@
                 }
         }
 
-        fun signup(email: String, password: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
+        fun signup(email: String, password: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, latitude: Double?, longitude: Double?, callback: (Boolean, String?) -> Unit) {
             if(email.isEmpty()) {
                 callback(false, "Please provide your full name.")
                 return
@@ -92,7 +92,7 @@
                     if (task.isSuccessful) {
                         val userId: String = task.result.user?.uid.toString()
 
-                        saveUser(userId, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
+                        saveUser(userId, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr, latitude, longitude) { success, errorMessage ->
                             if (success) {
                                 callback(true, null)
                             } else {
@@ -113,7 +113,7 @@
                 }
         }
 
-        private fun saveUser(userId: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
+        private fun saveUser(userId: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, latitude: Double?, longitude: Double?, callback: (Boolean, String?) -> Unit) {
             val data = hashMapOf(
                 "userId" to userId,
                 "fullName" to fullName,
@@ -123,7 +123,9 @@
                 "city" to city,
                 "zipCode" to zipCode,
                 "streetName" to streetName,
-                "addressNr" to addressNr
+                "addressNr" to addressNr,
+                "latitude" to latitude,
+                "longitude" to longitude
             )
 
             firestore.collection("users").document(userId)

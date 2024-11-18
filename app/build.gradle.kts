@@ -89,4 +89,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose.v253)
     implementation(project(":osm-compose"))
     implementation(libs.osmdroid.android)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 }
