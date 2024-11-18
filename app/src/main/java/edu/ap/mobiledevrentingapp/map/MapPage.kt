@@ -43,9 +43,9 @@ fun MapPage() {
     var geoPoints by remember { mutableStateOf<List<GeoPoint>>(emptyList()) }
 
     LaunchedEffect(Unit) {
-        /*Coordinates.fetchAllDevices { points ->
+        Coordinates.fetchAllDevices { points ->
             geoPoints = points
-        }*/
+        }
     }
 
     OpenStreetMap(

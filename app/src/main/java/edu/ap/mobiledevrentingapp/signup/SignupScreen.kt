@@ -269,7 +269,7 @@ fun SignupScreen(
 
             Button(
                 onClick = {
-                    val fullAddress = "$streetName $addressNr $city $country"
+                    val fullAddress = "$streetName + $addressNr + $city + $country"
                     isLoading = true
 
                     CoroutineScope(Dispatchers.Main).launch {
@@ -277,11 +277,14 @@ fun SignupScreen(
                         Log.e("Coordinates", coordinates.toString())
                         Log.e("Coordinates", fullAddress)
 
-                            if(coordinates != null) {
-                                val (lat, lon) = coordinates
-                                latitude = lat
-                                longitude = lon
-                            }
+                        if (coordinates == null) {
+                            isLoading = false
+                            Toast.makeText(context, "Address not found. Please check your address.", Toast.LENGTH_SHORT).show()
+                        } else {
+                            val (lat, lon) = coordinates
+                            latitude = lat
+                            longitude = lon
+
                             FirebaseService.signup(
                                 email, password, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr,
                                 latitude, longitude
@@ -293,6 +296,7 @@ fun SignupScreen(
                                     Toast.makeText(context, errorMessage ?: "Signup failed", Toast.LENGTH_SHORT).show()
                                 }
                             }
+                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
