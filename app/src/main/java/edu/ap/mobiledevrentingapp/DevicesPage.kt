@@ -15,10 +15,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -137,80 +139,19 @@ fun DisplayDevicesWithImages() {
 
 @Composable
 fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
-    var ownerData by remember { mutableStateOf<DocumentSnapshot?>(null) }
-
-    // Fetch owner data
-    LaunchedEffect(device.ownerId) {
-        fetchOwnerData(device.ownerId) { success, document, _ ->
-            if (success) {
-                ownerData = document
-            }
-        }
-    }
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
             .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
             .padding(8.dp),
-        verticalAlignment = Alignment.Top
+        verticalAlignment = Alignment.CenterVertically // Align everything vertically
     ) {
-        // Left Side: Title and Owner Info
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Title and Owner Info Row
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Owner Profile Image
-                val profileImageBase64 = ownerData?.getString("profileImage")
-                if (profileImageBase64 != null) {
-                    val imageBitmap = profileImageBase64.decodeBase64ToBitmap()
-                    if (imageBitmap != null) {
-                        Image(
-                            bitmap = imageBitmap.asImageBitmap(),
-                            contentDescription = "Owner profile",
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(Color.Gray)
-                        )
-                    }
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(Color.Gray)
-                    )
-                }
-
-                // Owner Name
-                val ownerName = ownerData?.getString("fullName") ?: "Unknown Owner"
-                Text(
-                    text = ownerName,
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold)
-                )
-            }
-
-            // Device Title
-            Text(
-                text = device.deviceName,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
-        }
-
-        Spacer(modifier = Modifier.width(8.dp))
-
-        // Center: Images Section
+        // Images Section
         Box(
             modifier = Modifier
-                .weight(2f)
-                .aspectRatio(1f)
+                .weight(1f)
+                .aspectRatio(1f) // Make the height equal to the width for the first image
         ) {
             if (images.isNotEmpty()) {
                 // Stack images
@@ -224,14 +165,15 @@ fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
                             .clip(RoundedCornerShape(8.dp))
                             .border(
                                 1.dp,
-                                Color.Gray,
+                                if (index == 0) Color.White else Color.Gray,
                                 RoundedCornerShape(8.dp)
                             )
-                            .graphicsLayer { scaleX = 1.1f; scaleY = 1.1f } // Slight zoom
-                            .zIndex((images.size - index).toFloat())
+                            .graphicsLayer { scaleX = 1.1f; scaleY = 1.1f } // Slight zoom for filling edges
+                            .zIndex((images.size - index).toFloat()) // Ensure layering
                     )
                 }
             } else {
+                // No images fallback
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -250,29 +192,29 @@ fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // Right Side: Device Details
+        // Device Details
         Column(
-            modifier = Modifier.weight(3f),
+            modifier = Modifier.weight(2f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Device Name
+            Text(
+                text = device.deviceName,
+                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
+            )
+
             // Location and Price
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Gray)
-                Text(
-                    text = ownerData?.getString("city") ?: "Unknown City",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Text(text = "5km Antwerp", style = MaterialTheme.typography.bodySmall)
 
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color.Gray)
-                Text(
-                    text = "${device.price} €",
-                    style = MaterialTheme.typography.bodySmall
-                )
+                Text(text = "${device.price} €", style = MaterialTheme.typography.bodySmall)
             }
 
             // Category
@@ -288,23 +230,27 @@ fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
                 style = MaterialTheme.typography.bodySmall,
                 color = Color.Gray
             )
+
+            // Owner Section
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(Color.Gray)
+                ) {
+                    // Placeholder for profile image
+                }
+                Text(
+                    text = device.ownerId,
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                )
+            }
         }
     }
-}
-
-// Extension function to decode Base64 to Bitmap
-fun String.decodeBase64ToBitmap(): Bitmap? {
-    return try {
-        val decodedBytes = Base64.decode(this, Base64.DEFAULT)
-        BitmapFactory.decodeByteArray(decodedBytes, 0, decodedBytes.size)
-    } catch (e: Exception) {
-        null
-    }
-}
-
-// Owner Data Fetch Wrapper
-fun fetchOwnerData(userId: String, callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
-    FirebaseService.getUserById(userId, callback)
 }
 
 
