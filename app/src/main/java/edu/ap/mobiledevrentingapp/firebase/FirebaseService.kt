@@ -42,7 +42,7 @@ object FirebaseService {
             }
     }
 
-    fun signup(email: String, password: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
+    fun signup(email: String, password: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, latitude: Double, longitude: Double, callback: (Boolean, String?) -> Unit) {
         if(email.isEmpty()) {
             callback(false, "Please provide your full name.")
             return
@@ -97,7 +97,7 @@ object FirebaseService {
                 if (task.isSuccessful) {
                     val userId: String = task.result.user?.uid.toString()
 
-                    saveUser(userId, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
+                    saveUser(userId, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr, latitude, longitude) { success, errorMessage ->
                         if (success) {
                             callback(true, null)
                         } else {
@@ -118,7 +118,7 @@ object FirebaseService {
             }
     }
 
-    private fun saveUser(userId: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, callback: (Boolean, String?) -> Unit) {
+    private fun saveUser(userId: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, latitude: Double, longitude: Double, callback: (Boolean, String?) -> Unit) {
         val data = hashMapOf(
             "userId" to userId,
             "fullName" to fullName,
@@ -128,7 +128,9 @@ object FirebaseService {
             "city" to city,
             "zipCode" to zipCode,
             "streetName" to streetName,
-            "addressNr" to addressNr
+            "addressNr" to addressNr,
+            "latitude" to latitude,
+            "longitude" to longitude
         )
 
         firestore.collection("users").document(userId)
@@ -286,7 +288,7 @@ object FirebaseService {
         }
     }
 
-    fun saveDevice(ownerId: String, deviceName: String, category: DeviceCategory?, description: String, price: String, imageIds: List<String>, callback: (Boolean, String?, String?) -> Unit) {
+    fun saveDevice(ownerId: String, deviceName: String, category: DeviceCategory?, description: String, price: String, imageIds: List<String>, latitude: Double, longitude: Double, callback: (Boolean, String?, String?) -> Unit) {
         if (ownerId.isEmpty()) {
             callback(false, null, "The owner of the device couldn't be registered.")
             return
@@ -318,7 +320,7 @@ object FirebaseService {
 
         val uuid = UUID.randomUUID().toString()
 
-        val data = Device(description, uuid, deviceName, imageIds.toList(), ownerId, price, category.name)
+        val data = Device(description, uuid, deviceName, imageIds.toList(), ownerId, price, category.name, latitude, longitude)
 
         firestore.collection("devices").document(uuid)
             .set(data)
@@ -350,7 +352,7 @@ object FirebaseService {
         }
     }
 
-    private fun getAllDevices(callback: (Boolean, List<Device?>, String?) -> Unit) {
+    fun getAllDevices(callback: (Boolean, List<Device?>, String?) -> Unit) {
         firestore.collection("devices").get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
