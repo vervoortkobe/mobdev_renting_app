@@ -1,4 +1,4 @@
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.addDevice
 
 import android.content.Context
 import android.widget.Toast
@@ -61,6 +61,9 @@ import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import edu.ap.mobiledevrentingapp.firebase.AppUtil
+import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 
 @Composable
@@ -256,139 +259,6 @@ fun AddDevicePage(navController: NavController) {
     }
 }
 
-@Composable
-fun ImageOverlay(bitmaps: List<Bitmap>, initialIndex: Int, onDismiss: () -> Unit, onDelete: (Int) -> Unit) {
-    val pagerState = rememberPagerState( initialPage = initialIndex, pageCount = { bitmaps.size } )
-
-    Popup(
-        alignment = Alignment.Center,
-        properties = PopupProperties(focusable = true),
-        onDismissRequest = onDismiss
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.9f))
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            ) {
-                Button(
-                    onClick = { onDelete(pagerState.currentPage) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                ) {
-                    Text("Delete")
-                }
-
-                Button(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-                ) {
-                    Text("Close")
-                }
-            }
-
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                Image(
-                    bitmap = bitmaps[page].asImageBitmap(),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .clickable {  }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
-
-    var showDropdown by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Column(
-        modifier = Modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center) {
-
-        Box(
-            modifier = Modifier.fillMaxWidth()
-                .background(Color.Transparent, shape = RoundedCornerShape(6.dp))
-                .border(
-                    width = 1.dp,
-                    color = Color.Black,
-                    shape = RoundedCornerShape(4.dp)
-                )
-                .clickable { showDropdown = !showDropdown }
-                .padding(12.dp)
-                .fillMaxWidth()
-        ) {
-            Column(
-                modifier = Modifier
-                    .heightIn(max = 120.dp)
-                    .verticalScroll(state = scrollState)
-            ) {
-                Text(
-                    text = AppUtil.convertUppercaseToTitleCase(enumValues<DeviceCategory>()[selectedIndex].name),
-                    modifier = Modifier.padding(3.dp),
-                    color = Color.Black
-                )
-            }
-        }
-
-        Box {
-            if (showDropdown) {
-                Popup(
-                    alignment = Alignment.TopCenter,
-                    properties = PopupProperties(
-                        excludeFromSystemGesture = true,
-                    ),
-                    onDismissRequest = { showDropdown = false }
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp, 0.dp)
-                            .heightIn(max = 155.dp)
-                            .verticalScroll(state = scrollState)
-                            .border(width = 2.dp, shape = RoundedCornerShape(6.dp), color = Color.Black)
-                    ) {
-                        enumValues<DeviceCategory>().onEachIndexed { index, item ->
-                            if (index != 0) {
-                                Divider(thickness = 1.dp, color = Color.Gray)
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.White)
-                                    .padding(12.dp, 3.dp)
-                                    .clickable {
-                                        onItemClick(index)
-                                        showDropdown = !showDropdown
-                                    },
-                            ) {
-                                Text(text = AppUtil.convertUppercaseToTitleCase(item.name), modifier = Modifier.padding(3.dp))
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
 fun submitDevice(bitmaps : List<Bitmap>, deviceName: String, selectedCategoryIndex: Int, description: String, price: String, navController: NavController, context: Context) {
     if (bitmaps.isNotEmpty()) {
         FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
@@ -398,8 +268,13 @@ fun submitDevice(bitmaps : List<Bitmap>, deviceName: String, selectedCategoryInd
 
                 if (imageIds != null) {
                     FirebaseService.getCurrentUserId()?.let {
-                        FirebaseService.saveDevice(it, deviceName,
-                            enumValues<DeviceCategory>()[selectedCategoryIndex], description, price, imageIds
+                        FirebaseService.saveDevice(
+                            it,
+                            deviceName,
+                            enumValues<DeviceCategory>()[selectedCategoryIndex],
+                            description,
+                            price,
+                            imageIds
                         ) { success, _, error ->
                             if (success) {
                                 Toast.makeText(

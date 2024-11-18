@@ -1,4 +1,4 @@
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.firebase
 
 data class User(
     val addressNr: String = "",

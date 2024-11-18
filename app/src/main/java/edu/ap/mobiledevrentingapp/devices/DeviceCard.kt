@@ -1,7 +1,6 @@
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.devices
 
 import android.graphics.Bitmap
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -16,22 +15,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,147 +35,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
-import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
+import edu.ap.mobiledevrentingapp.firebase.AppUtil
+import edu.ap.mobiledevrentingapp.firebase.Device
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService
+import edu.ap.mobiledevrentingapp.firebase.User
+import edu.ap.mobiledevrentingapp.profile.decode
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
-import androidx.compose.material3.*
-
-@Composable
-fun DevicesPage(navController: NavController) {
-    var searchQuery by remember { mutableStateOf("") }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(2.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Button(
-                onClick = { navController.navigate("map") },
-                modifier = Modifier
-                    .padding(end = 8.dp)
-                    .width(180.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Map Icon",
-                    modifier = Modifier
-                        .size(20.dp)
-                        .padding(end = 4.dp)
-                )
-                Text("Map")
-            }
-            Button(
-                onClick = { navController.navigate("add_device") },
-                modifier = Modifier.width(180.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Add Device Icon",
-                    modifier = Modifier
-                        .size(20.dp)
-                        .padding(end = 4.dp)
-                )
-                Text("Add Device")
-            }
-        }
-
-        SearchBar(
-            searchQuery = searchQuery,
-            onSearchQueryChange = { searchQuery = it }
-        )
-
-        DisplayDevicesWithImages(searchQuery)
-    }
-}
-
-@Composable
-fun SearchBar(searchQuery: String, onSearchQueryChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = searchQuery,
-        singleLine = true,
-        onValueChange = onSearchQueryChange,
-        placeholder = { Text("Search devices...") },
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(8.dp)
-            .background(Color.LightGray.copy(alpha = 0.2f), RoundedCornerShape(8.dp)),
-        trailingIcon = {
-            if (searchQuery.isNotEmpty()) {
-                IconButton(onClick = { onSearchQueryChange("") }) {
-                    Icon(
-                        imageVector = Icons.Default.Close,
-                        contentDescription = "Clear search",
-                        tint = Color.Gray
-                    )
-                }
-            }
-        },
-        colors = TextFieldDefaults.colors(
-            focusedIndicatorColor = Color.Transparent,
-            unfocusedIndicatorColor = Color.Transparent
-        )
-    )
-}
-
-@Composable
-fun DisplayDevicesWithImages(searchQuery: String) {
-    val context = LocalContext.current
-    var devicesWithImages by remember { mutableStateOf<List<Pair<Device, List<Pair<String, Bitmap>>>>>(emptyList()) }
-    var isLoading by remember { mutableStateOf(true) }
-
-    LaunchedEffect(Unit) {
-        FirebaseService.getAllDevicesWithImages { success, devicesList, error ->
-            if (success) {
-                isLoading = false
-                devicesWithImages = devicesList
-            } else {
-                Toast.makeText(
-                    context,
-                    error ?: "An error occurred while fetching devices.",
-                    Toast.LENGTH_LONG
-                ).show()
-            }
-        }
-    }
-
-    // Filter devices based on the search query
-    val filteredDevices = if (searchQuery.isNotBlank()) {
-        devicesWithImages.filter { it.first.deviceName.contains(searchQuery, ignoreCase = true) }
-    } else {
-        devicesWithImages
-    }
-
-    if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-    } else if (filteredDevices.isEmpty()) {
-        Text(
-            text = "No devices found.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
-        )
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
-        ) {
-            items(filteredDevices) { (device, images) ->
-                DeviceCard(device, images)
-            }
-        }
-    }
-}
 
 @Composable
 fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
@@ -331,13 +192,5 @@ suspend fun getOwnerData(ownerId: String): User {
                 )
             }
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun DevicesPagePreview() {
-    MobileDevRentingAppTheme {
-        DevicesPage(navController = rememberNavController())
     }
 }

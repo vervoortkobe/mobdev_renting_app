@@ -1,4 +1,4 @@
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.firebase
 
 import android.content.Context
 import android.graphics.Bitmap

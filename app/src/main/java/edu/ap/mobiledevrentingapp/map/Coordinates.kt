@@ -1,4 +1,4 @@
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.map
 
 import org.osmdroid.util.GeoPoint
 

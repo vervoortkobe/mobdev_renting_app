@@ -1,11 +1,8 @@
-@file:Suppress("DEPRECATION")
-
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.profile
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.provider.MediaStore
 import android.provider.MediaStore.Images.Media.getBitmap
 import android.util.Base64
 import android.util.Log
@@ -44,6 +41,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 
 @Composable
 fun ProfilePage() {
@@ -189,8 +187,3 @@ fun decode(toDecodeString: String?): Bitmap? {
         null
     }
 }
-
-
-
-
-

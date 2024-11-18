@@ -1,4 +1,4 @@
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.map
 
 import android.graphics.Color
 import android.graphics.Paint
@@ -25,6 +25,8 @@ import com.utsman.osmandcompose.OpenStreetMap
 import com.utsman.osmandcompose.model.LabelProperties
 import com.utsman.osmandcompose.rememberCameraState
 import com.utsman.osmandcompose.rememberMarkerState
+import edu.ap.mobiledevrentingapp.firebase.AppUtil
+import org.osmdroid.library.R
 
 @Composable
 fun MapPage() {
@@ -55,7 +57,7 @@ fun MapPage() {
         rotation = 90f
     )
 
-    val rotatedDrawable = AppUtil.rotateDrawable(context, org.osmdroid.library.R.drawable.marker_default, 90f)
+    val rotatedDrawable = AppUtil.rotateDrawable(context, R.drawable.marker_default, 90f)
 
     val icon: Drawable? by remember {
         //mutableStateOf(AppCompatResources.getDrawable(context, org.osmdroid.library.R.drawable.marker_default))
