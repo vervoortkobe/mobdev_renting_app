@@ -1,9 +1,10 @@
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.addDevice
 
 import android.Manifest
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
+import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.foundation.Image
@@ -71,6 +72,9 @@ import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.tasks.Task
+import edu.ap.mobiledevrentingapp.firebase.AppUtil
+import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 
 @Composable
@@ -98,6 +102,116 @@ fun AddDevicePage(navController: NavController) {
                     "You can select up to 5 images.",
                     Toast.LENGTH_LONG
                 ).show()
+    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
+        if (uris.size + bitmaps.size <= 5) {
+            imageUris = uris
+            bitmaps = bitmaps + uris.mapNotNull { uri -> AppUtil.loadBitmapFromUri(context, uri) }
+        } else {
+            Toast.makeText(
+                context,
+                "You can select up to 5 images.",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
+        if (bitmap != null) {
+            bitmaps = bitmaps + bitmap
+        } else {
+            Toast.makeText(context, "Failed to capture image.", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    Column(
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+
+        OutlinedTextField(
+            value = deviceName,
+            singleLine = true,
+            onValueChange = { deviceName = it },
+            label = { Text("Device Name", color = Color.Black) },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Makita Screwdriver") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.Black,
+            )
+        )
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        DropdownList(selectedIndex = selectedCategoryIndex, onItemClick = { selectedCategoryIndex = it })
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        OutlinedTextField(
+            value = description,
+            onValueChange = { description = it },
+            label = { Text("Description", color = Color.Black) },
+            modifier = Modifier.fillMaxWidth().height(150.dp),
+            placeholder = { Text("Max. 500 characters") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.Black,
+            )
+        )
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        OutlinedTextField(
+            value = price,
+            singleLine = true,
+            onValueChange = { price = it },
+            label = { Text("Price per day (in Euro €)", color = Color.Black) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("10") },
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = Color.Red,
+                unfocusedBorderColor = Color.Black,
+            )
+        )
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Device Images", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+
+        Button(
+            onClick = { galleryLauncher.launch("image/*") },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+        ) {
+            Text("Select images to upload")
+        }
+
+        Button(
+            onClick = { cameraLauncher.launch() },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+        ) {
+            Text("Take a picture")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        if (bitmaps.isEmpty()) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(250.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
+                    .background(Color.LightGray)
+            ) {
+                Text("No images selected.")
             }
         }
 
@@ -482,10 +596,68 @@ fun AddDevicePage(navController: NavController) {
                                         modifier = Modifier.padding(3.dp)
                                     )
                                 }
+        Button(
+            onClick = { submitDevice(bitmaps, deviceName, selectedCategoryIndex, description, price, navController, context) },
+            modifier = Modifier.fillMaxWidth(),
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+        ) {
+            Text("Submit device")
+        }
+
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+}
+
+fun submitDevice(bitmaps : List<Bitmap>, deviceName: String, selectedCategoryIndex: Int, description: String, price: String, navController: NavController, context: Context) {
+    if (bitmaps.isNotEmpty()) {
+        FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
+            Log.e("AddDevicePage", "Images uploaded successfully: $success, $imageIds, $error")
+            if (success) {
+                Log.e("AddDevicePage", "Images uploaded successfully!")
+
+                if (imageIds != null) {
+                    FirebaseService.getCurrentUserId()?.let {
+                        FirebaseService.saveDevice(
+                            it,
+                            deviceName,
+                            enumValues<DeviceCategory>()[selectedCategoryIndex],
+                            description,
+                            price,
+                            imageIds
+                        ) { success, _, error ->
+                            if (success) {
+                                Toast.makeText(
+                                    context,
+                                    "The device was added successfully!",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                Log.e("AddDevicePage", "The device was added successfully!")
+                                navController.popBackStack()
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "The device's images failed to upload. Please try again.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                Log.e("AddDevicePage", "Error while uploading images: $error")
                             }
                         }
                     }
+                } else {
+                    Toast.makeText(
+                        context,
+                        "The device's images failed to fetch.",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    Log.e("AddDevicePage", "Error while uploading images: $error")
                 }
+            } else {
+                Toast.makeText(
+                    context,
+                    "The device's images failed to upload. Please try again.",
+                    Toast.LENGTH_LONG
+                ).show()
+                Log.e("AddDevicePage", "Error while uploading images: $error")
             }
         }
     }

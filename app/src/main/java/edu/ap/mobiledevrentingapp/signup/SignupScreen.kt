@@ -1,19 +1,34 @@
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.signup
 
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.setContent
-import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -59,6 +74,8 @@ class SignupActivity : AppCompatActivity() {
         }
     }
 }
+import edu.ap.mobiledevrentingapp.R
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 
 @Composable
 fun SignupScreen(
@@ -125,6 +142,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = fullName,
+                singleLine = true,
                 onValueChange = { fullName = it },
                 label = { Text("Full Name", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
@@ -139,6 +157,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = phoneNumber,
+                singleLine = true,
                 onValueChange = { phoneNumber = it },
                 label = { Text("Phone Number", color = Color.Black) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
@@ -154,6 +173,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = ibanNumber,
+                singleLine = true,
                 onValueChange = { ibanNumber = it },
                 label = { Text("IBAN Number", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
@@ -170,6 +190,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = country,
+                singleLine = true,
                 onValueChange = { country = it },
                 label = { Text("Country", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
@@ -185,6 +206,7 @@ fun SignupScreen(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = city,
+                    singleLine = true,
                     onValueChange = { city = it },
                     label = { Text("City", color = Color.Black) },
                     modifier = Modifier.weight(1f),
@@ -197,6 +219,7 @@ fun SignupScreen(
 
                 OutlinedTextField(
                     value = zipCode,
+                    singleLine = true,
                     onValueChange = { zipCode = it },
                     label = { Text("Zip", color = Color.Black) },
                     modifier = Modifier.width(80.dp),
@@ -213,6 +236,7 @@ fun SignupScreen(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
                     value = streetName,
+                    singleLine = true,
                     onValueChange = { streetName = it },
                     label = { Text("Street", color = Color.Black) },
                     modifier = Modifier.weight(1f),
@@ -225,6 +249,7 @@ fun SignupScreen(
 
                 OutlinedTextField(
                     value = addressNr,
+                    singleLine = true,
                     onValueChange = { addressNr = it },
                     label = { Text("Nr.", color = Color.Black) },
                     modifier = Modifier.width(80.dp),
@@ -242,6 +267,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = email,
+                singleLine = true,
                 onValueChange = { email = it },
                 label = { Text("E-mail", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
@@ -256,6 +282,7 @@ fun SignupScreen(
 
             OutlinedTextField(
                 value = password,
+                singleLine = true,
                 onValueChange = { password = it },
                 label = { Text("Password", color = Color.Black) },
                 visualTransformation = PasswordVisualTransformation(),
@@ -313,6 +340,8 @@ fun SignupScreen(
             ) {
                 Text("Already have an account? Login", color = Color.Black)
             }
+
+            Spacer(modifier = Modifier.height(196.dp))
         }
     }
 }

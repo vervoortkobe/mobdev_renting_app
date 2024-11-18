@@ -1,4 +1,4 @@
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.home
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,7 +15,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-
 
 @Composable
 fun HomePage(onLogout: () -> Unit) {

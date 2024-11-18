@@ -4,7 +4,6 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -23,14 +22,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
-import edu.ap.mobiledevrentingapp.osm.MapPage
+import edu.ap.mobiledevrentingapp.addDevice.AddDevicePage
+import edu.ap.mobiledevrentingapp.devices.DevicesPage
+import edu.ap.mobiledevrentingapp.home.HomePage
+import edu.ap.mobiledevrentingapp.login.LoginActivity
+import edu.ap.mobiledevrentingapp.map.MapPage
+import edu.ap.mobiledevrentingapp.profile.ProfilePage
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 
 class MainActivity : AppCompatActivity() {
@@ -131,6 +134,5 @@ fun BottomNavigationBar(navController: NavHostController) {
         }
     }
 }
-
 
 data class NavigationItem(val route: String, val icon: ImageVector, val label: String)
