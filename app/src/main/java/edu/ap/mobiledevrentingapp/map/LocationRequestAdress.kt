@@ -5,7 +5,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import org.osmdroid.util.GeoPoint
-import edu.ap.mobiledevrentingapp.FirebaseService
 import retrofit2.http.GET
 import retrofit2.http.Query
 

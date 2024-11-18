@@ -1,10 +1,27 @@
 package edu.ap.mobiledevrentingapp.map
 
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import org.osmdroid.util.GeoPoint
 
 object Coordinates {
-    val depok = GeoPoint(-6.3970066, 106.8224316)
-    val jakarta = GeoPoint(-6.1907982, 106.8315909)
-    val tangerang = GeoPoint(-6.2686957,106.7084831)
-    val bekasi = GeoPoint(-6.3074877,106.9746681)
+    /*fun fetchAllDevices(callback: (List<GeoPoint>) -> Unit) {
+        FirebaseService.getAllDevices { success, devices, error ->
+            if (success) {
+                val geoPoints = devices?.mapNotNull { document ->
+                    val lat = document.getDouble("latitude")
+                    val lon = document.getDouble("longitude")
+                    if (lat != null && lon != null) {
+                        GeoPoint(lat, lon)
+                    } else {
+                        null
+                    }
+                } ?: emptyList()
+
+                callback(geoPoints)
+            } else {
+                println("Failed to fetch devices: $error")
+                callback(emptyList())
+            }
+        }
+    }*/
 }

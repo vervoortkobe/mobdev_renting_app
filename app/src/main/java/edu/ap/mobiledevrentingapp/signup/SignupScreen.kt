@@ -1,7 +1,5 @@
 package edu.ap.mobiledevrentingapp.signup
 
-import android.content.Intent
-import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -40,7 +38,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.auth.FirebaseAuth
+import edu.ap.mobiledevrentingapp.R
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.osm.GeocodingService
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,34 +47,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
-
-class SignupActivity : AppCompatActivity() {
-
-    private lateinit var auth: FirebaseAuth
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        auth = FirebaseAuth.getInstance()
-
-        setContent {
-            SignupScreen(
-                onSignupSuccess = {
-                    val intent = Intent(this, MainActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                },
-                onNavigateToLogin = {
-                    val intent = Intent(this, LoginActivity::class.java)
-                    startActivity(intent)
-                    finish()
-                }
-            )
-        }
-    }
-}
-import edu.ap.mobiledevrentingapp.R
-import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 
 @Composable
 fun SignupScreen(
@@ -93,8 +64,8 @@ fun SignupScreen(
     var zipCode by remember { mutableStateOf("") }
     var streetName by remember { mutableStateOf("") }
     var addressNr by remember { mutableStateOf("") }
-    var latitude by remember { mutableStateOf(0.0) }
-    var longitude by remember { mutableStateOf(0.0) }
+    var latitude by remember { mutableStateOf(50.0) }
+    var longitude by remember { mutableStateOf(50.0) }
     var isLoading by remember { mutableStateOf(false) }
 
     val retrofit = Retrofit.Builder()
@@ -303,15 +274,14 @@ fun SignupScreen(
 
                     CoroutineScope(Dispatchers.Main).launch {
                         val coordinates = getCoordinatesFromAddress(fullAddress)
+                        Log.e("Coordinates", coordinates.toString())
+                        Log.e("Coordinates", fullAddress)
 
-                        if (coordinates == null) {
-                            isLoading = false
-                            Toast.makeText(context, "Address not found. Please check your address.", Toast.LENGTH_SHORT).show()
-                        } else {
-                            val (lat, lon) = coordinates
-                            latitude = lat
-                            longitude = lon
-
+                            if(coordinates != null) {
+                                val (lat, lon) = coordinates
+                                latitude = lat
+                                longitude = lon
+                            }
                             FirebaseService.signup(
                                 email, password, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr,
                                 latitude, longitude
@@ -323,7 +293,6 @@ fun SignupScreen(
                                     Toast.makeText(context, errorMessage ?: "Signup failed", Toast.LENGTH_SHORT).show()
                                 }
                             }
-                        }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
