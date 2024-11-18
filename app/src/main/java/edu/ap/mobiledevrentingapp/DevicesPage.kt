@@ -1,8 +1,6 @@
 package edu.ap.mobiledevrentingapp
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.util.Base64
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -12,7 +10,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -44,16 +40,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.firestore.DocumentSnapshot
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
+import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 
 @Composable
 fun DevicesPage(navController: NavController) {
@@ -139,50 +137,47 @@ fun DisplayDevicesWithImages() {
 
 @Composable
 fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
+    var ownerData by remember { mutableStateOf(User("", "")) }
+    var ownerName by remember { mutableStateOf("Loading...") }
+    var ownerProfileImage by remember { mutableStateOf<Bitmap?>(null) }
+
+    LaunchedEffect(device.ownerId) {
+        ownerData = getOwnerData(device.ownerId)
+        ownerName = ownerData.fullName
+        ownerProfileImage = decode(ownerData.profileImage)
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 4.dp)
             .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+            .background(Color.White, RoundedCornerShape(8.dp))
             .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically // Align everything vertically
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        // Images Section
         Box(
             modifier = Modifier
-                .weight(1f)
-                .aspectRatio(1f) // Make the height equal to the width for the first image
+                .size(135.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp))
         ) {
             if (images.isNotEmpty()) {
-                // Stack images
-                images.forEachIndexed { index, (_, bitmap) ->
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = "Device image",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(start = (index * 8).dp, top = (index * 8).dp)
-                            .clip(RoundedCornerShape(8.dp))
-                            .border(
-                                1.dp,
-                                if (index == 0) Color.White else Color.Gray,
-                                RoundedCornerShape(8.dp)
-                            )
-                            .graphicsLayer { scaleX = 1.1f; scaleY = 1.1f } // Slight zoom for filling edges
-                            .zIndex((images.size - index).toFloat()) // Ensure layering
-                    )
-                }
+                Image(
+                    bitmap = images.first().second.asImageBitmap(),
+                    contentDescription = "Device image",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
             } else {
-                // No images fallback
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .clip(RoundedCornerShape(8.dp))
                         .background(Color.Gray),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No images",
+                        text = "No image",
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White
                     )
@@ -192,67 +187,102 @@ fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
 
         Spacer(modifier = Modifier.width(8.dp))
 
-        // Device Details
         Column(
-            modifier = Modifier.weight(2f),
+            modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Device Name
-            Text(
-                text = device.deviceName,
-                style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Bold)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = device.deviceName,
+                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = AppUtil.convertUppercaseToTitleCase(device.category),
+                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.padding(end = 8.dp)
+                )
+            }
 
-            // Location and Price
+            Spacer(modifier = Modifier.height(1.dp))
+
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.LocationOn, contentDescription = null, tint = Color.Gray)
-                Text(text = "5km Antwerp", style = MaterialTheme.typography.bodySmall)
+                Icon(Icons.Default.LocationOn, contentDescription = "location", tint = Color.Gray)
+                Text(text = "5km Antwerp", style = MaterialTheme.typography.bodyMedium)
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(0.dp))
 
-                Icon(Icons.Default.ShoppingCart, contentDescription = null, tint = Color.Gray)
-                Text(text = "${device.price} €", style = MaterialTheme.typography.bodySmall)
+                Icon(Icons.Default.ShoppingCart, contentDescription = "price", tint = Color.Gray)
+                Text(text = "€ ${device.price} / day", style = MaterialTheme.typography.bodyMedium)
             }
 
-            // Category
-            Text(
-                text = AppUtil.convertUppercaseToTitleCase(device.category),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
+            Spacer(modifier = Modifier.height(0.dp))
 
-            // Description
-            Text(
-                text = device.description.take(500) + if (device.description.length > 500) "..." else "",
-                style = MaterialTheme.typography.bodySmall,
-                color = Color.Gray
-            )
-
-            // Owner Section
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
+                        .size(30.dp)
                         .clip(CircleShape)
-                        .background(Color.Gray)
+                        .background(Color.LightGray)
                 ) {
-                    // Placeholder for profile image
+                    if (ownerProfileImage != null) {
+                        Image(
+                            bitmap = ownerProfileImage!!.asImageBitmap(),
+                            contentDescription = "Owner profile image",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
                 }
                 Text(
-                    text = device.ownerId,
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Bold)
+                    text = ownerName,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
         }
     }
 }
 
+suspend fun getOwnerData(ownerId: String): User {
+    return suspendCancellableCoroutine { continuation ->
+        FirebaseService.getUserById(ownerId) { success, document, error ->
+            if (success && document != null) {
+                val fullName = document.getString("fullName") ?: "Unknown"
+                val phoneNumber = document.getString("phoneNumber")
+                val streetName = document.getString("streetName")
+                val zipCode = document.getString("zipCode")
+                val city = document.getString("city")
+                val addressNr = document.getString("addressNr")
+                val ibanNumber = document.getString("ibanNumber")
+                val country = document.getString("country")
+                val userId = document.getString("userId")
+                val profileImage = document.getString("profileImage")
+
+                val ownerData = User(
+                    fullName = fullName,
+                    profileImage = profileImage.toString()
+                )
+
+                continuation.resume(ownerData)
+            } else {
+                continuation.resumeWithException(
+                    Exception(error ?: "Failed to fetch owner data.")
+                )
+            }
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

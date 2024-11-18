@@ -142,7 +142,7 @@ fun AddDevicePage(navController: NavController) {
         OutlinedTextField(
             value = price,
             onValueChange = { price = it },
-            label = { Text("Price (in Euro €)", color = Color.Black) },
+            label = { Text("Price per day (in Euro €)", color = Color.Black) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("10") },
@@ -323,7 +323,7 @@ fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
 
         Box(
             modifier = Modifier.fillMaxWidth()
-                .background(Color.White, shape = RoundedCornerShape(6.dp))
+                .background(Color.Transparent, shape = RoundedCornerShape(6.dp))
                 .border(
                     width = 1.dp,
                     color = Color.Black,
