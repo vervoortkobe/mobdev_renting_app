@@ -86,33 +86,6 @@ fun AddDevicePage(navController: NavController) {
     var price by remember { mutableStateOf("") }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
 
-    // Inside your composable or activity
-    val fusedLocationClient: FusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(context)
-
-    fun getLocation(context: Context, callback: (Double?, Double?) -> Unit) {
-        val activity = context as? Activity
-        if (activity != null) {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                val locationTask: Task<Location> = fusedLocationClient.lastLocation
-                locationTask.addOnSuccessListener { location: Location? ->
-                    if (location != null) {
-                        callback(location.latitude, location.longitude)
-                    } else {
-                        callback(null, null)  // Location is not available
-                    }
-                }.addOnFailureListener {
-                    callback(null, null)  // Handle error
-                }
-            } else {
-                // Request location permission
-                ActivityCompat.requestPermissions(activity, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1)
-            }
-        } else {
-            callback(null, null)  // Handle context issue (not an Activity)
-        }
-    }
-
-
     val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
         if (uris.size + bitmaps.size <= 5) {
             imageUris = uris
@@ -283,42 +256,55 @@ fun AddDevicePage(navController: NavController) {
             onClick = {
                 if (bitmaps.isNotEmpty()) {
                     FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
-                        Log.e("AddDevicePage", "Images uploaded successfully: $success, $imageIds, $error")
+                        if (error != null) {
+                            Toast.makeText(context, "Error uploading images: $error", Toast.LENGTH_LONG).show()
+                        }
                         if (success && imageIds != null) {
-                            val latitude = 0.0
-                            val longitude = 0.0
+                            var latitude = 0.0
+                            var longitude = 0.0
 
-                            FirebaseService.getCurrentUserId()?.let {
-                                FirebaseService.saveDevice(
-                                    it,
-                                    deviceName,
-                                    enumValues<DeviceCategory>()[selectedCategoryIndex],
-                                    description,
-                                    price,
-                                    imageIds,
-                                    latitude,
-                                    longitude
-                                ) { success, _, error ->
-                                    if (success) {
-                                        Toast.makeText(
-                                            context,
-                                            "The device was added successfully!",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                        navController.popBackStack()
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            "Failed to save the device. Please try again.",
-                                            Toast.LENGTH_LONG
-                                        ).show()
-                                        Log.e("AddDevicePage", "Error while saving the device: $error")
+                            FirebaseService.getCurrentUser { success, document, error ->
+                                if (success && document != null) {
+                                    latitude = document.getDouble("latitude")!!
+                                    longitude = document.getDouble("longitude")!!
+                                    FirebaseService.getCurrentUserId()?.let {
+                                        FirebaseService.saveDevice(
+                                            it,
+                                            deviceName,
+                                            enumValues<DeviceCategory>()[selectedCategoryIndex],
+                                            description,
+                                            price,
+                                            imageIds,
+                                            latitude,
+                                            longitude
+                                        ) { success, _, error ->
+                                            if (success) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "The device was added successfully!",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                                navController.popBackStack()
+                                            } else {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Failed to save the device. Please try again.",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                                Log.e("AddDevice", "Error saving device: $error")
+                                            }
+                                        }
                                     }
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Failed to load user data: $error",
+                                        Toast.LENGTH_LONG
+                                    ).show()
                                 }
                             }
                         } else {
                             Toast.makeText(context, "Failed to upload images.", Toast.LENGTH_LONG).show()
-                            Log.e("AddDevicePage", "Error while uploading images: $error")
                         }
                     }
                 }

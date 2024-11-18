@@ -2,6 +2,7 @@ package edu.ap.mobiledevrentingapp
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
@@ -270,7 +271,7 @@ fun SignupScreen(
 
             Button(
                 onClick = {
-                    val fullAddress = "$streetName $addressNr, $zipCode $city, $country"
+                    val fullAddress = "$streetName $addressNr $city $country"
                     isLoading = true
 
                     CoroutineScope(Dispatchers.Main).launch {

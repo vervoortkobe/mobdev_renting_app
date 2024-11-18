@@ -335,7 +335,7 @@
                 .set(data)
                 .addOnCompleteListener { task ->
                     if (task.isSuccessful) {
-                        callback(true, uuid, null) // Return the device ID on success
+                        callback(true, uuid, null)
                     } else {
                         callback(false, null, "Failed to save device data. Please try again.")
                     }
