@@ -300,9 +300,10 @@ fun SignupScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                enabled = email.isNotBlank() && password.isNotBlank()
+                enabled = email.isNotBlank() && password.isNotBlank(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
-                Text("Sign Up")
+                Text("Sign Up", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -310,7 +311,7 @@ fun SignupScreen(
             TextButton(
                 onClick = { onNavigateToLogin() }
             ) {
-                Text("Already have an account? Login")
+                Text("Already have an account? Login", color = Color.Black)
             }
         }
     }
