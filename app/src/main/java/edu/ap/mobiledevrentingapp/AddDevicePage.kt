@@ -86,363 +86,402 @@ fun AddDevicePage(navController: NavController) {
     var price by remember { mutableStateOf("") }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
 
-    val galleryLauncher = rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
-        if (uris.size + bitmaps.size <= 5) {
-            imageUris = uris
-            bitmaps = bitmaps + uris.mapNotNull { uri -> FormUtil.loadBitmapFromUri(context, uri) }
-        } else {
-            Toast.makeText(
-                context,
-                "You can select up to 5 images.",
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-
-    val cameraLauncher = rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
-        if (bitmap != null) {
-            bitmaps = bitmaps + bitmap
-        } else {
-            Toast.makeText(context, "Failed to capture image.", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    Column(
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-
-        OutlinedTextField(
-            value = deviceName,
-            onValueChange = { deviceName = it },
-            label = { Text("Device Name", color = Color.Black) },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Makita Screwdriver") },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Red,
-                unfocusedBorderColor = Color.Black,
-            )
-        )
-
-        Spacer(modifier = Modifier.height(2.dp))
-
-        DropdownList(selectedIndex = selectedCategoryIndex, onItemClick = { selectedCategoryIndex = it })
-
-        Spacer(modifier = Modifier.height(2.dp))
-
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            label = { Text("Description", color = Color.Black) },
-            modifier = Modifier.fillMaxWidth().height(150.dp),
-            placeholder = { Text("Max. 500 characters") },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Red,
-                unfocusedBorderColor = Color.Black,
-            )
-        )
-
-        Spacer(modifier = Modifier.height(2.dp))
-
-        OutlinedTextField(
-            value = price,
-            onValueChange = { price = it },
-            label = { Text("Price (in Euro €)", color = Color.Black) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("10") },
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Color.Red,
-                unfocusedBorderColor = Color.Black,
-            )
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text("Device Images", fontSize = 20.sp, fontWeight = FontWeight.Bold)
-
-        Button(
-            onClick = { galleryLauncher.launch("image/*") },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
-        ) {
-            Text("Select images to upload")
-        }
-
-        Button(
-            onClick = { cameraLauncher.launch() },
-            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-        ) {
-            Text("Take a picture")
-        }
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        if (bitmaps.isEmpty()) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier
-                    .size(250.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
-                    .background(Color.LightGray)
-            ) {
-                Text("No images selected.")
+    val galleryLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.GetMultipleContents()) { uris: List<Uri> ->
+            if (uris.size + bitmaps.size <= 5) {
+                imageUris = uris
+                bitmaps =
+                    bitmaps + uris.mapNotNull { uri -> FormUtil.loadBitmapFromUri(context, uri) }
+            } else {
+                Toast.makeText(
+                    context,
+                    "You can select up to 5 images.",
+                    Toast.LENGTH_LONG
+                ).show()
             }
-            Spacer(modifier = Modifier.height(2.dp))
-            Text("Select at least 1 and at most 5 images to upload.")
-        } else {
-            Text("Swipe left or right to view all images.")
-            Spacer(modifier = Modifier.height(2.dp))
-            LazyRow(
-                state = listState,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(250.dp),
-                horizontalArrangement = if (bitmaps.size == 1) Arrangement.Center else Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                itemsIndexed(bitmaps) { index, bitmap ->
-                    Box(
-                        modifier = Modifier
-                            .size(250.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
-                            .background(Color.LightGray)
-                            .clickable {
-                                selectedImageIndex = index
-                                showImageOverlay = true
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "Selected image",
-                            modifier = Modifier.fillMaxSize(),
-                        )
-                    }
-                }
-            }
-
-            if (showImageOverlay) {
-                ImageOverlay(
-                    bitmaps = bitmaps,
-                    initialIndex = selectedImageIndex,
-                    onDismiss = { showImageOverlay = false },
-                    onDelete = { index ->
-                        bitmaps = bitmaps.toMutableList().apply { removeAt(index) }
-                        showImageOverlay = false
-                    }
-                )
-            }
-
-            Text(
-                text = "Image ${selectedImageIndex + 1} of ${bitmaps.size}",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center
-            )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-
-        Button(
-            onClick = {
-                if (bitmaps.isNotEmpty()) {
-                    FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
-                        if (error != null) {
-                            Toast.makeText(context, "Error uploading images: $error", Toast.LENGTH_LONG).show()
-                        }
-                        if (success && imageIds != null) {
-                            var latitude = 0.0
-                            var longitude = 0.0
-
-                            FirebaseService.getCurrentUser { success, document, error ->
-                                if (success && document != null) {
-                                    latitude = document.getDouble("latitude")!!
-                                    longitude = document.getDouble("longitude")!!
-                                    FirebaseService.getCurrentUserId()?.let {
-                                        FirebaseService.saveDevice(
-                                            it,
-                                            deviceName,
-                                            enumValues<DeviceCategory>()[selectedCategoryIndex],
-                                            description,
-                                            price,
-                                            imageIds,
-                                            latitude,
-                                            longitude
-                                        ) { success, _, error ->
-                                            if (success) {
-                                                Toast.makeText(
-                                                    context,
-                                                    "The device was added successfully!",
-                                                    Toast.LENGTH_LONG
-                                                ).show()
-                                                navController.popBackStack()
-                                            } else {
-                                                Toast.makeText(
-                                                    context,
-                                                    "Failed to save the device. Please try again.",
-                                                    Toast.LENGTH_LONG
-                                                ).show()
-                                                Log.e("AddDevice", "Error saving device: $error")
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    Toast.makeText(
-                                        context,
-                                        "Failed to load user data: $error",
-                                        Toast.LENGTH_LONG
-                                    ).show()
-                                }
-                            }
-                        } else {
-                            Toast.makeText(context, "Failed to upload images.", Toast.LENGTH_LONG).show()
-                        }
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxWidth(),
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-        ) {
-            Text("Submit device")
+    val cameraLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.TakePicturePreview()) { bitmap: Bitmap? ->
+            if (bitmap != null) {
+                bitmaps = bitmaps + bitmap
+            } else {
+                Toast.makeText(context, "Failed to capture image.", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        Spacer(modifier = Modifier.height(8.dp))
-    }
-}
-
-@Composable
-fun ImageOverlay(bitmaps: List<Bitmap>, initialIndex: Int, onDismiss: () -> Unit, onDelete: (Int) -> Unit) {
-    val pagerState = rememberPagerState( initialPage = initialIndex, pageCount = { bitmaps.size } )
-
-    Popup(
-        alignment = Alignment.Center,
-        properties = PopupProperties(focusable = true),
-        onDismissRequest = onDismiss
-    ) {
+    Box(modifier = Modifier.background(Color.White)) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.9f))
-                .padding(16.dp),
+            verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .fillMaxSize()
+                .padding(16.dp)
         ) {
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 16.dp)
-            ) {
-                Button(
-                    onClick = { onDelete(pagerState.currentPage) },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
-                ) {
-                    Text("Delete")
-                }
+            Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
 
-                Button(
-                    onClick = onDismiss,
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
-                ) {
-                    Text("Close")
-                }
+            Spacer(modifier = Modifier.height(2.dp))
+
+            OutlinedTextField(
+                value = deviceName,
+                onValueChange = { deviceName = it },
+                label = { Text("Device Name", color = Color.Black) },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("Makita Screwdriver") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Red,
+                    unfocusedBorderColor = Color.Black,
+                )
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            DropdownList(
+                selectedIndex = selectedCategoryIndex,
+                onItemClick = { selectedCategoryIndex = it })
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description", color = Color.Black) },
+                modifier = Modifier.fillMaxWidth().height(150.dp),
+                placeholder = { Text("Max. 500 characters") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Red,
+                    unfocusedBorderColor = Color.Black,
+                )
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            OutlinedTextField(
+                value = price,
+                onValueChange = { price = it },
+                label = { Text("Price (in Euro €)", color = Color.Black) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text("10") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = Color.Red,
+                    unfocusedBorderColor = Color.Black,
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text("Device Images", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = { galleryLauncher.launch("image/*") },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+            ) {
+                Text("Select images to upload", color = Color.White)
             }
 
-            HorizontalPager(
-                state = pagerState,
-                modifier = Modifier.fillMaxSize()
-            ) { page ->
-                Image(
-                    bitmap = bitmaps[page].asImageBitmap(),
-                    contentDescription = null,
+            Button(
+                onClick = { cameraLauncher.launch() },
+                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+            ) {
+                Text("Take a picture", color = Color.White)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (bitmaps.isEmpty()) {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(250.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
+                        .background(Color.LightGray)
+                ) {
+                    Text("No images selected.", color = Color.Black)
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+                Text("Select at least 1 and at most 5 images to upload.", color = Color.Black)
+            } else {
+                Text("Swipe left or right to view all images.")
+                Spacer(modifier = Modifier.height(2.dp))
+                LazyRow(
+                    state = listState,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .clickable {  }
+                        .height(250.dp),
+                    horizontalArrangement = if (bitmaps.size == 1) Arrangement.Center else Arrangement.spacedBy(
+                        8.dp
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    itemsIndexed(bitmaps) { index, bitmap ->
+                        Box(
+                            modifier = Modifier
+                                .size(250.dp)
+                                .clip(RoundedCornerShape(16.dp))
+                                .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
+                                .background(Color.LightGray)
+                                .clickable {
+                                    selectedImageIndex = index
+                                    showImageOverlay = true
+                                },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                bitmap = bitmap.asImageBitmap(),
+                                contentDescription = "Selected image",
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    }
+                }
+
+                if (showImageOverlay) {
+                    ImageOverlay(
+                        bitmaps = bitmaps,
+                        initialIndex = selectedImageIndex,
+                        onDismiss = { showImageOverlay = false },
+                        onDelete = { index ->
+                            bitmaps = bitmaps.toMutableList().apply { removeAt(index) }
+                            showImageOverlay = false
+                        }
+                    )
+                }
+
+                Text(
+                    text = "Image ${selectedImageIndex + 1} of ${bitmaps.size}",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
                 )
             }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = {
+                    if (bitmaps.isNotEmpty()) {
+                        FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
+                            if (error != null) {
+                                Toast.makeText(
+                                    context,
+                                    "Error uploading images: $error",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            if (success && imageIds != null) {
+                                var latitude = 0.0
+                                var longitude = 0.0
+
+                                FirebaseService.getCurrentUser { success, document, error ->
+                                    if (success && document != null) {
+                                        latitude = document.getDouble("latitude")!!
+                                        longitude = document.getDouble("longitude")!!
+                                        FirebaseService.getCurrentUserId()?.let {
+                                            FirebaseService.saveDevice(
+                                                it,
+                                                deviceName,
+                                                enumValues<DeviceCategory>()[selectedCategoryIndex],
+                                                description,
+                                                price,
+                                                imageIds,
+                                                latitude,
+                                                longitude
+                                            ) { success, _, error ->
+                                                if (success) {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "The device was added successfully!",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                    navController.popBackStack()
+                                                } else {
+                                                    Toast.makeText(
+                                                        context,
+                                                        "Failed to save the device. Please try again.",
+                                                        Toast.LENGTH_LONG
+                                                    ).show()
+                                                    Log.e(
+                                                        "AddDevice",
+                                                        "Error saving device: $error"
+                                                    )
+                                                }
+                                            }
+                                        }
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Failed to load user data: $error",
+                                            Toast.LENGTH_LONG
+                                        ).show()
+                                    }
+                                }
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    "Failed to upload images.",
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        }
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+            ) {
+                Text("Submit device")
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
-}
+    }
 
-@Composable
-fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
+    @Composable
+    fun ImageOverlay(
+        bitmaps: List<Bitmap>,
+        initialIndex: Int,
+        onDismiss: () -> Unit,
+        onDelete: (Int) -> Unit
+    ) {
+        val pagerState =
+            rememberPagerState(initialPage = initialIndex, pageCount = { bitmaps.size })
 
-    var showDropdown by remember { mutableStateOf(false) }
-    val scrollState = rememberScrollState()
-
-    Spacer(modifier = Modifier.height(8.dp))
-
-    Column(
-        modifier = Modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center) {
-
-        Box(
-            modifier = Modifier.fillMaxWidth()
-                .background(Color.White, shape = RoundedCornerShape(6.dp))
-                .border(
-                    width = 1.dp,
-                    color = Color.Black,
-                    shape = RoundedCornerShape(6.dp)
-                )
-                .clickable { showDropdown = !showDropdown }
-                .padding(12.dp)
-                .fillMaxWidth()
+        Popup(
+            alignment = Alignment.Center,
+            properties = PopupProperties(focusable = true),
+            onDismissRequest = onDismiss
         ) {
             Column(
                 modifier = Modifier
-                    .heightIn(max = 120.dp)
-                    .verticalScroll(state = scrollState)
+                    .fillMaxSize()
+                    .background(Color.Black.copy(alpha = 0.9f))
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Text(
-                    text = FormUtil.convertUppercaseToTitleCase(enumValues<DeviceCategory>()[selectedIndex].name),
-                    modifier = Modifier.padding(3.dp),
-                    color = Color.Black
-                )
-            }
-        }
-
-        Box {
-            if (showDropdown) {
-                Popup(
-                    alignment = Alignment.TopCenter,
-                    properties = PopupProperties(
-                        excludeFromSystemGesture = true,
-                    ),
-                    onDismissRequest = { showDropdown = false }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 16.dp)
                 ) {
-                    Column(
+                    Button(
+                        onClick = { onDelete(pagerState.currentPage) },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                    ) {
+                        Text("Delete")
+                    }
+
+                    Button(
+                        onClick = onDismiss,
+                        colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
+                    ) {
+                        Text("Close")
+                    }
+                }
+
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.fillMaxSize()
+                ) { page ->
+                    Image(
+                        bitmap = bitmaps[page].asImageBitmap(),
+                        contentDescription = null,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp, 0.dp)
-                            .heightIn(max = 155.dp)
-                            .verticalScroll(state = scrollState)
-                            .border(width = 2.dp, shape = RoundedCornerShape(6.dp), color = Color.Black)
+                            .aspectRatio(1f)
+                            .clickable { }
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
+
+        var showDropdown by remember { mutableStateOf(false) }
+        val scrollState = rememberScrollState()
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        Column(
+            modifier = Modifier,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+
+            Box(
+                modifier = Modifier.fillMaxWidth()
+                    .background(Color.White, shape = RoundedCornerShape(6.dp))
+                    .border(
+                        width = 1.dp,
+                        color = Color.Black,
+                        shape = RoundedCornerShape(6.dp)
+                    )
+                    .clickable { showDropdown = !showDropdown }
+                    .padding(12.dp)
+                    .fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier
+                        .heightIn(max = 120.dp)
+                        .verticalScroll(state = scrollState)
+                ) {
+                    Text(
+                        text = FormUtil.convertUppercaseToTitleCase(enumValues<DeviceCategory>()[selectedIndex].name),
+                        modifier = Modifier.padding(3.dp),
+                        color = Color.Black
+                    )
+                }
+            }
+
+            Box {
+                if (showDropdown) {
+                    Popup(
+                        alignment = Alignment.TopCenter,
+                        properties = PopupProperties(
+                            excludeFromSystemGesture = true,
+                        ),
+                        onDismissRequest = { showDropdown = false }
                     ) {
-                        enumValues<DeviceCategory>().onEachIndexed { index, item ->
-                            if (index != 0) {
-                                Divider(thickness = 1.dp, color = Color.Gray)
-                            }
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .background(Color.White)
-                                    .padding(12.dp, 3.dp)
-                                    .clickable {
-                                        onItemClick(index)
-                                        showDropdown = !showDropdown
-                                    },
-                            ) {
-                                Text(text = FormUtil.convertUppercaseToTitleCase(item.name), modifier = Modifier.padding(3.dp))
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp, 0.dp)
+                                .heightIn(max = 155.dp)
+                                .verticalScroll(state = scrollState)
+                                .border(
+                                    width = 2.dp,
+                                    shape = RoundedCornerShape(6.dp),
+                                    color = Color.Black
+                                )
+                        ) {
+                            enumValues<DeviceCategory>().onEachIndexed { index, item ->
+                                if (index != 0) {
+                                    Divider(thickness = 1.dp, color = Color.Gray)
+                                }
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(Color.White)
+                                        .padding(12.dp, 3.dp)
+                                        .clickable {
+                                            onItemClick(index)
+                                            showDropdown = !showDropdown
+                                        },
+                                ) {
+                                    Text(
+                                        text = FormUtil.convertUppercaseToTitleCase(item.name),
+                                        modifier = Modifier.padding(3.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -450,7 +489,7 @@ fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
             }
         }
     }
-}
+
 
 @Preview(showBackground = true)
 @Composable
