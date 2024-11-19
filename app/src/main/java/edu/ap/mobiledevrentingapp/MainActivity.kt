@@ -35,6 +35,7 @@ import edu.ap.mobiledevrentingapp.login.LoginActivity
 import edu.ap.mobiledevrentingapp.map.MapPage
 import edu.ap.mobiledevrentingapp.profile.ProfilePage
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 class MainActivity : AppCompatActivity() {
 
@@ -95,8 +96,8 @@ fun MainPage(onLogout: () -> Unit) {
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
     // Define the background color
-    val backgroundColor = Color(0xFFFF5232)
-    val itemColor = Color(0xFFFF9e81)
+    val backgroundColor = Yellow40
+    val itemColor = Color(0xFFD0B8B8)
 
     NavigationBar(
         containerColor = backgroundColor // Set the background color here

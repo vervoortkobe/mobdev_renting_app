@@ -35,10 +35,10 @@ fun DropdownListDevices(
 
     Box(
         modifier = modifier
-            .background(Color.White, RoundedCornerShape(8.dp))
-            .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+            .background(Color.White, RoundedCornerShape(4.dp))
+            .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
             .clickable { expanded = true }
-            .height(48.dp)
+            .height(56.dp)
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {

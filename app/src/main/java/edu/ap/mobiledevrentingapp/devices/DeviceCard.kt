@@ -43,6 +43,7 @@ import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.firebase.User
 import edu.ap.mobiledevrentingapp.profile.decode
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -114,7 +115,7 @@ fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
                 Text(
                     text = AppUtil.convertUppercaseToTitleCase(device.category),
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Yellow40,
                     textAlign = TextAlign.End,
                     modifier = Modifier.padding(end = 8.dp)
                 )
