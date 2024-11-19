@@ -43,7 +43,7 @@ fun DropdownListDevices(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = if (selectedCategoryIndex == 0) "All" else AppUtil.convertUppercaseToTitleCase(categories[selectedCategoryIndex - 1].name),
+            text = if (selectedCategoryIndex == 0) "All" else categories[selectedCategoryIndex - 1].name,
             color = Color.Black
         )
     }
@@ -84,7 +84,7 @@ fun DropdownListDevices(
                             .padding(8.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        Text(AppUtil.convertUppercaseToTitleCase(category.name))
+                        Text(category.name)
                     }
                 }
             }
