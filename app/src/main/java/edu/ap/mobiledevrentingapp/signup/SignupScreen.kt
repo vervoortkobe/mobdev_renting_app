@@ -1,5 +1,6 @@
 package edu.ap.mobiledevrentingapp.signup
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +40,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
+import edu.ap.mobiledevrentingapp.osm.GeocodingService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
 
 @Composable
 fun SignupScreen(
@@ -56,6 +64,31 @@ fun SignupScreen(
     var zipCode by remember { mutableStateOf("") }
     var streetName by remember { mutableStateOf("") }
     var addressNr by remember { mutableStateOf("") }
+    var latitude by remember { mutableStateOf(50.0) }
+    var longitude by remember { mutableStateOf(50.0) }
+    var isLoading by remember { mutableStateOf(false) }
+
+    val retrofit = Retrofit.Builder()
+        .baseUrl("https://nominatim.openstreetmap.org/")
+        .addConverterFactory(GsonConverterFactory.create())
+        .build()
+
+    val geocodingService = retrofit.create(GeocodingService::class.java)
+
+    suspend fun getCoordinatesFromAddress(address: String): Pair<Double, Double>? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = geocodingService.getCoordinates(address)
+                val result = response.firstOrNull()
+                result?.let {
+                    return@withContext Pair(it.lat.toDouble(), it.lon.toDouble())
+                }
+                return@withContext null
+            } catch (e: Exception) {
+                return@withContext null
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -236,34 +269,53 @@ fun SignupScreen(
 
             Button(
                 onClick = {
-                    FirebaseService.signup(email, password, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr) { success, errorMessage ->
-                        if (success) {
-                            onSignupSuccess()
+                    val fullAddress = "$streetName + $addressNr + $city + $country"
+                    isLoading = true
+
+                    CoroutineScope(Dispatchers.Main).launch {
+                        val coordinates = getCoordinatesFromAddress(fullAddress)
+                        Log.e("Coordinates", coordinates.toString())
+                        Log.e("Coordinates", fullAddress)
+
+                        if (coordinates == null) {
+                            isLoading = false
+                            Toast.makeText(context, "Address not found. Please check your address.", Toast.LENGTH_SHORT).show()
                         } else {
-                            Toast.makeText(
-                                context,
-                                errorMessage,
-                                Toast.LENGTH_LONG
-                            ).show()
+                            val (lat, lon) = coordinates
+                            latitude = lat
+                            longitude = lon
+
+                            FirebaseService.signup(
+                                email, password, fullName, phoneNumber, ibanNumber, country, city, zipCode, streetName, addressNr,
+                                latitude, longitude
+                            ) { success, errorMessage ->
+                                isLoading = false
+                                if (success) {
+                                    onSignupSuccess()
+                                } else {
+                                    Toast.makeText(context, errorMessage ?: "Signup failed", Toast.LENGTH_SHORT).show()
+                                }
+                            }
                         }
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
+                enabled = email.isNotBlank() && password.isNotBlank(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
-                Text("Sign Up")
+                Text("Sign Up", color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
 
             TextButton(
-                onClick = onNavigateToLogin,
-                modifier = Modifier.fillMaxWidth()
+                onClick = { onNavigateToLogin() }
             ) {
-                Text("Already have an account? Log in!", color = Color.Black)
+                Text("Already have an account? Login", color = Color.Black)
             }
 
             Spacer(modifier = Modifier.height(196.dp))
         }
     }
 }
+

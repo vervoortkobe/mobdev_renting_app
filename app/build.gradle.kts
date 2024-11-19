@@ -71,6 +71,7 @@ dependencies {
     implementation(libs.androidx.activity)
     implementation(libs.firebase.firestore.ktx)
     implementation(libs.androidx.foundation.android)
+    implementation(libs.play.services.location)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -88,4 +89,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose.v253)
     implementation(project(":osm-compose"))
     implementation(libs.osmdroid.android)
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 }
