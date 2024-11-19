@@ -25,6 +25,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import edu.ap.mobiledevrentingapp.addDevice.DropdownList
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
