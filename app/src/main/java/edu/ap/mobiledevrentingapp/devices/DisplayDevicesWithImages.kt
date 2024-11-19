@@ -16,6 +16,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +29,20 @@ import androidx.compose.ui.unit.dp
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
+import android.location.Location
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
 fun DisplayDevicesWithImages() {
@@ -36,6 +51,28 @@ fun DisplayDevicesWithImages() {
     var isLoading by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
+    var showFilters by remember { mutableStateOf(false) }
+    var maxDistance by remember { mutableFloatStateOf(50f) }
+    var userLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    var userLocationObject by remember { mutableStateOf<Location?>(null) }
+
+    // Fetch user location
+    LaunchedEffect(Unit) {
+        FirebaseService.getCurrentUser { success, document, _ ->
+            if (success && document != null) {
+                val lat = document.getDouble("latitude") ?: 0.0
+                val lon = document.getDouble("longitude") ?: 0.0
+                userLocation = Pair(lat, lon)
+                
+                // Create Location object
+                val location = Location("").apply {
+                    latitude = lat
+                    longitude = lon
+                }
+                userLocationObject = location
+            }
+        }
+    }
 
     // Fetch devices from Firebase
     LaunchedEffect(Unit) {
@@ -54,37 +91,85 @@ fun DisplayDevicesWithImages() {
     }
 
     Column {
-        // Row for category dropdown and search bar
-        androidx.compose.foundation.layout.Row(
+        // Search bar
+        SearchBar(
+            searchQuery = searchQuery,
+            onSearchQueryChange = { searchQuery = it },
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(8.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Compact dropdown for categories
-            DropdownListDevices(
-                categories = DeviceCategory.entries,
-                selectedCategoryIndex = selectedCategoryIndex,
-                onCategorySelected = { selectedCategoryIndex = it },
-                modifier = Modifier.weight(0.3f) // Occupies 30% of the row
-            )
+                .padding(8.dp)
+        )
 
-            // Search bar
-            SearchBar(
-                searchQuery = searchQuery,
-                onSearchQueryChange = { searchQuery = it },
-                modifier = Modifier.weight(0.7f) // Occupies 70% of the row
-            )
+        // Options button
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp),
+            horizontalArrangement = Arrangement.End
+        ) {
+            IconButton(onClick = { showFilters = !showFilters }) {
+                Icon(
+                    imageVector = Icons.Default.List,
+                    contentDescription = "Filter options",
+                    tint = Yellow40
+                )
+            }
+        }
+
+        // Filters section
+        AnimatedVisibility(
+            visible = showFilters,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(8.dp)
+            ) {
+                // Category dropdown
+                DropdownListDevices(
+                    categories = DeviceCategory.entries,
+                    selectedCategoryIndex = selectedCategoryIndex,
+                    onCategorySelected = { selectedCategoryIndex = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Distance slider
+                Text(
+                    text = "Maximum distance: ${maxDistance.toInt()} km",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Slider(
+                    value = maxDistance,
+                    onValueChange = { maxDistance = it },
+                    valueRange = 0f..100f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = Yellow40,
+                        activeTrackColor = Yellow40
+                    )
+                )
+            }
         }
 
         // Filter logic
         val filteredDevices = devicesWithImages.filter { (device, _) ->
-            val matchesCategory = selectedCategoryIndex == 0 || device.category == DeviceCategory.entries[selectedCategoryIndex - 1].name
+            val matchesCategory = selectedCategoryIndex == 0 || 
+                device.category == DeviceCategory.entries[selectedCategoryIndex - 1].name
             val matchesQuery = device.deviceName.contains(searchQuery, ignoreCase = true)
-            matchesCategory && matchesQuery
+            val matchesDistance = userLocation?.let { (userLat, userLon) ->
+                calculateDistance(
+                    userLat, userLon,
+                    device.latitude, device.longitude
+                ) <= maxDistance
+            } ?: true
+
+            matchesCategory && matchesQuery && matchesDistance
         }
 
+        // Display results
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -101,9 +186,21 @@ fun DisplayDevicesWithImages() {
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
                 items(filteredDevices) { (device, images) ->
-                    DeviceCard(device, images)
+                    userLocationObject?.let { location ->
+                        DeviceCard(
+                            device = device,
+                            images = images,
+                            userLocation = location
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+    val results = FloatArray(1)
+    Location.distanceBetween(lat1, lon1, lat2, lon2, results)
+    return results[0] / 1000 // Convert meters to kilometers
 }
