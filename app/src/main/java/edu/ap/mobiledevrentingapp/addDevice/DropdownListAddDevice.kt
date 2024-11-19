@@ -31,7 +31,7 @@ import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
 
 @Composable
-fun DropdownList(selectedIndex: Int, onItemClick: (Int) -> Unit) {
+fun DropdownListAddDevice(selectedIndex: Int, onItemClick: (Int) -> Unit) {
 
     var showDropdown by remember { mutableStateOf(false) }
     val scrollState = rememberScrollState()

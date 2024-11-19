@@ -13,3 +13,7 @@ val Pink40 = Color(0xFF7D5260)
 val Red40 = Color(0xFFFF0000)
 val DarkRed40 = Color(0xFFB90000)
 val VinoRed40 = Color(0xFF800000)
+
+val Yellow40 = Color(0xFFF3A52F)
+val DarkYellow40 = Color(0xFFF3A100)
+val LightYellow40 = Color(0xFFFFC800)

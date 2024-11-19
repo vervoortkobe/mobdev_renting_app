@@ -25,7 +25,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import edu.ap.mobiledevrentingapp.addDevice.DropdownList
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
@@ -64,7 +63,7 @@ fun DisplayDevicesWithImages() {
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Compact dropdown for categories
-            DropdownList(
+            DropdownListDevices(
                 categories = DeviceCategory.entries,
                 selectedCategoryIndex = selectedCategoryIndex,
                 onCategorySelected = { selectedCategoryIndex = it },

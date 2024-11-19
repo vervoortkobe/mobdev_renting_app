@@ -7,12 +7,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -29,7 +25,7 @@ import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
 
 @Composable
-fun DropdownList(
+fun DropdownListDevices(
     categories: List<DeviceCategory>,
     selectedCategoryIndex: Int,
     onCategorySelected: (Int) -> Unit,

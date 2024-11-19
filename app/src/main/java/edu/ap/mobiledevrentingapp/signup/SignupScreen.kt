@@ -24,6 +24,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.osm.GeocodingService
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -64,8 +66,8 @@ fun SignupScreen(
     var zipCode by remember { mutableStateOf("") }
     var streetName by remember { mutableStateOf("") }
     var addressNr by remember { mutableStateOf("") }
-    var latitude by remember { mutableStateOf(50.0) }
-    var longitude by remember { mutableStateOf(50.0) }
+    var latitude by remember { mutableDoubleStateOf(50.0) }
+    var longitude by remember { mutableDoubleStateOf(50.0) }
     var isLoading by remember { mutableStateOf(false) }
 
     val retrofit = Retrofit.Builder()
@@ -119,7 +121,7 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Henry Jekyll") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -135,7 +137,7 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("+32123456789") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -150,7 +152,7 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("BE00 0123 4567 8910") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -167,7 +169,7 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Belgium") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -183,7 +185,7 @@ fun SignupScreen(
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Antwerp") },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Red,
+                        focusedBorderColor = Yellow40,
                         unfocusedBorderColor = Color.Black,
                     )
                 )
@@ -196,7 +198,7 @@ fun SignupScreen(
                     modifier = Modifier.width(80.dp),
                     placeholder = { Text("1000") },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Red,
+                        focusedBorderColor = Yellow40,
                         unfocusedBorderColor = Color.Black,
                     )
                 )
@@ -213,7 +215,7 @@ fun SignupScreen(
                     modifier = Modifier.weight(1f),
                     placeholder = { Text("Rue Avenue") },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Red,
+                        focusedBorderColor = Yellow40,
                         unfocusedBorderColor = Color.Black,
                     )
                 )
@@ -226,7 +228,7 @@ fun SignupScreen(
                     modifier = Modifier.width(80.dp),
                     placeholder = { Text("1") },
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Color.Red,
+                        focusedBorderColor = Yellow40,
                         unfocusedBorderColor = Color.Black,
                     )
                 )
@@ -244,7 +246,7 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("someone@example.com") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -260,7 +262,7 @@ fun SignupScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("********") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black
                 )
             )
@@ -301,7 +303,10 @@ fun SignupScreen(
                 },
                 modifier = Modifier.fillMaxWidth(),
                 enabled = email.isNotBlank() && password.isNotBlank(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Black,
+                    disabledContainerColor = Color.Black
+                )
             ) {
                 Text("Sign Up", color = Color.White)
             }
@@ -318,4 +323,3 @@ fun SignupScreen(
         }
     }
 }
-

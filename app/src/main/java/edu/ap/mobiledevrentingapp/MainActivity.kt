@@ -28,6 +28,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
+import edu.ap.mobiledevrentingapp.addDevice.AddDevicePage
 import edu.ap.mobiledevrentingapp.devices.DevicesPage
 import edu.ap.mobiledevrentingapp.home.HomePage
 import edu.ap.mobiledevrentingapp.login.LoginActivity
