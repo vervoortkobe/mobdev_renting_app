@@ -144,6 +144,37 @@ object FirebaseService {
             }
     }
 
+    fun updateUserProfile(userId: String, fullName: String?, phoneNumber: String?, ibanNumber: String?, country: String?, city: String?, zipCode: String?, streetName: String?, addressNr: String?, latitude: Double?, longitude: Double?, callback: (Boolean, String?) -> Unit) {
+        val data = mutableMapOf<String, Any?>()
+
+        fullName?.let { data["fullName"] = it }
+        phoneNumber?.let { data["phoneNumber"] = it }
+        ibanNumber?.let { data["ibanNumber"] = it }
+        country?.let { data["country"] = it }
+        city?.let { data["city"] = it }
+        zipCode?.let { data["zipCode"] = it }
+        streetName?.let { data["streetName"] = it }
+        addressNr?.let { data["addressNr"] = it }
+        latitude?.let { data["latitude"] = it }
+        longitude?.let { data["longitude"] = it }
+
+        if (data.isEmpty()) {
+            callback(false, "No data to update.")
+            return
+        }
+
+        firestore.collection("users").document(userId)
+            .update(data)
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    callback(true, null)
+                } else {
+                    callback(false, "Failed to update user profile. Please try again.")
+                }
+            }
+    }
+
+
     fun getUserById(userId: String, callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
         firestore.collection("users").document(userId).get()
             .addOnCompleteListener { task ->

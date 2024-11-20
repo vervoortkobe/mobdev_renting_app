@@ -18,14 +18,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -41,7 +46,48 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
+import edu.ap.mobiledevrentingapp.map.GeocodingService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import retrofit2.Retrofit
+import retrofit2.converter.gson.GsonConverterFactory
+
+val retrofit = Retrofit.Builder()
+    .baseUrl("https://nominatim.openstreetmap.org/")
+    .addConverterFactory(GsonConverterFactory.create())
+    .client(
+        OkHttpClient.Builder()
+            .addInterceptor { chain ->
+                val request = chain.request().newBuilder()
+                    .header("User-Agent", "BorrowBee/1.0 (kobe.vervoort@student.ap.be)")
+                    .build()
+                chain.proceed(request)
+            }
+            .build()
+    )
+    .build()
+
+val geocodingService = retrofit.create(GeocodingService::class.java)
+
+suspend fun getCoordinatesFromAddress(address: String): Pair<Double, Double>? {
+    return withContext(Dispatchers.IO) {
+        try {
+            val response = geocodingService.getCoordinates(address)
+            val result = response.firstOrNull()
+            result?.let {
+                return@withContext Pair(it.lat.toDouble(), it.lon.toDouble())
+            }
+            return@withContext null
+        } catch (e: Exception) {
+            return@withContext null
+        }
+    }
+}
 
 @Composable
 fun ProfilePage() {
@@ -55,9 +101,20 @@ fun ProfilePage() {
     var ibanNumber by remember { mutableStateOf<String?>(null) }
     var totalAdress by remember { mutableStateOf<String?>(null) }
     var email by remember { mutableStateOf<String?>(null) }
+    var country by remember { mutableStateOf<String?>(null) }
     var encodedImage by remember { mutableStateOf<String?>(null) }
     var id by remember { mutableStateOf<String?>(null) }
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
+
+    // Variables for editable fields
+    var editableName by remember { mutableStateOf(name) }
+    var editablePhoneNumber by remember { mutableStateOf(phoneNumber) }
+    var editableStreetName by remember { mutableStateOf(streetName) }
+    var editableZipCode by remember { mutableStateOf(zipCode) }
+    var editableCity by remember { mutableStateOf(city) }
+    var editableAdressNr by remember { mutableStateOf(adressNr) }
+    var editableIbanNumber by remember { mutableStateOf(ibanNumber) }
+    var editableCountry by remember { mutableStateOf(country) }
 
     LaunchedEffect(Unit) {
         FirebaseService.getCurrentUser { success, document, _ ->
@@ -69,12 +126,22 @@ fun ProfilePage() {
                 city = document.getString("city")
                 adressNr = document.getString("addressNr")
                 ibanNumber = document.getString("ibanNumber")
-                totalAdress = "${streetName} ${adressNr} ${city} ${zipCode}"
+                country = document.getString("country")
+                totalAdress = "${streetName} ${adressNr} ${city} ${zipCode} ${country}"
                 email = FirebaseService.getCurrentUserEmail()
                 id = document.getString("userId")
                 encodedImage = document.getString("profileImage")
-                encodedImage?.let { Log.e("ErrorImage", it) }
                 profileBitmap = if (!encodedImage.isNullOrEmpty()) decode(encodedImage) else null
+
+                // Initialize editable fields
+                editableName = name
+                editablePhoneNumber = phoneNumber
+                editableStreetName = streetName
+                editableZipCode = zipCode
+                editableCity = city
+                editableAdressNr = adressNr
+                editableIbanNumber = ibanNumber
+                editableCountry = country
             } else {
                 profileBitmap = null
                 Toast.makeText(
@@ -102,6 +169,8 @@ fun ProfilePage() {
         }
     }
 
+    val scrollState = rememberScrollState()
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -109,12 +178,12 @@ fun ProfilePage() {
     ) {
         Column(
             modifier = Modifier
+                .verticalScroll(scrollState)
                 .fillMaxSize()
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box() {
+            Box {
                 Box(
                     modifier = Modifier
                         .size(100.dp)
@@ -165,18 +234,155 @@ fun ProfilePage() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            name?.let { Text(text = it, color = Color.Black) }
-            Spacer(modifier = Modifier.height(4.dp))
-            email?.let { Text(text = it, color = Color.Black) }
-            Spacer(modifier = Modifier.height(4.dp))
-            phoneNumber?.let { Text(text = it, color = Color.Black) }
-            Spacer(modifier = Modifier.height(4.dp))
-            ibanNumber?.let { Text(text = it, color = Color.Black) }
-            Spacer(modifier = Modifier.height(4.dp))
-            totalAdress?.let { Text(text = it, color = Color.Black) }
+            // Editable fields
+            EditableField(
+                label = "Name",
+                value = editableName,
+                onValueChange = { editableName = it },
+                minLength = 1,
+                errorMessage = "Geen geldige naam"
+            )
+            EditableField(
+                label = "Phone Number",
+                value = editablePhoneNumber,
+                onValueChange = { editablePhoneNumber = it },
+                minLength = 2,
+                errorMessage = "Geen geldig telefoonnummer"
+            )
+            EditableField(
+                label = "Street Name",
+                value = editableStreetName,
+                onValueChange = { editableStreetName = it },
+                minLength = 3,
+                errorMessage = "Geen geldige straatnaam"
+            )
+            EditableField(
+                label = "Zip Code",
+                value = editableZipCode,
+                onValueChange = { editableZipCode = it },
+                minLength = 4,
+                errorMessage = "Geen geldige postcode"
+            )
+            EditableField(
+                label = "City",
+                value = editableCity,
+                onValueChange = { editableCity = it },
+                minLength = 3,
+                errorMessage = "Geen geldige stad"
+
+            )
+            EditableField(
+                label = "Address Number",
+                value = editableAdressNr,
+                onValueChange = { editableAdressNr = it },
+                minLength = 2,
+                errorMessage = "Geen geldige adresnummer"
+            )
+            EditableField(
+                label = "Country",
+                value = editableCountry,
+                onValueChange = { editableCountry = it },
+                minLength = 3,
+                errorMessage = "Geen geldig landsnaam"
+            )
+            EditableField(
+                label = "IBAN Number",
+                value = editableIbanNumber,
+                onValueChange = { editableIbanNumber = it },
+                minLength = 14,
+                errorMessage = "Geen geldige IBAN nummer"
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Save button
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                Text(
+                    text = "Save Changes",
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .clickable {
+                            CoroutineScope(Dispatchers.Main).launch {
+                                val fullAddress = "$editableStreetName+$editableAdressNr+$editableCity+$editableCountry"
+                                val coordinates = getCoordinatesFromAddress(fullAddress)
+                                if (coordinates == null) {
+                                    Toast.makeText(context, "Address not found. Please check your address.", Toast.LENGTH_SHORT).show()
+                                } else {
+                                    val (lat, lon) = coordinates
+                                    FirebaseService.getCurrentUserId()?.let {
+                                        FirebaseService.updateUserProfile(
+                                            userId = it,
+                                            fullName = editableName,
+                                            phoneNumber = editablePhoneNumber,
+                                            streetName = editableStreetName,
+                                            zipCode = editableZipCode,
+                                            city = editableCity,
+                                            addressNr = editableAdressNr,
+                                            ibanNumber = editableIbanNumber,
+                                            country = editableCountry,
+                                            longitude = lon,
+                                            latitude = lat
+                                        ) { success, errorMessage ->
+                                            Toast.makeText(
+                                                context,
+                                                errorMessage ?: if (success) "Profile Updated" else "Failed to update",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                    color = Color.Blue
+                )
+            }
         }
     }
 }
+
+@Composable
+fun EditableField(
+    label: String,
+    value: String?,
+    onValueChange: (String) -> Unit,
+    minLength: Int = 0,
+    errorMessage: String? = null
+) {
+    Column(
+        modifier = Modifier.padding(8.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(text = label, color = Color.Gray)
+        Spacer(modifier = Modifier.height(4.dp))
+        BasicTextField(
+            value = value ?: "",
+            onValueChange = { newValue ->
+                if (newValue.length >= minLength) { // Ensure street name has at least 3 characters
+                    onValueChange(newValue)
+                }
+            },
+            textStyle = LocalTextStyle.current.copy(color = Color.Black),
+            modifier = Modifier
+                .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
+                .padding(8.dp)
+                .fillMaxWidth(),
+            maxLines = 1
+        )
+
+        // Show error message if validation fails
+        errorMessage?.let {
+            Text(
+                text = it,
+                color = Color.Red,
+                style = LocalTextStyle.current.copy(fontSize = 12.sp)
+            )
+        }
+    }
+}
+
 
 fun decode(toDecodeString: String?): Bitmap? {
     if (toDecodeString.isNullOrEmpty()) return null
