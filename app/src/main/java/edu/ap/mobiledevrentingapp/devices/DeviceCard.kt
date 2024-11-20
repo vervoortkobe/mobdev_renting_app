@@ -142,7 +142,7 @@ fun DeviceCard(
             ) {
                 Icon(Icons.Default.LocationOn, contentDescription = "location", tint = Color.Gray)
                 Text(
-                    text = String.format("%.1fkm %s", distance, ownerData.city ?: "Unknown"),
+                    text = "${"%.1f".format(distance)}km • ${ownerData.city}",
                     style = MaterialTheme.typography.bodyMedium
                 )
 
@@ -199,6 +199,7 @@ suspend fun getOwnerData(ownerId: String): User {
 
                 val ownerData = User(
                     fullName = fullName,
+                    city = city ?: "Unknown",
                     profileImage = profileImage.toString()
                 )
 

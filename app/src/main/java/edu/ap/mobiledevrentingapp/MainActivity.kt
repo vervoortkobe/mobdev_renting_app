@@ -97,7 +97,7 @@ fun MainPage(onLogout: () -> Unit) {
 fun BottomNavigationBar(navController: NavHostController) {
     // Define the background color
     val backgroundColor = Yellow40
-    val itemColor = Color(0xFFD0B8B8)
+    val itemColor = Color.Black
 
     NavigationBar(
         containerColor = backgroundColor // Set the background color here

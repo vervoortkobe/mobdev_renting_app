@@ -52,7 +52,7 @@ fun DisplayDevicesWithImages() {
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
     var showFilters by remember { mutableStateOf(false) }
-    var maxDistance by remember { mutableFloatStateOf(50f) }
+    var maxDistance by remember { mutableFloatStateOf(100f) }
     var userLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     var userLocationObject by remember { mutableStateOf<Location?>(null) }
 
@@ -91,22 +91,24 @@ fun DisplayDevicesWithImages() {
     }
 
     Column {
-        // Search bar
-        SearchBar(
-            searchQuery = searchQuery,
-            onSearchQueryChange = { searchQuery = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp)
-        )
-
-        // Options button
+        // Search bar and options button in same row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.End
+                .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 2.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
+            // Search bar with weight to take available space
+            SearchBar(
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            )
+
+            // Options button
             IconButton(onClick = { showFilters = !showFilters }) {
                 Icon(
                     imageVector = Icons.Default.List,
@@ -125,7 +127,7 @@ fun DisplayDevicesWithImages() {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(8.dp)
+                    .padding(start = 8.dp, end = 8.dp)
             ) {
                 // Category dropdown
                 DropdownListDevices(
@@ -135,13 +137,20 @@ fun DisplayDevicesWithImages() {
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(0.dp))
 
                 // Distance slider
                 Text(
-                    text = "Maximum distance: ${maxDistance.toInt()} km",
-                    style = MaterialTheme.typography.bodyMedium
+                    text = if (maxDistance < 100f) 
+                        "Maximum distance: ${maxDistance.toInt()} km"
+                    else 
+                        "No distance limit",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 4.dp)
                 )
+
+                Spacer(modifier = Modifier.height(0.dp))
+
                 Slider(
                     value = maxDistance,
                     onValueChange = { maxDistance = it },
@@ -151,6 +160,8 @@ fun DisplayDevicesWithImages() {
                         activeTrackColor = Yellow40
                     )
                 )
+
+                Spacer(modifier = Modifier.height(4.dp))
             }
         }
 
@@ -159,12 +170,17 @@ fun DisplayDevicesWithImages() {
             val matchesCategory = selectedCategoryIndex == 0 || 
                 device.category == DeviceCategory.entries[selectedCategoryIndex - 1].name
             val matchesQuery = device.deviceName.contains(searchQuery, ignoreCase = true)
-            val matchesDistance = userLocation?.let { (userLat, userLon) ->
-                calculateDistance(
-                    userLat, userLon,
-                    device.latitude, device.longitude
-                ) <= maxDistance
-            } ?: true
+            val matchesDistance = if (maxDistance < 100f) {
+                // Only apply distance filter if not at max
+                userLocation?.let { (userLat, userLon) ->
+                    calculateDistance(
+                        userLat, userLon,
+                        device.latitude, device.longitude
+                    ) <= maxDistance
+                } ?: true
+            } else {
+                true // Skip distance filtering when slider is at max
+            }
 
             matchesCategory && matchesQuery && matchesDistance
         }

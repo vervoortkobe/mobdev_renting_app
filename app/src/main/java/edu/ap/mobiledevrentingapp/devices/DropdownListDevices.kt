@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -38,12 +37,12 @@ fun DropdownListDevices(
             .background(Color.White, RoundedCornerShape(4.dp))
             .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
             .clickable { expanded = true }
-            .height(56.dp)
+
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = if (selectedCategoryIndex == 0) "All" else categories[selectedCategoryIndex - 1].name,
+            text = if (selectedCategoryIndex == 0) "All Categories" else AppUtil.convertUppercaseToTitleCase(categories[selectedCategoryIndex - 1].name),
             color = Color.Black
         )
     }
@@ -84,7 +83,7 @@ fun DropdownListDevices(
                             .padding(8.dp),
                         contentAlignment = Alignment.CenterStart
                     ) {
-                        Text(category.name)
+                        Text(AppUtil.convertUppercaseToTitleCase(category.name))
                     }
                 }
             }
