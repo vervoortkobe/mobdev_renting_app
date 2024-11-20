@@ -115,7 +115,7 @@ fun AddDevicePage(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("Makita Screwdriver") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -136,7 +136,7 @@ fun AddDevicePage(navController: NavController) {
                 modifier = Modifier.fillMaxWidth().height(150.dp),
                 placeholder = { Text("Max. 500 characters") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -151,7 +151,7 @@ fun AddDevicePage(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("10") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )

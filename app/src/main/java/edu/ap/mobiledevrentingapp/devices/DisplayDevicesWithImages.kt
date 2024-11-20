@@ -33,11 +33,15 @@ import android.location.Location
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
@@ -55,6 +59,7 @@ fun DisplayDevicesWithImages() {
     var maxDistance by remember { mutableFloatStateOf(100f) }
     var userLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     var userLocationObject by remember { mutableStateOf<Location?>(null) }
+    var currentUserId by remember { mutableStateOf<String?>(null) }
 
     // Fetch user location
     LaunchedEffect(Unit) {
@@ -63,6 +68,9 @@ fun DisplayDevicesWithImages() {
                 val lat = document.getDouble("latitude") ?: 0.0
                 val lon = document.getDouble("longitude") ?: 0.0
                 userLocation = Pair(lat, lon)
+                
+                // Store the current user ID
+                currentUserId = document.getString("userId")
                 
                 // Create Location object
                 val location = Location("").apply {
@@ -91,7 +99,7 @@ fun DisplayDevicesWithImages() {
     }
 
     Column {
-        // Search bar and options button in same row
+        // Search bar and options button row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -105,18 +113,29 @@ fun DisplayDevicesWithImages() {
                 onSearchQueryChange = { searchQuery = it },
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 8.dp)
+                    .padding(end = 4.dp)
+                    .height(52.dp)
+                    .background(Color.White, RoundedCornerShape(8.dp))
+                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
             )
 
             // Options button
-            IconButton(onClick = { showFilters = !showFilters }) {
+            IconButton(
+                onClick = { showFilters = !showFilters },
+                Modifier
+                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                    .size(52.dp),
+            ) {
                 Icon(
-                    imageVector = Icons.Default.List,
+                    imageVector = Icons.Default.Settings,
                     contentDescription = "Filter options",
-                    tint = Yellow40
+                    tint = Yellow40,
+                    modifier = Modifier.size(32.dp)
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(4.dp))
 
         // Filters section
         AnimatedVisibility(
@@ -171,7 +190,6 @@ fun DisplayDevicesWithImages() {
                 device.category == DeviceCategory.entries[selectedCategoryIndex - 1].name
             val matchesQuery = device.deviceName.contains(searchQuery, ignoreCase = true)
             val matchesDistance = if (maxDistance < 100f) {
-                // Only apply distance filter if not at max
                 userLocation?.let { (userLat, userLon) ->
                     calculateDistance(
                         userLat, userLon,
@@ -179,10 +197,11 @@ fun DisplayDevicesWithImages() {
                     ) <= maxDistance
                 } ?: true
             } else {
-                true // Skip distance filtering when slider is at max
+                true
             }
+            val isNotOwnDevice = device.ownerId != currentUserId
 
-            matchesCategory && matchesQuery && matchesDistance
+            matchesCategory && matchesQuery && matchesDistance && isNotOwnDevice
         }
 
         // Display results

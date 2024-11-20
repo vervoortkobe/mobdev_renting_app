@@ -114,20 +114,24 @@ fun DeviceCard(
 
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = device.deviceName,
+                    text = if (device.deviceName.length > 15) {
+                        device.deviceName.take(12) + "..."
+                    } else {
+                        device.deviceName
+                    },
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.weight(1f)
                 )
                 Text(
                     text = AppUtil.convertUppercaseToTitleCase(device.category),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                     color = Yellow40,
                     textAlign = TextAlign.End,
                     modifier = Modifier.padding(end = 8.dp)
@@ -145,9 +149,12 @@ fun DeviceCard(
                     text = "${"%.1f".format(distance)}km • ${ownerData.city}",
                     style = MaterialTheme.typography.bodyMedium
                 )
+            }
 
-                Spacer(modifier = Modifier.width(0.dp))
-
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(Icons.Default.ShoppingCart, contentDescription = "price", tint = Color.Gray)
                 Text(text = "€ ${device.price} / day", style = MaterialTheme.typography.bodyMedium)
             }
@@ -186,21 +193,17 @@ suspend fun getOwnerData(ownerId: String): User {
     return suspendCancellableCoroutine { continuation ->
         FirebaseService.getUserById(ownerId) { success, document, error ->
             if (success && document != null) {
-                val fullName = document.getString("fullName") ?: "Unknown"
-                val phoneNumber = document.getString("phoneNumber")
-                val streetName = document.getString("streetName")
-                val zipCode = document.getString("zipCode")
-                val city = document.getString("city")
-                val addressNr = document.getString("addressNr")
-                val ibanNumber = document.getString("ibanNumber")
-                val country = document.getString("country")
-                val userId = document.getString("userId")
-                val profileImage = document.getString("profileImage")
-
                 val ownerData = User(
-                    fullName = fullName,
-                    city = city ?: "Unknown",
-                    profileImage = profileImage.toString()
+                    fullName = document.getString("fullName") ?: "Unknown",
+                    phoneNumber = document.getString("phoneNumber") ?: "Unknown",
+                    streetName = document.getString("streetName") ?: "Unknown",
+                    zipCode = document.getString("zipCode") ?: "Unknown",
+                    city = document.getString("city") ?: "Unknown",
+                    addressNr =  document.getString("addressNr") ?: "Unknown",
+                    ibanNumber = document.getString("ibanNumber") ?: "Unknown",
+                    country = document.getString("country") ?: "Unknown",
+                    userId = document.getString("userId") ?: "Unknown",
+                    profileImage = document.getString("profileImage").toString()
                 )
 
                 continuation.resume(ownerData)
