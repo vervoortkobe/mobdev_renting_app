@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
 fun LoginScreen(
@@ -67,7 +68,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("someone@example.com") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -83,7 +84,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("********") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -105,7 +106,7 @@ fun LoginScreen(
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                colors = ButtonDefaults.buttonColors(containerColor = Yellow40)
             ) {
                 Text("Log In")
             }

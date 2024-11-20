@@ -28,12 +28,14 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.auth.FirebaseAuth
+import edu.ap.mobiledevrentingapp.addDevice.AddDevicePage
 import edu.ap.mobiledevrentingapp.devices.DevicesPage
 import edu.ap.mobiledevrentingapp.home.HomePage
 import edu.ap.mobiledevrentingapp.login.LoginActivity
 import edu.ap.mobiledevrentingapp.map.MapPage
 import edu.ap.mobiledevrentingapp.profile.ProfilePage
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 class MainActivity : AppCompatActivity() {
 
@@ -94,8 +96,8 @@ fun MainPage(onLogout: () -> Unit) {
 @Composable
 fun BottomNavigationBar(navController: NavHostController) {
     // Define the background color
-    val backgroundColor = Color(0xFFFF5232)
-    val itemColor = Color(0xFFFF9e81)
+    val backgroundColor = Yellow40
+    val itemColor = Color.Black
 
     NavigationBar(
         containerColor = backgroundColor // Set the background color here

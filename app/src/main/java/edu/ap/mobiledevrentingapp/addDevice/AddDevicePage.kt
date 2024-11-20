@@ -1,4 +1,4 @@
-package edu.ap.mobiledevrentingapp
+package edu.ap.mobiledevrentingapp.addDevice
 
 import android.graphics.Bitmap
 import android.net.Uri
@@ -52,12 +52,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import edu.ap.mobiledevrentingapp.addDevice.DropdownList
-import edu.ap.mobiledevrentingapp.addDevice.ImageOverlay
 import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
 fun AddDevicePage(navController: NavController) {
@@ -123,9 +122,10 @@ fun AddDevicePage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(2.dp))
 
-            DropdownList(
+            DropdownListAddDevice(
                 selectedIndex = selectedCategoryIndex,
-                onItemClick = { selectedCategoryIndex = it })
+                onItemClick = { selectedCategoryIndex = it }
+            )
 
             Spacer(modifier = Modifier.height(2.dp))
 
@@ -319,7 +319,7 @@ fun AddDevicePage(navController: NavController) {
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Red)
+                colors = ButtonDefaults.buttonColors(containerColor = Yellow40)
             ) {
                 Text("Submit device")
             }

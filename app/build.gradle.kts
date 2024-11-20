@@ -89,6 +89,9 @@ dependencies {
     implementation(libs.androidx.navigation.compose.v253)
     implementation(project(":osm-compose"))
     implementation(libs.osmdroid.android)
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.google.code.gson:gson:2.10.1")
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
 }

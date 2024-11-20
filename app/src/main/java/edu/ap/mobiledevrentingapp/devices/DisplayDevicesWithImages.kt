@@ -4,7 +4,10 @@ import android.graphics.Bitmap
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.CircularProgressIndicator
@@ -13,6 +16,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -22,14 +27,54 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import edu.ap.mobiledevrentingapp.firebase.Device
+import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
+import android.location.Location
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.List
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
-fun DisplayDevicesWithImages(searchQuery: String) {
+fun DisplayDevicesWithImages() {
     val context = LocalContext.current
     var devicesWithImages by remember { mutableStateOf<List<Pair<Device, List<Pair<String, Bitmap>>>>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
+    var searchQuery by remember { mutableStateOf("") }
+    var selectedCategoryIndex by remember { mutableIntStateOf(0) }
+    var showFilters by remember { mutableStateOf(false) }
+    var maxDistance by remember { mutableFloatStateOf(100f) }
+    var userLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    var userLocationObject by remember { mutableStateOf<Location?>(null) }
 
+    // Fetch user location
+    LaunchedEffect(Unit) {
+        FirebaseService.getCurrentUser { success, document, _ ->
+            if (success && document != null) {
+                val lat = document.getDouble("latitude") ?: 0.0
+                val lon = document.getDouble("longitude") ?: 0.0
+                userLocation = Pair(lat, lon)
+                
+                // Create Location object
+                val location = Location("").apply {
+                    latitude = lat
+                    longitude = lon
+                }
+                userLocationObject = location
+            }
+        }
+    }
+
+    // Fetch devices from Firebase
     LaunchedEffect(Unit) {
         FirebaseService.getAllDevicesWithImages { success, devicesList, error ->
             if (success) {
@@ -45,29 +90,133 @@ fun DisplayDevicesWithImages(searchQuery: String) {
         }
     }
 
-    // Filter devices based on the search query
-    val filteredDevices = if (searchQuery.isNotBlank()) {
-        devicesWithImages.filter { it.first.deviceName.contains(searchQuery, ignoreCase = true) }
-    } else {
-        devicesWithImages
-    }
-
-    if (isLoading) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) { CircularProgressIndicator() }
-    } else if (filteredDevices.isEmpty()) {
-        Text(
-            text = "No devices found.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = Color.Gray
-        )
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(0.dp)
+    Column {
+        // Search bar and options button in same row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 2.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            items(filteredDevices) { (device, images) ->
-                DeviceCard(device, images)
+            // Search bar with weight to take available space
+            SearchBar(
+                searchQuery = searchQuery,
+                onSearchQueryChange = { searchQuery = it },
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 8.dp)
+            )
+
+            // Options button
+            IconButton(onClick = { showFilters = !showFilters }) {
+                Icon(
+                    imageVector = Icons.Default.List,
+                    contentDescription = "Filter options",
+                    tint = Yellow40
+                )
+            }
+        }
+
+        // Filters section
+        AnimatedVisibility(
+            visible = showFilters,
+            enter = expandVertically(),
+            exit = shrinkVertically()
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 8.dp, end = 8.dp)
+            ) {
+                // Category dropdown
+                DropdownListDevices(
+                    categories = DeviceCategory.entries,
+                    selectedCategoryIndex = selectedCategoryIndex,
+                    onCategorySelected = { selectedCategoryIndex = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                Spacer(modifier = Modifier.height(0.dp))
+
+                // Distance slider
+                Text(
+                    text = if (maxDistance < 100f) 
+                        "Maximum distance: ${maxDistance.toInt()} km"
+                    else 
+                        "No distance limit",
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(start = 4.dp)
+                )
+
+                Spacer(modifier = Modifier.height(0.dp))
+
+                Slider(
+                    value = maxDistance,
+                    onValueChange = { maxDistance = it },
+                    valueRange = 0f..100f,
+                    colors = SliderDefaults.colors(
+                        thumbColor = Yellow40,
+                        activeTrackColor = Yellow40
+                    )
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
+
+        // Filter logic
+        val filteredDevices = devicesWithImages.filter { (device, _) ->
+            val matchesCategory = selectedCategoryIndex == 0 || 
+                device.category == DeviceCategory.entries[selectedCategoryIndex - 1].name
+            val matchesQuery = device.deviceName.contains(searchQuery, ignoreCase = true)
+            val matchesDistance = if (maxDistance < 100f) {
+                // Only apply distance filter if not at max
+                userLocation?.let { (userLat, userLon) ->
+                    calculateDistance(
+                        userLat, userLon,
+                        device.latitude, device.longitude
+                    ) <= maxDistance
+                } ?: true
+            } else {
+                true // Skip distance filtering when slider is at max
+            }
+
+            matchesCategory && matchesQuery && matchesDistance
+        }
+
+        // Display results
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
+            }
+        } else if (filteredDevices.isEmpty()) {
+            Text(
+                text = "No devices found.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color.Gray
+            )
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(0.dp)
+            ) {
+                items(filteredDevices) { (device, images) ->
+                    userLocationObject?.let { location ->
+                        DeviceCard(
+                            device = device,
+                            images = images,
+                            userLocation = location
+                        )
+                    }
+                }
             }
         }
     }
+}
+
+private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
+    val results = FloatArray(1)
+    Location.distanceBetween(lat1, lon1, lat2, lon2, results)
+    return results[0] / 1000 // Convert meters to kilometers
 }

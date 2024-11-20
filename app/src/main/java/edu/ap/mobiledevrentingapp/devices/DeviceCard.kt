@@ -43,15 +43,29 @@ import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.firebase.User
 import edu.ap.mobiledevrentingapp.profile.decode
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 @Composable
-fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
+fun DeviceCard(
+    device: Device,
+    images: List<Pair<String, Bitmap>>,
+    userLocation: android.location.Location
+) {
     var ownerData by remember { mutableStateOf(User("", "")) }
     var ownerName by remember { mutableStateOf("Loading...") }
     var ownerProfileImage by remember { mutableStateOf<Bitmap?>(null) }
+
+    val distance = remember(userLocation, device) {
+        calculateDistanceUsingLocation(
+            userLocation.latitude,
+            userLocation.longitude,
+            device.latitude,
+            device.longitude
+        )
+    }
 
     LaunchedEffect(device.ownerId) {
         ownerData = getOwnerData(device.ownerId)
@@ -114,7 +128,7 @@ fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
                 Text(
                     text = AppUtil.convertUppercaseToTitleCase(device.category),
                     style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Yellow40,
                     textAlign = TextAlign.End,
                     modifier = Modifier.padding(end = 8.dp)
                 )
@@ -127,7 +141,10 @@ fun DeviceCard(device: Device, images: List<Pair<String, Bitmap>>) {
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(Icons.Default.LocationOn, contentDescription = "location", tint = Color.Gray)
-                Text(text = "5km Antwerp", style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = "${"%.1f".format(distance)}km • ${ownerData.city}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
 
                 Spacer(modifier = Modifier.width(0.dp))
 
@@ -182,6 +199,7 @@ suspend fun getOwnerData(ownerId: String): User {
 
                 val ownerData = User(
                     fullName = fullName,
+                    city = city ?: "Unknown",
                     profileImage = profileImage.toString()
                 )
 
@@ -193,4 +211,10 @@ suspend fun getOwnerData(ownerId: String): User {
             }
         }
     }
+}
+
+private fun calculateDistanceUsingLocation(userLat: Double, userLong: Double, deviceLat: Double, deviceLong: Double): Float {
+    val results = FloatArray(1)
+    android.location.Location.distanceBetween(userLat, userLong, deviceLat, deviceLong, results)
+    return results[0] / 1000 // Convert meters to kilometers
 }

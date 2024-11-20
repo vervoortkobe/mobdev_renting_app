@@ -12,24 +12,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
 fun DevicesPage(navController: NavController) {
-    var searchQuery by remember { mutableStateOf("") }
-
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -43,7 +40,11 @@ fun DevicesPage(navController: NavController) {
                 onClick = { navController.navigate("map") },
                 modifier = Modifier
                     .padding(end = 8.dp)
-                    .width(180.dp)
+                    .width(180.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Yellow40,
+                    disabledContainerColor = Yellow40
+                )
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
@@ -56,7 +57,11 @@ fun DevicesPage(navController: NavController) {
             }
             Button(
                 onClick = { navController.navigate("add_device") },
-                modifier = Modifier.width(180.dp)
+                modifier = Modifier.width(180.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Yellow40,
+                    disabledContainerColor = Yellow40
+                )
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
@@ -69,12 +74,7 @@ fun DevicesPage(navController: NavController) {
             }
         }
 
-        SearchBar(
-            searchQuery = searchQuery,
-            onSearchQueryChange = { searchQuery = it }
-        )
-
-        DisplayDevicesWithImages(searchQuery)
+        DisplayDevicesWithImages()
     }
 }
 
