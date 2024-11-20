@@ -13,7 +13,7 @@ android {
 
     defaultConfig {
         minSdk 24
-        targetSdk 34
+        targetSdk 35
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -91,5 +91,11 @@ mavenPublishing {
             connection = "scm:git:git://github.com/utsmannn/osm-android-compose.git"
             developerConnection = "scm:git:ssh://git@github.com/utsmannn/osm-android-compose.git"
         }
+    }
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
     }
 }
