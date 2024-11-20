@@ -238,59 +238,43 @@ fun ProfilePage() {
             EditableField(
                 label = "Name",
                 value = editableName,
-                onValueChange = { editableName = it },
-                minLength = 1,
-                errorMessage = "Geen geldige naam"
+                onValueChange = { editableName = it }
             )
             EditableField(
                 label = "Phone Number",
                 value = editablePhoneNumber,
-                onValueChange = { editablePhoneNumber = it },
-                minLength = 2,
-                errorMessage = "Geen geldig telefoonnummer"
+                onValueChange = { editablePhoneNumber = it }
             )
             EditableField(
                 label = "Street Name",
                 value = editableStreetName,
-                onValueChange = { editableStreetName = it },
-                minLength = 3,
-                errorMessage = "Geen geldige straatnaam"
+                onValueChange = { editableStreetName = it }
             )
             EditableField(
                 label = "Zip Code",
                 value = editableZipCode,
-                onValueChange = { editableZipCode = it },
-                minLength = 4,
-                errorMessage = "Geen geldige postcode"
+                onValueChange = { editableZipCode = it }
             )
             EditableField(
                 label = "City",
                 value = editableCity,
-                onValueChange = { editableCity = it },
-                minLength = 3,
-                errorMessage = "Geen geldige stad"
+                onValueChange = { editableCity = it }
 
             )
             EditableField(
                 label = "Address Number",
                 value = editableAdressNr,
-                onValueChange = { editableAdressNr = it },
-                minLength = 2,
-                errorMessage = "Geen geldige adresnummer"
+                onValueChange = { editableAdressNr = it }
             )
             EditableField(
                 label = "Country",
                 value = editableCountry,
-                onValueChange = { editableCountry = it },
-                minLength = 3,
-                errorMessage = "Geen geldig landsnaam"
+                onValueChange = { editableCountry = it }
             )
             EditableField(
                 label = "IBAN Number",
                 value = editableIbanNumber,
-                onValueChange = { editableIbanNumber = it },
-                minLength = 14,
-                errorMessage = "Geen geldige IBAN nummer"
+                onValueChange = { editableIbanNumber = it }
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -344,13 +328,7 @@ fun ProfilePage() {
 }
 
 @Composable
-fun EditableField(
-    label: String,
-    value: String?,
-    onValueChange: (String) -> Unit,
-    minLength: Int = 0,
-    errorMessage: String? = null
-) {
+fun EditableField(label: String, value: String?, onValueChange: (String) -> Unit) {
     Column(
         modifier = Modifier.padding(8.dp),
         horizontalAlignment = Alignment.Start
@@ -360,7 +338,8 @@ fun EditableField(
         BasicTextField(
             value = value ?: "",
             onValueChange = { newValue ->
-                if (newValue.length >= minLength) { // Ensure street name has at least 3 characters
+                // Ignore newline characters to ensure single-line behavior
+                if (!newValue.contains("\n")) {
                     onValueChange(newValue)
                 }
             },
@@ -369,19 +348,11 @@ fun EditableField(
                 .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
                 .padding(8.dp)
                 .fillMaxWidth(),
-            maxLines = 1
+            maxLines = 1 // Restrict to a single line
         )
-
-        // Show error message if validation fails
-        errorMessage?.let {
-            Text(
-                text = it,
-                color = Color.Red,
-                style = LocalTextStyle.current.copy(fontSize = 12.sp)
-            )
-        }
     }
 }
+
 
 
 fun decode(toDecodeString: String?): Bitmap? {
