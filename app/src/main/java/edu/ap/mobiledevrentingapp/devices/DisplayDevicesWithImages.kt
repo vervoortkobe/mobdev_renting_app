@@ -46,10 +46,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.navigation.NavController
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
-fun DisplayDevicesWithImages() {
+fun DisplayDevicesWithImages(navController: NavController) {
     val context = LocalContext.current
     var devicesWithImages by remember { mutableStateOf<List<Pair<Device, List<Pair<String, Bitmap>>>>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -225,7 +226,8 @@ fun DisplayDevicesWithImages() {
                         DeviceCard(
                             device = device,
                             images = images,
-                            userLocation = location
+                            userLocation = location,
+                            navController = navController
                         )
                     }
                 }

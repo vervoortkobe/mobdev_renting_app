@@ -76,7 +76,7 @@ fun DevicesPage(navController: NavController) {
             }
         }
 
-        DisplayDevicesWithImages()
+        DisplayDevicesWithImages(navController = navController)
     }
 }
 

@@ -27,6 +27,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
 import edu.ap.mobiledevrentingapp.addDevice.AddDevicePage
 import edu.ap.mobiledevrentingapp.devices.DevicesPage
@@ -36,6 +38,7 @@ import edu.ap.mobiledevrentingapp.map.MapPage
 import edu.ap.mobiledevrentingapp.profile.ProfilePage
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
+import edu.ap.mobiledevrentingapp.devices.DeviceDetailsPage
 
 class MainActivity : AppCompatActivity() {
 
@@ -89,6 +92,16 @@ fun MainPage(onLogout: () -> Unit) {
             composable("profile") { ProfilePage() }
             composable("map") { MapPage(navController = navController) }
             composable("add_device") { AddDevicePage(navController = navController) }
+            composable(
+                route = "device_details/{deviceId}",
+                arguments = listOf(
+                    navArgument("deviceId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val deviceId = backStackEntry.arguments?.getString("deviceId")
+                requireNotNull(deviceId) { "Device ID parameter wasn't found" }
+                DeviceDetailsPage(navController = navController, deviceId = deviceId)
+            }
         }
     }
 }

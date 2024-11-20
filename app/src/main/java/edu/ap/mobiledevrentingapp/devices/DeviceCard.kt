@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,8 @@ import kotlin.coroutines.resumeWithException
 fun DeviceCard(
     device: Device,
     images: List<Pair<String, Bitmap>>,
-    userLocation: android.location.Location
+    userLocation: android.location.Location,
+    navController: androidx.navigation.NavController
 ) {
     var ownerData by remember { mutableStateOf(User("", "")) }
     var ownerName by remember { mutableStateOf("Loading...") }
@@ -78,6 +80,9 @@ fun DeviceCard(
             .fillMaxWidth()
             .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 4.dp)
             .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+            .clickable {
+                navController.navigate("device_details/${device.deviceId}")
+            }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

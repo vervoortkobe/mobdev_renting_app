@@ -272,7 +272,7 @@ object FirebaseService {
         }
     }
 
-    private suspend fun getImageById(imageId: String): Pair<String, Bitmap>? {
+    suspend fun getImageById(imageId: String): Pair<String, Bitmap>? {
         return try {
             val document = firestore.collection("images").document(imageId).get().await()
             val base64String = document.getString("image")
