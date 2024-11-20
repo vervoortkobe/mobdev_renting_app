@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "edu.ap.mobiledevrentingapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "edu.ap.mobiledevrentingapp"

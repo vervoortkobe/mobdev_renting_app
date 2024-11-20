@@ -7,8 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -117,7 +117,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     ) {
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val items = listOf(
-            NavigationItem("devices", Icons.Filled.List, "Devices"),
+            NavigationItem("devices", Icons.AutoMirrored.Filled.List, "Devices"),
             NavigationItem("home", Icons.Filled.Home, "Home"),
             NavigationItem("profile", Icons.Filled.Person, "Profile")
         )

@@ -185,7 +185,7 @@ fun DisplayDevicesWithImages(navController: NavController) {
             }
         }
 
-        // Filter logic
+        // Filter and sort logic
         val filteredDevices = devicesWithImages.filter { (device, _) ->
             val matchesCategory = selectedCategoryIndex == 0 || 
                 device.category == DeviceCategory.entries[selectedCategoryIndex - 1].name
@@ -203,6 +203,13 @@ fun DisplayDevicesWithImages(navController: NavController) {
             val isNotOwnDevice = device.ownerId != currentUserId
 
             matchesCategory && matchesQuery && matchesDistance && isNotOwnDevice
+        }.sortedBy { (device, _) ->
+            userLocation?.let { (userLat, userLon) ->
+                calculateDistance(
+                    userLat, userLon,
+                    device.latitude, device.longitude
+                )
+            } ?: Float.MAX_VALUE
         }
 
         // Display results

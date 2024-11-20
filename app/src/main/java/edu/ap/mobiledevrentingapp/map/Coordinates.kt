@@ -15,7 +15,7 @@ object Coordinates {
                     } else {
                         null
                     }
-                } ?: emptyList()
+                }
 
                 callback(geoPoints)
             } else {
