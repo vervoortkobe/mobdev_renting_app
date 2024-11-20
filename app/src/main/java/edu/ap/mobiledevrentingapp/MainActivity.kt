@@ -87,7 +87,7 @@ fun MainPage(onLogout: () -> Unit) {
             composable("devices") { DevicesPage(navController = navController) }
             composable("home") { HomePage(onLogout = onLogout) }
             composable("profile") { ProfilePage() }
-            composable("map") { MapPage() }
+            composable("map") { MapPage(navController = navController) }
             composable("add_device") { AddDevicePage(navController = navController) }
         }
     }

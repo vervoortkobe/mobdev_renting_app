@@ -24,11 +24,16 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -104,9 +109,11 @@ fun AddDevicePage(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
+            Spacer(modifier = Modifier.height(10.dp))
+
             Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
 
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = deviceName,
@@ -160,7 +167,7 @@ fun AddDevicePage(navController: NavController) {
 
             Text("Device Images", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             Button(
                 onClick = { galleryLauncher.launch("image/*") },
@@ -262,11 +269,11 @@ fun AddDevicePage(navController: NavController) {
                                 ).show()
                             }
                             if (success && imageIds != null) {
-                                var latitude = 0.0
-                                var longitude = 0.0
+                                var latitude: Double
+                                var longitude: Double
 
-                                FirebaseService.getCurrentUser { success, document, error ->
-                                    if (success && document != null) {
+                                FirebaseService.getCurrentUser { succ, document, _ ->
+                                    if (succ && document != null) {
                                         latitude = document.getDouble("latitude")!!
                                         longitude = document.getDouble("longitude")!!
                                         FirebaseService.getCurrentUserId()?.let {
@@ -325,6 +332,21 @@ fun AddDevicePage(navController: NavController) {
             }
 
             Spacer(modifier = Modifier.height(8.dp))
+        }
+
+        IconButton(
+            onClick = { navController.popBackStack() },
+            modifier = Modifier
+                .padding(16.dp)
+                .size(48.dp)
+                .background(Color.White, CircleShape)
+                .border(1.dp, Color.Gray, CircleShape)
+        ) {
+            Icon(
+                imageVector = Icons.Default.ArrowBack,
+                contentDescription = "Back",
+                tint = Color.Black
+            )
         }
     }
 }
