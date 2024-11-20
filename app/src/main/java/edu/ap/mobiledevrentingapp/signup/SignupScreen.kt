@@ -41,12 +41,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
-import edu.ap.mobiledevrentingapp.osm.GeocodingService
+import edu.ap.mobiledevrentingapp.map.GeocodingService
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
@@ -73,6 +74,16 @@ fun SignupScreen(
     val retrofit = Retrofit.Builder()
         .baseUrl("https://nominatim.openstreetmap.org/")
         .addConverterFactory(GsonConverterFactory.create())
+        .client(
+            OkHttpClient.Builder()
+                .addInterceptor { chain ->
+                    val request = chain.request().newBuilder()
+                        .header("User-Agent", "BorrowBee/1.0 (kobe.vervoort@student.ap.be)")
+                        .build()
+                    chain.proceed(request)
+                }
+                .build()
+        )
         .build()
 
     val geocodingService = retrofit.create(GeocodingService::class.java)

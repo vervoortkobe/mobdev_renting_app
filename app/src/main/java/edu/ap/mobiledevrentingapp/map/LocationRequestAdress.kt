@@ -1,10 +1,5 @@
-package edu.ap.mobiledevrentingapp.osm
+package edu.ap.mobiledevrentingapp.map
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import org.osmdroid.util.GeoPoint
 import retrofit2.http.GET
 import retrofit2.http.Query
 
