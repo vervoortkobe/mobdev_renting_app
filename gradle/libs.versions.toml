@@ -38,6 +38,8 @@ activityKtx = "1.7.0"
 foundationAndroid = "1.7.2"
 playServicesLocation = "21.3.0"
 junitJunit = "4.12"
+monitor = "1.7.2"
+junitKtx = "1.2.1"
 
 [libraries]
 androidx-activity-compose-v131 = { module = "androidx.activity:activity-compose", version.ref = "activityComposeVersion" }
@@ -85,6 +87,8 @@ androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", ve
 androidx-foundation-android = { group = "androidx.compose.foundation", name = "foundation-android", version.ref = "foundationAndroid" }
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 junit-junit = { group = "junit", name = "junit", version.ref = "junitJunit" }
+androidx-monitor = { group = "androidx.test", name = "monitor", version.ref = "monitor" }
+androidx-junit-ktx = { group = "androidx.test.ext", name = "junit-ktx", version.ref = "junitKtx" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
