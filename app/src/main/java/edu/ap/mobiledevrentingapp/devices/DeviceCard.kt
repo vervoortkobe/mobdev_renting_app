@@ -46,6 +46,7 @@ import edu.ap.mobiledevrentingapp.firebase.User
 import edu.ap.mobiledevrentingapp.profile.decode
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.suspendCancellableCoroutine
+import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -127,9 +128,9 @@ fun DeviceCard(
             ) {
                 Text(
                     text = if (device.deviceName.length > 15) {
-                        device.deviceName.take(12) + "..."
+                        device.deviceName.capitalize().take(12) + "..."
                     } else {
-                        device.deviceName
+                        device.deviceName.capitalize()
                     },
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.weight(1f)
@@ -151,7 +152,7 @@ fun DeviceCard(
             ) {
                 Icon(Icons.Default.LocationOn, contentDescription = "location", tint = Color.Gray)
                 Text(
-                    text = "${"%.1f".format(distance)}km • ${ownerData.city}",
+                    text = "${"%.1f".format(distance)}km • ${ownerData.city.capitalize()}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -179,14 +180,14 @@ fun DeviceCard(
                     if (ownerProfileImage != null) {
                         Image(
                             bitmap = ownerProfileImage!!.asImageBitmap(),
-                            contentDescription = "Owner profile image",
+                            contentDescription = ownerName.capitalize(),
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
                     }
                 }
                 Text(
-                    text = ownerName,
+                    text = "${ownerData.fullName.split(" ").first().capitalize()} ${ownerData.fullName.split(" ").last().capitalize()}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -204,7 +205,7 @@ suspend fun getOwnerData(ownerId: String): User {
                     streetName = document.getString("streetName") ?: "Unknown",
                     zipCode = document.getString("zipCode") ?: "Unknown",
                     city = document.getString("city") ?: "Unknown",
-                    addressNr =  document.getString("addressNr") ?: "Unknown",
+                    addressNr = document.getString("addressNr") ?: "Unknown",
                     ibanNumber = document.getString("ibanNumber") ?: "Unknown",
                     country = document.getString("country") ?: "Unknown",
                     userId = document.getString("userId") ?: "Unknown",

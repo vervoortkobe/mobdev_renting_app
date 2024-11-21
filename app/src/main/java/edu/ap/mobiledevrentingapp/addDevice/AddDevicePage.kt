@@ -109,7 +109,7 @@ fun AddDevicePage(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(10.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
 
@@ -120,7 +120,7 @@ fun AddDevicePage(navController: NavController) {
                 onValueChange = { deviceName = it },
                 label = { Text("Device Name", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Makita Screwdriver") },
+                placeholder = { Text("Makita drill") },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,

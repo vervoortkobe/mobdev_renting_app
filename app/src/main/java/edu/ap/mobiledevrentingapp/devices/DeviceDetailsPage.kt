@@ -120,7 +120,7 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
             // Device details
             device?.let { dev ->
                 Text(
-                    text = dev.deviceName,
+                    text = dev.deviceName.capitalize(),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -159,7 +159,7 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
                         tint = Color.Gray
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    owner?.let { Text(text = it.city) }
+                    owner?.let { Text(text = it.city.capitalize()) }
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -172,7 +172,7 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
                 
                 Spacer(modifier = Modifier.height(8.dp))
                 
-                Text(text = dev.description)
+                Text(text = dev.description.replaceFirstChar { it.uppercase() })
 
                 Spacer(modifier = Modifier.height(16.dp))
 
@@ -186,7 +186,7 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
                     
                     Spacer(modifier = Modifier.height(8.dp))
                     
-                    Text(text = "Name: ${ownerData.fullName}")
+                    Text(text = "Name: ${ownerData.fullName.split(" ").first().capitalize()} ${ownerData.fullName.split(" ").last().capitalize()}")
                     Text(text = "Phone: ${ownerData.phoneNumber}")
                 }
             }
