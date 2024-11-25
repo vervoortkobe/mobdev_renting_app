@@ -30,6 +30,15 @@ data class DeviceImage(
     val imageUrl: String = ""
 )
 
+data class Rental(
+    val rentalId: String = "",
+    val deviceId: String = "",
+    val ownerId: String = "",
+    val renterId: String = "",
+    val startDate: String = "",
+    val endDate: String = ""
+)
+
 enum class DeviceCategory {
     BATHROOM,
     BEDROOM,

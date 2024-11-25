@@ -78,4 +78,14 @@ object AppUtil {
         android.location.Location.distanceBetween(latitude1, longitude1, latitude2, longitude2, results)
         return results[0] / 1000 // Convert meters to kilometers
     }
+
+    fun decode(base64String: String): Bitmap? {
+        return try {
+            val imageBytes = android.util.Base64.decode(base64String, android.util.Base64.DEFAULT)
+            android.graphics.BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        } catch (e: Exception) {
+            Log.e("AppUtil", "Error decoding base64 string", e)
+            null
+        }
+    }
 }

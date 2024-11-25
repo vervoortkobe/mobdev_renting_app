@@ -417,4 +417,33 @@ object FirebaseService {
             }
         }
     }
+
+    fun getRentalsByDeviceId(deviceId: String, callback: (List<Rental>) -> Unit) {
+        firestore.collection("rentals")
+            .whereEqualTo("deviceId", deviceId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val rentals = querySnapshot.documents.mapNotNull { doc ->
+                    doc.toObject(Rental::class.java)
+                }
+                callback(rentals)
+            }
+            .addOnFailureListener {
+                Log.e("FirebaseService", "Error getting rentals", it)
+                callback(emptyList())
+            }
+    }
+
+    fun createRental(rental: Rental, callback: (Boolean) -> Unit) {
+        firestore.collection("rentals")
+            .document(rental.rentalId)
+            .set(rental)
+            .addOnSuccessListener {
+                callback(true)
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirebaseService", "Error creating rental", e)
+                callback(false)
+            }
+    }
 }

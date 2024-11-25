@@ -38,7 +38,7 @@ import edu.ap.mobiledevrentingapp.map.MapPage
 import edu.ap.mobiledevrentingapp.profile.ProfilePage
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
-import edu.ap.mobiledevrentingapp.devices.DeviceDetailsPage
+import edu.ap.mobiledevrentingapp.deviceDetails.DeviceDetailsPage
 
 class MainActivity : AppCompatActivity() {
 
