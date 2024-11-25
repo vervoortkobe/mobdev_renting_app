@@ -47,9 +47,7 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
 
     LaunchedEffect(deviceId) {
         try {
-            // Create suspending block
             coroutineScope {
-                // Get device details
                 val deviceDeferred = async {
                     FirebaseService.getDeviceById(deviceId) { success, document, _ ->
                         if (success && document != null) {
@@ -58,12 +56,9 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
                     }
                 }
                 
-                // Wait for device details before proceeding
                 deviceDeferred.await()
                 
-                // Once we have the device, fetch owner and images
                 device?.let { dev ->
-                    // Fetch owner details
                     launch {
                         FirebaseService.getUserById(dev.ownerId) { success, doc, _ ->
                             if (success && doc != null) {
@@ -72,19 +67,16 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
                         }
                     }
 
-                    // Fetch all images in parallel
                     val imageResults = dev.imageIds.map { imageId ->
                         async {
                             FirebaseService.getImageById(imageId)
                         }
                     }.awaitAll()
 
-                    // Update images state with non-null results
                     images = imageResults.filterNotNull()
                 }
             }
         } catch (e: Exception) {
-            // Handle any errors here
             println("Error loading device details: ${e.message}")
         }
     }
@@ -96,7 +88,6 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
                 .verticalScroll(rememberScrollState())
                 .padding(16.dp)
         ) {
-            // Images carousel
             if (images.isNotEmpty()) {
                 HorizontalPager(
                     state = pagerState,
@@ -117,7 +108,6 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Device details
             device?.let { dev ->
                 Text(
                     text = dev.deviceName.capitalize(),
@@ -176,7 +166,6 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Owner information
                 owner?.let { ownerData ->
                     Text(
                         text = "Owner Information",
@@ -192,7 +181,6 @@ fun DeviceDetailsPage(navController: NavController, deviceId: String) {
             }
         }
 
-        // Back button
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier

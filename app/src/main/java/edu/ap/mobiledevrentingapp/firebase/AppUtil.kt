@@ -72,4 +72,10 @@ object AppUtil {
         // Return a new drawable from the rotated bitmap
         return BitmapDrawable(context.resources, rotatedBitmap)
     }
+
+    fun calculateDistanceUsingLocation(latitude1: Double, longitude1: Double, latitude2: Double, longitude2: Double): Float {
+        val results = FloatArray(1)
+        android.location.Location.distanceBetween(latitude1, longitude1, latitude2, longitude2, results)
+        return results[0] / 1000 // Convert meters to kilometers
+    }
 }

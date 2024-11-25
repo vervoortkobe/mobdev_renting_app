@@ -46,7 +46,6 @@ import edu.ap.mobiledevrentingapp.firebase.User
 import edu.ap.mobiledevrentingapp.profile.decode
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.suspendCancellableCoroutine
-import java.util.Locale
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
@@ -62,7 +61,7 @@ fun DeviceCard(
     var ownerProfileImage by remember { mutableStateOf<Bitmap?>(null) }
 
     val distance = remember(userLocation, device) {
-        calculateDistanceUsingLocation(
+        AppUtil.calculateDistanceUsingLocation(
             userLocation.latitude,
             userLocation.longitude,
             device.latitude,
@@ -128,9 +127,9 @@ fun DeviceCard(
             ) {
                 Text(
                     text = if (device.deviceName.length > 15) {
-                        device.deviceName.capitalize().take(12) + "..."
+                        device.deviceName.replaceFirstChar { it.uppercase() }.take(12) + "..."
                     } else {
-                        device.deviceName.capitalize()
+                        device.deviceName.replaceFirstChar { it.uppercase() }
                     },
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.weight(1f)
@@ -152,7 +151,7 @@ fun DeviceCard(
             ) {
                 Icon(Icons.Default.LocationOn, contentDescription = "location", tint = Color.Gray)
                 Text(
-                    text = "${"%.1f".format(distance)}km • ${ownerData.city.capitalize()}",
+                    text = "${"%.1f".format(distance)}km • ${ownerData.city.replaceFirstChar { it.uppercase() }}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -180,14 +179,14 @@ fun DeviceCard(
                     if (ownerProfileImage != null) {
                         Image(
                             bitmap = ownerProfileImage!!.asImageBitmap(),
-                            contentDescription = ownerName.capitalize(),
+                            contentDescription = ownerName.replaceFirstChar { it.uppercase() },
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
                     }
                 }
                 Text(
-                    text = "${ownerData.fullName.split(" ").first().capitalize()} ${ownerData.fullName.split(" ").last().capitalize()}",
+                    text = "${ownerData.fullName.split(" ").first().replaceFirstChar { it.uppercase() }} ${ownerData.fullName.split(" ").last().replaceFirstChar { it.uppercase() }}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -220,10 +219,4 @@ suspend fun getOwnerData(ownerId: String): User {
             }
         }
     }
-}
-
-private fun calculateDistanceUsingLocation(userLat: Double, userLong: Double, deviceLat: Double, deviceLong: Double): Float {
-    val results = FloatArray(1)
-    android.location.Location.distanceBetween(userLat, userLong, deviceLat, deviceLong, results)
-    return results[0] / 1000 // Convert meters to kilometers
 }
