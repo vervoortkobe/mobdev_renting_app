@@ -43,7 +43,6 @@ import edu.ap.mobiledevrentingapp.firebase.FirebaseService as FirebaseService1
 @Composable
 fun MapPage(navController: NavController) {
     val context = LocalContext.current
-    val scope = rememberCoroutineScope()
     var accountLocation by remember { mutableStateOf<GeoPoint?>(null) }
     var geoPoints by remember { mutableStateOf<List<GeoPoint>>(emptyList()) }
 

@@ -25,6 +25,7 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -49,7 +50,6 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.foundation.background
-import androidx.compose.material3.DatePickerDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
@@ -376,7 +376,7 @@ fun DeviceDetailsPage(
                                 )
                             }
                             if (existingRentals.last() != rental) {
-                                Divider(
+                                HorizontalDivider(
                                     modifier = Modifier.padding(vertical = 8.dp),
                                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
                                 )
@@ -505,45 +505,13 @@ fun DeviceDetailsPage(
                         mutableStateOf(AppCompatResources.getDrawable(context, R.drawable.user_marker_icon))
                     }
 
-                    OpenStreetMap(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .pointerInput(Unit) {
-                                detectTapGestures { }
-                            },
+                    DeviceDetailsMap(
                         cameraState = cameraState,
-                        properties = MapProperties(
-                            zoomButtonVisibility = ZoomButtonVisibility.NEVER // Disable +- buttons
-                        )
-                    ) {
-                        // Device marker
-                        val markerState = rememberMarkerState(
-                            geoPoint = GeoPoint(dev.latitude, dev.longitude),
-                            rotation = 0f
-                        )
-
-                        Marker(
-                            state = markerState,
-                            icon = deviceIcon,
-                            title = dev.deviceName,
-                            snippet = "Lat: ${dev.latitude}, Lon: ${dev.longitude}"
-                        )
-
-                        // User location marker
-                        userLocation?.let { (lat, lon) ->
-                            val userMarkerState = rememberMarkerState(
-                                geoPoint = GeoPoint(lat, lon),
-                                rotation = 0f
-                            )
-
-                            Marker(
-                                state = userMarkerState,
-                                icon = userIcon,
-                                title = "Your Location",
-                                snippet = "Lat: $lat, Lon: $lon"
-                            )
-                        }
-                    }
+                        device = dev,
+                        userLocation = userLocation,
+                        deviceIcon = deviceIcon,
+                        userIcon = userIcon
+                    )
                 }
             }
 
@@ -551,12 +519,25 @@ fun DeviceDetailsPage(
             if (showPaymentDialog) {
                 AlertDialog(
                     onDismissRequest = { showPaymentDialog = false },
-                    title = { Text("Confirm Rental") },
+                    title = { 
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text("Confirm Rental", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                        }
+                    },
                     text = {
-                        Text(
-                            "Total amount: €${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0, startDate!!, endDate!!)}",
-                            fontSize = 18.sp
-                        )
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                "Total amount: €${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0, startDate!!, endDate!!)}",
+                                fontSize = 18.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        }
                     },
                     confirmButton = {
                         Button(
@@ -573,6 +554,10 @@ fun DeviceDetailsPage(
                                         CoroutineScope(Dispatchers.Main).launch {
                                             delay(3000)
                                             isLoading = false
+                                            // Reset date selection
+                                            startDate = null
+                                            endDate = null
+                                            showDatePicker = false
                                             // Refresh rentals instead of navigating
                                             FirebaseService.getRentalsByDeviceId(deviceId) { rentals ->
                                                 existingRentals = rentals
@@ -683,11 +668,17 @@ fun DeviceDetailsPage(
             // Calendar and Booking Section
             if (startDate != null && endDate != null) {
                 val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-                Text(
-                    text = "Selected period: ${formatter.format(startDate!!)} - ${formatter.format(endDate!!)}",
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    fontWeight = FontWeight.Bold
-                )
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Selected period: ${formatter.format(startDate!!)} - ${formatter.format(endDate!!)}",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
 
             Button(
@@ -748,7 +739,7 @@ private fun calculateTotalPrice(pricePerDay: Double, startDate: Date, endDate: D
     val diffInMillis = endDate.time - startDate.time
     val days = (diffInMillis / (1000 * 60 * 60 * 24)) + 1
     val total = pricePerDay * days
-    return String.format("%.2f", total)
+    return String.format(Locale.US, "%.2f", total);
 }
 
 private fun processRental(
