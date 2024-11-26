@@ -49,6 +49,10 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.foundation.background
+import androidx.compose.material3.DatePickerDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Divider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,6 +118,13 @@ fun DeviceDetailsPage(
     }
 
     LaunchedEffect(deviceId) {
+        // Load existing rentals first
+        FirebaseService.getRentalsByDeviceId(deviceId) { rentals ->
+            existingRentals = rentals
+            // Find if current user has rented this device
+            userRental = rentals.find { it.renterId == currentUser?.userId }
+        }
+
         // First, get device details
         FirebaseService.getDeviceById(deviceId) { success, document, _ ->
             if (success && document != null) {
@@ -311,7 +322,12 @@ fun DeviceDetailsPage(
                                     fontSize = 18.sp
                                 )
                                 Text(
-                                    text = ownerData.city,
+                                    text = "${ownerData.streetName} ${ownerData.addressNr}",
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 14.sp
+                                )
+                                Text(
+                                    text = "${ownerData.zipCode} ${ownerData.city}",
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 14.sp
                                 )
@@ -507,8 +523,10 @@ fun DeviceDetailsPage(
                                 CoroutineScope(Dispatchers.Main).launch {
                                     delay(3000)
                                     isLoading = false
-                                    navController.navigate("home") {
-                                        popUpTo("home") { inclusive = true }
+                                    // Refresh rentals instead of navigating
+                                    FirebaseService.getRentalsByDeviceId(deviceId) { rentals ->
+                                        existingRentals = rentals
+                                        userRental = rentals.find { it.renterId == currentUser?.userId }
                                     }
                                 }
                             }
@@ -531,8 +549,83 @@ fun DeviceDetailsPage(
 
     // Loading Dialog
     if (isLoading) {
-        Dialog(onDismissRequest = {}) {
-            CircularProgressIndicator()
+        Dialog(
+            onDismissRequest = { },
+            properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+        ) {
+            Box(
+                modifier = Modifier
+                    .background(
+                        MaterialTheme.colorScheme.surface,
+                        shape = RoundedCornerShape(16.dp)
+                    )
+                    .padding(24.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(color = Yellow40)
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        "Processing payment...",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+        }
+    }
+
+    // Show all rental periods if there are any
+    if (existingRentals.isNotEmpty()) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Rental Periods",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                existingRentals.forEach { rental ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Column {
+                            Text(
+                                text = "From: ${rental.startDate}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "To: ${rental.endDate}",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        }
+                        if (rental.renterId == currentUser?.userId) {
+                            Text(
+                                text = "Your rental",
+                                color = Yellow40,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(start = 8.dp)
+                            )
+                        }
+                    }
+                    if (existingRentals.last() != rental) {
+                        Divider(modifier = Modifier.padding(vertical = 8.dp))
+                    }
+                }
+            }
         }
     }
 
@@ -587,6 +680,44 @@ fun DeviceDetailsPage(
             }
         }
     }
+
+    // After successful payment, show rental period
+    if (userRental != null) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.secondaryContainer
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Text(
+                    text = "Your rental period",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "From: ${userRental!!.startDate}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = "To: ${userRental!!.endDate}",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Total price: €${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0, 
+                        dateFormat.parse(userRental!!.startDate)!!, 
+                        dateFormat.parse(userRental!!.endDate)!!
+                    )}",
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Yellow40
+                )
+            }
+        }
+    }
 }
 
 private fun calculateTotalPrice(pricePerDay: Double, startDate: Date, endDate: Date): String {
@@ -622,32 +753,19 @@ private fun processRental(
 }
 
 private fun getDisabledDates(rentals: List<Rental>): List<Date> {
-    val disabledDates = mutableListOf<Date>()
-    val calendar = Calendar.getInstance()
-    val today = calendar.time
-    
-    // Add past dates
-    calendar.add(Calendar.YEAR, -1)
-    val startDate = calendar.time
-    calendar.time = today
-    
-    var currentDate = startDate
-    while (currentDate.before(today)) {
-        disabledDates.add(currentDate.clone() as Date)  // Clone to avoid modifying the same instance
-        calendar.time = currentDate
-        calendar.add(Calendar.DAY_OF_MONTH, 1)
-        currentDate = calendar.time
-    }
-
-    // Add rented dates
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+    val disabledDates = mutableListOf<Date>()
+    
     rentals.forEach { rental ->
-        val rentalStart = dateFormat.parse(rental.startDate)
-        val rentalEnd = dateFormat.parse(rental.endDate)
-        if (rentalStart != null && rentalEnd != null) {
-            calendar.time = rentalStart
-            while (!calendar.time.after(rentalEnd)) {
-                disabledDates.add(calendar.time.clone() as Date)  // Clone to avoid modifying the same instance
+        val startDate = dateFormat.parse(rental.startDate)
+        val endDate = dateFormat.parse(rental.endDate)
+        
+        if (startDate != null && endDate != null) {
+            val calendar = Calendar.getInstance()
+            calendar.time = startDate
+            
+            while (!calendar.time.after(endDate)) {
+                disabledDates.add(calendar.time)
                 calendar.add(Calendar.DAY_OF_MONTH, 1)
             }
         }
