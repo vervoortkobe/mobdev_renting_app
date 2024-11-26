@@ -215,7 +215,7 @@ fun DisplayDevicesWithImages(navController: NavController) {
         // Display results
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Yellow40)
             }
         } else if (filteredDevices.isEmpty()) {
             Text(

@@ -175,7 +175,7 @@ fun DeviceDetailsPage(
                         }
                         Text(
                             text = device?.category?.let { AppUtil.convertUppercaseToTitleCase(it) } ?: "",
-                            fontSize = 16.sp,
+                            fontSize = 18.sp,
                             color = Yellow40,
                             modifier = Modifier.padding(end = 16.dp)
                         )
@@ -193,47 +193,59 @@ fun DeviceDetailsPage(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Current user's rental (if exists)
-            userRental?.let { rental ->
-                Box(
+            // After successful payment, show rental period
+            if (userRental != null) {
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(16.dp)
                         .border(
                             width = 1.dp,
                             color = MaterialTheme.colorScheme.outline,
                             shape = RoundedCornerShape(8.dp)
-                        )
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                        ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                    )
                 ) {
-                    Row(
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(16.dp)
                     ) {
-                        Column {
+                        Column(modifier = Modifier.fillMaxWidth()) {
                             Text(
-                                text = "${rental.startDate} - ${rental.endDate}",
-                                style = MaterialTheme.typography.bodyLarge,
-                                fontSize = 16.sp,
-                                color = Yellow40,
+                                text = "Current Ongoing Rental Period",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
                             )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "${AppUtil.formatDate(dateFormat.parse(userRental!!.startDate)!!)} - ${AppUtil.formatDate(dateFormat.parse(userRental!!.endDate)!!)}",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+                                Text(
+                                    text = "€${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0,
+                                        dateFormat.parse(userRental!!.startDate)!!,
+                                        dateFormat.parse(userRental!!.endDate)!!
+                                    )}",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Yellow40
+                                )
+                            }
                         }
-                        Text(
-                            text = "€${calculateTotalPrice(
-                                device?.price?.toDoubleOrNull() ?: 0.0,
-                                dateFormat.parse(rental.startDate)!!,
-                                dateFormat.parse(rental.endDate)!!
-                            )}",
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = Yellow40
-                        )
                     }
                 }
             }
@@ -344,21 +356,12 @@ fun DeviceDetailsPage(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row {
-                                    if (rental.renterId == currentUser?.userId) {
-                                        Text(
-                                            text = "${rental.startDate} - ${rental.endDate}",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontSize = 16.sp,
-                                            color = Yellow40,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    } else {
-                                        Text(
-                                            text = "${rental.startDate} - ${rental.endDate}",
-                                            style = MaterialTheme.typography.bodyLarge,
-                                            fontSize = 16.sp
-                                        )
-                                    }
+                                    Text(
+                                        text = "${AppUtil.formatDate(dateFormat.parse(rental.startDate)!!)} - ${AppUtil.formatDate(dateFormat.parse(rental.endDate)!!)}",
+                                        style = MaterialTheme.typography.bodyLarge,
+                                        fontSize = 16.sp,
+                                        fontWeight = FontWeight.ExtraBold
+                                    )
                                 }
                                 Text(
                                     text = "€${calculateTotalPrice(
@@ -369,7 +372,7 @@ fun DeviceDetailsPage(
                                     style = MaterialTheme.typography.bodyLarge,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = if (rental.renterId == currentUser?.userId) Yellow40 else MaterialTheme.colorScheme.onSurface
+                                    color = Yellow40
                                 )
                             }
                             if (existingRentals.last() != rental) {
@@ -382,8 +385,6 @@ fun DeviceDetailsPage(
                     }
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             // Owner details
             if (isLoadingOwner) {
@@ -438,15 +439,21 @@ fun DeviceDetailsPage(
                                     fontSize = 18.sp
                                 )
                                 Text(
-                                    text = "${ownerData.streetName} ${ownerData.addressNr}",
+                                    text = if (userRental != null) {
+                                        "${ownerData.streetName} ${ownerData.addressNr}"
+                                    } else {
+                                        ownerData.city
+                                    },
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 14.sp
                                 )
-                                Text(
-                                    text = "${ownerData.zipCode} ${ownerData.city}",
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 14.sp
-                                )
+                                if (userRental != null) {
+                                    Text(
+                                        text = "${ownerData.zipCode} ${ownerData.city}",
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 14.sp
+                                    )
+                                }
                             }
                         }
                     }
@@ -477,7 +484,7 @@ fun DeviceDetailsPage(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(300.dp)
-                        .padding(16.dp)
+                        .padding(start = 16.dp, end = 16.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .border(
                             width = 1.dp,
@@ -540,61 +547,184 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // User's existing rental
-            userRental?.let { rental ->
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer
+            // Payment Confirmation Dialog
+            if (showPaymentDialog) {
+                AlertDialog(
+                    onDismissRequest = { showPaymentDialog = false },
+                    title = { Text("Confirm Rental") },
+                    text = {
+                        Text(
+                            "Total amount: €${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0, startDate!!, endDate!!)}",
+                            fontSize = 18.sp
+                        )
+                    },
+                    confirmButton = {
+                        Button(
+                            onClick = {
+                                showPaymentDialog = false
+                                isLoading = true
+                                processRental(
+                                    deviceId = deviceId,
+                                    ownerId = device?.ownerId ?: "",
+                                    renterId = currentUser?.userId ?: "",
+                                    startDate = startDate!!,
+                                    endDate = endDate!!,
+                                    onComplete = {
+                                        CoroutineScope(Dispatchers.Main).launch {
+                                            delay(3000)
+                                            isLoading = false
+                                            // Refresh rentals instead of navigating
+                                            FirebaseService.getRentalsByDeviceId(deviceId) { rentals ->
+                                                existingRentals = rentals
+                                                userRental = rentals.find { it.renterId == currentUser?.userId }
+                                            }
+                                        }
+                                    }
+                                )
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Yellow40
+                            )
+                        ) {
+                            Text("Confirm Payment")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showPaymentDialog = false }) {
+                            Text("Cancel")
+                        }
+                    }
+                )
+            }
+
+            // Loading Dialog
+            if (isLoading) {
+                Dialog(
+                    onDismissRequest = { },
+                    properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .background(
+                                MaterialTheme.colorScheme.surface,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .padding(24.dp)
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            CircularProgressIndicator(color = Yellow40)
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                "Processing payment...",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Full screen image viewer
+            if (showFullScreenImage) {
+                Dialog(
+                    onDismissRequest = { showFullScreenImage = false },
+                    properties = DialogProperties(
+                        dismissOnBackPress = true,
+                        dismissOnClickOutside = true,
+                        usePlatformDefaultWidth = false
                     )
                 ) {
-                    Text(
-                        text = "You already rented this item from ${rental.startDate} to ${rental.endDate}!",
-                        modifier = Modifier.padding(16.dp),
-                        fontWeight = FontWeight.Bold
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.9f))
+                            .clickable { showFullScreenImage = false }
+                    ) {
+                        val fullScreenPagerState = rememberPagerState(
+                            initialPage = currentImageIndex,
+                            pageCount = { images.size }
+                        )
+                        
+                        HorizontalPager(
+                            state = fullScreenPagerState,
+                            modifier = Modifier.fillMaxSize()
+                        ) { page ->
+                            Image(
+                                bitmap = images[page].asImageBitmap(),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(16.dp),
+                                contentScale = ContentScale.Fit
+                            )
+                        }
+                        
+                        // Image counter for full screen view
+                        Text(
+                            text = "${fullScreenPagerState.currentPage + 1} / ${images.size}",
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .padding(bottom = 32.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                    shape = RoundedCornerShape(4.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp),
+                            color = Color.White
+                        )
+                    }
                 }
             }
 
             // Calendar and Booking Section
-            if (userRental == null) {
-                if (startDate != null && endDate != null) {
-                    val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
-                    Text(
-                        text = "Selected period: ${formatter.format(startDate!!)} - ${formatter.format(endDate!!)}",
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        fontWeight = FontWeight.Bold
-                    )
-                }
+            if (startDate != null && endDate != null) {
+                val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
+                Text(
+                    text = "Selected period: ${formatter.format(startDate!!)} - ${formatter.format(endDate!!)}",
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    fontWeight = FontWeight.Bold
+                )
+            }
 
-                Button(
-                    onClick = {
-                        if (currentUser != null) {
-                            showDatePicker = true
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Please wait while we load your user data.",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
+            Button(
+                onClick = {
+                    if (currentUser != null) {
+                        showDatePicker = true
+                    } else {
+                        Toast.makeText(
+                            context,
+                            "Please wait while we load your user data.",
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Yellow40
+                )
+            ) {
+                Text(
+                    text = if (startDate != null && endDate != null) {
+                        "Pay €${
+                            calculateTotalPrice(
+                                device?.price?.toDoubleOrNull() ?: 0.0,
+                                startDate!!,
+                                endDate!!
+                            )
+                        }"
+                    } else {
+                        "Select duration to rent"
                     },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Yellow40
-                    )
-                ) {
-                    Text(
-                        if (startDate != null && endDate != null)
-                            "Pay €${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0, startDate!!, endDate!!)}"
-                        else
-                            "Select duration"
-                    )
-                }
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
             }
         }
     }
@@ -611,177 +741,6 @@ fun DeviceDetailsPage(
             onDismiss = { showDatePicker = false },
             disabledDates = getDisabledDates(existingRentals)
         )
-    }
-
-    // Payment Confirmation Dialog
-    if (showPaymentDialog) {
-        AlertDialog(
-            onDismissRequest = { showPaymentDialog = false },
-            title = { Text("Confirm Rental") },
-            text = {
-                Text(
-                    "Total amount: €${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0, startDate!!, endDate!!)}",
-                    fontSize = 18.sp
-                )
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        showPaymentDialog = false
-                        isLoading = true
-                        processRental(
-                            deviceId = deviceId,
-                            ownerId = device?.ownerId ?: "",
-                            renterId = currentUser?.userId ?: "",
-                            startDate = startDate!!,
-                            endDate = endDate!!,
-                            onComplete = {
-                                CoroutineScope(Dispatchers.Main).launch {
-                                    delay(3000)
-                                    isLoading = false
-                                    // Refresh rentals instead of navigating
-                                    FirebaseService.getRentalsByDeviceId(deviceId) { rentals ->
-                                        existingRentals = rentals
-                                        userRental = rentals.find { it.renterId == currentUser?.userId }
-                                    }
-                                }
-                            }
-                        )
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Yellow40
-                    )
-                ) {
-                    Text("Confirm Payment")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showPaymentDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
-
-    // Loading Dialog
-    if (isLoading) {
-        Dialog(
-            onDismissRequest = { },
-            properties = DialogProperties(dismissOnBackPress = false, dismissOnClickOutside = false)
-        ) {
-            Box(
-                modifier = Modifier
-                    .background(
-                        MaterialTheme.colorScheme.surface,
-                        shape = RoundedCornerShape(16.dp)
-                    )
-                    .padding(24.dp)
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator(color = Yellow40)
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        "Processing payment...",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            }
-        }
-    }
-
-    // Full screen image viewer
-    if (showFullScreenImage) {
-        Dialog(
-            onDismissRequest = { showFullScreenImage = false },
-            properties = DialogProperties(
-                dismissOnBackPress = true,
-                dismissOnClickOutside = true,
-                usePlatformDefaultWidth = false
-            )
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.9f))
-                    .clickable { showFullScreenImage = false }
-            ) {
-                val fullScreenPagerState = rememberPagerState(
-                    initialPage = currentImageIndex,
-                    pageCount = { images.size }
-                )
-                
-                HorizontalPager(
-                    state = fullScreenPagerState,
-                    modifier = Modifier.fillMaxSize()
-                ) { page ->
-                    Image(
-                        bitmap = images[page].asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-                
-                // Image counter for full screen view
-                Text(
-                    text = "${fullScreenPagerState.currentPage + 1} / ${images.size}",
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .padding(bottom = 32.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
-                            shape = RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 8.dp, vertical = 4.dp),
-                    color = Color.White
-                )
-            }
-        }
-    }
-
-    // After successful payment, show rental period
-    if (userRental != null) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.secondaryContainer
-            )
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Your rental period",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "From: ${userRental!!.startDate}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Text(
-                    text = "To: ${userRental!!.endDate}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = "Total price: €${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0, 
-                        dateFormat.parse(userRental!!.startDate)!!, 
-                        dateFormat.parse(userRental!!.endDate)!!
-                    )}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = Yellow40
-                )
-            }
-        }
     }
 }
 
