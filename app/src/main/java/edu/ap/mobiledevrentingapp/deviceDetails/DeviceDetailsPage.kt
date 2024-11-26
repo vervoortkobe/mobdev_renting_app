@@ -44,6 +44,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.ui.input.pointer.pointerInput
 import com.utsman.osmandcompose.MapProperties
 import com.utsman.osmandcompose.ZoomButtonVisibility
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.filled.ShoppingCart
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -197,45 +200,73 @@ fun DeviceDetailsPage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(350.dp)
+                    .padding(16.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .border(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.outline,
+                        shape = RoundedCornerShape(8.dp)
+                    )
             ) {
                 if (images.isNotEmpty()) {
-                    val pagerState = rememberPagerState(pageCount = { images.size })
                     HorizontalPager(
                         state = pagerState,
-                        modifier = Modifier.fillMaxSize()
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp)
                     ) { page ->
                         Image(
                             bitmap = images[page].asImageBitmap(),
                             contentDescription = "Device image",
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clickable { 
+                                    currentImageIndex = page
+                                    showFullScreenImage = true 
+                                },
                             contentScale = ContentScale.Fit
                         )
                     }
-                } else {
-                    // Show placeholder when no images are available
-                    Box(
+                    // Image counter
+                    Text(
+                        text = "${pagerState.currentPage + 1} / ${images.size}",
                         modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.LightGray),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text("No images available")
-                    }
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 24.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                                shape = RoundedCornerShape(4.dp)
+                            )
+                            .padding(horizontal = 8.dp, vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
                 }
             }
 
             // Price per day
-            Text(
-                text = "€${device?.price ?: 0}/day",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(16.dp)
-            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Icon(
+                    Icons.Default.ShoppingCart,
+                    contentDescription = "Price",
+                    tint = Yellow40,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "€${device?.price ?: 0}/day",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Yellow40
+                )
+            }
 
             // Description
             Text(
                 text = device?.description ?: "",
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(16.dp)
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -256,14 +287,24 @@ fun DeviceDetailsPage(
                                 modifier = Modifier
                                     .size(50.dp)
                                     .clip(CircleShape)
+                                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
+                                contentScale = ContentScale.Crop
                             )
                         }
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = ownerData.fullName,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column {
+                        Text(
+                            text = ownerData.fullName,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 16.sp
+                        )
+                        Text(
+                            text = ownerData.city,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            fontSize = 14.sp
+                        )
+                    }
                 }
             }
 
@@ -285,7 +326,7 @@ fun DeviceDetailsPage(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(300.dp)
-                        .padding(8.dp)
+                        .padding(16.dp)
                         .clip(RoundedCornerShape(8.dp))
                         .border(
                             width = 1.dp,
@@ -444,8 +485,12 @@ fun DeviceDetailsPage(
                             startDate = startDate!!,
                             endDate = endDate!!,
                             onComplete = {
-                                isLoading = false
-                                navController.popBackStack()
+                                // Add delay before navigation
+                                CoroutineScope(Dispatchers.Main).launch {
+                                    delay(3000) // 3 second delay
+                                    isLoading = false
+                                    navController.popBackStack()
+                                }
                             }
                         )
                     },
@@ -474,26 +519,51 @@ fun DeviceDetailsPage(
     // Full screen image viewer
     if (showFullScreenImage) {
         Dialog(
-            onDismissRequest = { showFullScreenImage = false }
+            onDismissRequest = { showFullScreenImage = false },
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true,
+                usePlatformDefaultWidth = false
+            )
         ) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(Color.Black)
+                    .background(Color.Black.copy(alpha = 0.9f))
+                    .clickable { showFullScreenImage = false }
             ) {
+                val fullScreenPagerState = rememberPagerState(
+                    initialPage = currentImageIndex,
+                    pageCount = { images.size }
+                )
+                
                 HorizontalPager(
-                    state = rememberPagerState(
-                        initialPage = pagerState.currentPage,
-                        pageCount = { images.size }
-                    )
+                    state = fullScreenPagerState,
+                    modifier = Modifier.fillMaxSize()
                 ) { page ->
                     Image(
                         bitmap = images[page].asImageBitmap(),
                         contentDescription = null,
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
                         contentScale = ContentScale.Fit
                     )
                 }
+                
+                // Image counter for full screen view
+                Text(
+                    text = "${fullScreenPagerState.currentPage + 1} / ${images.size}",
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 32.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.7f),
+                            shape = RoundedCornerShape(4.dp)
+                        )
+                        .padding(horizontal = 8.dp, vertical = 4.dp),
+                    color = Color.White
+                )
             }
         }
     }
