@@ -2,6 +2,7 @@ package edu.ap.mobiledevrentingapp.deviceDetails
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.*
@@ -47,6 +48,7 @@ import com.utsman.osmandcompose.ZoomButtonVisibility
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.foundation.background
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -71,6 +73,7 @@ fun DeviceDetailsPage(
     val pagerState = rememberPagerState(pageCount = { images.size })
     val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
     var userLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
+    var isLoadingOwner by remember { mutableStateOf(true) }
 
     val distance = remember(userLocation, device) {
         userLocation?.let { (lat, lon) ->
@@ -111,47 +114,30 @@ fun DeviceDetailsPage(
     }
 
     LaunchedEffect(deviceId) {
-        try {
-            coroutineScope {
-                // Load device details
-                val deviceDeferred = async {
-                    FirebaseService.getDeviceById(deviceId) { success, document, _ ->
-                        if (success && document != null) {
-                            device = document.toObject(Device::class.java)
-                            // Convert image strings to bitmaps directly
-                            device?.let { dev ->
-                                images = dev.images.mapNotNull { imageString ->
-                                    AppUtil.decode(imageString)
-                                }
-                            }
+        // First, get device details
+        FirebaseService.getDeviceById(deviceId) { success, document, _ ->
+            if (success && document != null) {
+                device = document.toObject(Device::class.java)
+                
+                // Once we have the device, get the owner details
+                device?.let { dev ->
+                    FirebaseService.getUserById(dev.ownerId) { ownerSuccess, ownerDoc, ownerError ->
+                        if (ownerSuccess && ownerDoc != null) {
+                            owner = ownerDoc.toObject(User::class.java)
+                        } else {
+                            Log.e("DeviceDetailsPage", "Failed to load owner: $ownerError")
                         }
+                        isLoadingOwner = false
                     }
                 }
-                
-                deviceDeferred.await()
-                
-                device?.let { dev ->
-                    // Load owner details
-                    launch {
-                        FirebaseService.getUserById(dev.ownerId) { success, doc, _ ->
-                            if (success && doc != null) {
-                                owner = doc.toObject(User::class.java)
-                            }
-                        }
-                    }
 
-                    // Load existing rentals
-                    launch {
-                        FirebaseService.getRentalsByDeviceId(deviceId) { rentals ->
-                            existingRentals = rentals
-                            // Find if current user has rented this device
-                            userRental = rentals.find { it.renterId == currentUser?.userId }
-                        }
+                // Convert image strings to bitmaps
+                device?.let { dev ->
+                    images = dev.images.mapNotNull { imageString ->
+                        AppUtil.decode(imageString)
                     }
                 }
             }
-        } catch (e: Exception) {
-            println("Error loading device details: ${e.message}")
         }
     }
 
@@ -165,10 +151,11 @@ fun DeviceDetailsPage(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            Spacer(modifier = Modifier.width(2.dp))
                             IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                             }
-                            Spacer(modifier = Modifier.width(12.dp))
+                            Spacer(modifier = Modifier.width(8.dp))
                             Text(
                                 device?.deviceName ?: "",
                                 fontSize = 28.sp,
@@ -177,7 +164,7 @@ fun DeviceDetailsPage(
                         }
                         Text(
                             text = device?.category?.let { AppUtil.convertUppercaseToTitleCase(it) } ?: "",
-                            fontSize = 20.sp,
+                            fontSize = 16.sp,
                             color = Yellow40,
                             modifier = Modifier.padding(end = 16.dp)
                         )
@@ -200,7 +187,7 @@ fun DeviceDetailsPage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(350.dp)
-                    .padding(16.dp)
+                    .padding(start = 16.dp, end = 16.dp, top = 8.dp, bottom = 16.dp)
                     .clip(RoundedCornerShape(8.dp))
                     .border(
                         width = 1.dp,
@@ -272,39 +259,71 @@ fun DeviceDetailsPage(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Owner details
-            owner?.let { ownerData ->
-                Row(
+            if (isLoadingOwner) {
+                CircularProgressIndicator(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    ownerData.profileImage.let { profileImageString ->
-                        AppUtil.decode(profileImageString)?.let { bitmap ->
-                            Image(
-                                bitmap = bitmap.asImageBitmap(),
-                                contentDescription = "Owner profile",
-                                modifier = Modifier
-                                    .size(50.dp)
-                                    .clip(CircleShape)
-                                    .border(1.dp, MaterialTheme.colorScheme.outline, CircleShape),
-                                contentScale = ContentScale.Crop
+                        .padding(16.dp)
+                        .align(Alignment.CenterHorizontally),
+                    color = Yellow40
+                )
+            } else {
+                owner?.let { ownerData ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(8.dp)
                             )
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .clip(CircleShape)
+                                    .background(Color.LightGray)
+                            ) {
+                                ownerData.profileImage.takeIf { it.isNotEmpty() }?.let { profileImageString ->
+                                    AppUtil.decode(profileImageString)?.let { bitmap ->
+                                        Image(
+                                            bitmap = bitmap.asImageBitmap(),
+                                            contentDescription = "Owner profile",
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Column {
+                                Text(
+                                    text = ownerData.fullName,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 18.sp
+                                )
+                                Text(
+                                    text = ownerData.city,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    fontSize = 14.sp
+                                )
+                            }
                         }
                     }
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Column {
-                        Text(
-                            text = ownerData.fullName,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 16.sp
-                        )
-                        Text(
-                            text = ownerData.city,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            fontSize = 14.sp
-                        )
-                    }
+                } ?: run {
+                    Text(
+                        text = "Owner information unavailable",
+                        modifier = Modifier.padding(16.dp),
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
 
@@ -317,7 +336,7 @@ fun DeviceDetailsPage(
             ) {
                 Icon(Icons.Default.LocationOn, contentDescription = "Location")
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "${distance.toInt()}km • ${owner?.city ?: ""}")
+                Text(text = "${distance.toInt()}km • ${owner?.city  ?: ""}")
             }
 
             // Map
@@ -485,11 +504,12 @@ fun DeviceDetailsPage(
                             startDate = startDate!!,
                             endDate = endDate!!,
                             onComplete = {
-                                // Add delay before navigation
                                 CoroutineScope(Dispatchers.Main).launch {
-                                    delay(3000) // 3 second delay
+                                    delay(3000)
                                     isLoading = false
-                                    navController.popBackStack()
+                                    navController.navigate("home") {
+                                        popUpTo("home") { inclusive = true }
+                                    }
                                 }
                             }
                         )
@@ -569,10 +589,11 @@ fun DeviceDetailsPage(
     }
 }
 
-private fun calculateTotalPrice(pricePerDay: Double, startDate: Date, endDate: Date): Double {
+private fun calculateTotalPrice(pricePerDay: Double, startDate: Date, endDate: Date): String {
     val diffInMillis = endDate.time - startDate.time
     val days = (diffInMillis / (1000 * 60 * 60 * 24)) + 1
-    return pricePerDay * days
+    val total = pricePerDay * days
+    return String.format("%.2f", total)
 }
 
 private fun processRental(
