@@ -22,6 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,23 +36,45 @@ import com.utsman.osmandcompose.OpenStreetMap
 import com.utsman.osmandcompose.rememberCameraState
 import com.utsman.osmandcompose.rememberMarkerState
 import edu.ap.mobiledevrentingapp.R
+import edu.ap.mobiledevrentingapp.firebase.User
 import org.osmdroid.util.GeoPoint
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService as FirebaseService1
 
 @Composable
 fun MapPage(navController: NavController) {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var accountLocation by remember { mutableStateOf<GeoPoint?>(null) }
+    var geoPoints by remember { mutableStateOf<List<GeoPoint>>(emptyList()) }
 
     val cameraState = rememberCameraState {
-        geoPoint = GeoPoint(50.85, 4.35)
-        zoom = 12.0
+        zoom = 12.0 // Default zoom level
     }
 
-    val icon: Drawable? by remember {
+    val deviceIcon: Drawable? by remember {
         mutableStateOf(AppCompatResources.getDrawable(context, R.drawable.custom_marker_icon))
     }
 
-    var geoPoints by remember { mutableStateOf<List<GeoPoint>>(emptyList()) }
+    val userIcon: Drawable? by remember {
+        mutableStateOf(AppCompatResources.getDrawable(context, R.drawable.user_marker_icon))
+    }
 
+    // Load account location from Firebase
+    LaunchedEffect(Unit) {
+        FirebaseService1.getCurrentUser { success, document, _ ->
+            if (success && document != null) {
+                val user = document.toObject(User::class.java)
+                user?.let {
+                    accountLocation = GeoPoint(it.latitude, it.longitude)
+                    // Center the camera on the user's location once it's retrieved
+                    cameraState.geoPoint = accountLocation as GeoPoint
+                    cameraState.zoom = 15.0 // Zoom in more when showing account location
+                }
+            }
+        }
+    }
+
+    // Load device locations
     LaunchedEffect(Unit) {
         Coordinates.fetchAllDevices { points ->
             geoPoints = points
@@ -63,6 +86,34 @@ fun MapPage(navController: NavController) {
             modifier = Modifier.fillMaxSize(),
             cameraState = cameraState
         ) {
+            // Show account location marker
+            accountLocation?.let { location ->
+                val userMarkerState = rememberMarkerState(
+                    geoPoint = location,
+                    rotation = 0f
+                )
+
+                Marker(
+                    state = userMarkerState,
+                    icon = userIcon,
+                    title = "Your Location",
+                    snippet = "Lat: ${location.latitude}, Lon: ${location.longitude}"
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(color = Color.White, shape = RoundedCornerShape(7.dp))
+                            .border(1.dp, Color.Blue, RoundedCornerShape(7.dp)),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = it.title, color = Color.Blue)
+                        Text(text = it.snippet, fontSize = 10.sp)
+                    }
+                }
+            }
+
+            // Show device markers
             geoPoints.forEachIndexed { index, geoPoint ->
                 val markerState = rememberMarkerState(
                     geoPoint = geoPoint,
@@ -71,7 +122,7 @@ fun MapPage(navController: NavController) {
 
                 Marker(
                     state = markerState,
-                    icon = icon,
+                    icon = deviceIcon,
                     title = "Device $index",
                     snippet = "Lat: ${geoPoint.latitude}, Lon: ${geoPoint.longitude}"
                 ) {

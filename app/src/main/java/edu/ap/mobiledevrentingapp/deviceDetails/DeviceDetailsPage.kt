@@ -10,6 +10,7 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
@@ -38,55 +39,11 @@ import kotlinx.coroutines.*
 import org.osmdroid.util.GeoPoint
 import java.text.SimpleDateFormat
 import java.util.*
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun DateRangePickerModal(
-    onDateRangeSelected: (Pair<Long?, Long?>) -> Unit,
-    onDismiss: () -> Unit,
-    disabledDates: List<Date>
-) {
-    val dateRangePickerState = rememberDateRangePickerState(
-        initialSelectedStartDateMillis = null,
-        initialSelectedEndDateMillis = null,
-        yearRange = IntRange(Calendar.getInstance().get(Calendar.YEAR), 
-                           Calendar.getInstance().get(Calendar.YEAR) + 1)
-    )
-
-    DatePickerDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onDateRangeSelected(
-                        Pair(
-                            dateRangePickerState.selectedStartDateMillis,
-                            dateRangePickerState.selectedEndDateMillis
-                        )
-                    )
-                    onDismiss()
-                }
-            ) {
-                Text("OK")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancel")
-            }
-        }
-    ) {
-        DateRangePicker(
-            state = dateRangePickerState,
-            title = { Text("Select rental period") },
-            headline = { Text("Select start and end date") },
-            showModeToggle = false,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(500.dp)
-        )
-    }
-}
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import com.utsman.osmandcompose.MapProperties
+import com.utsman.osmandcompose.ZoomButtonVisibility
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -210,10 +167,16 @@ fun DeviceDetailsPage(
                             IconButton(onClick = { navController.popBackStack() }) {
                                 Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
                             }
-                            Text(device?.deviceName ?: "", fontWeight = FontWeight.Bold)
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                device?.deviceName ?: "",
+                                fontSize = 28.sp,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                         Text(
                             text = device?.category?.let { AppUtil.convertUppercaseToTitleCase(it) } ?: "",
+                            fontSize = 20.sp,
                             color = Yellow40,
                             modifier = Modifier.padding(end = 16.dp)
                         )
@@ -235,7 +198,7 @@ fun DeviceDetailsPage(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(300.dp)
+                    .height(350.dp)
                     .clickable { showFullScreenImage = true }
             ) {
                 if (images.isNotEmpty()) {
@@ -247,7 +210,7 @@ fun DeviceDetailsPage(
                             bitmap = images[page].second.asImageBitmap(),
                             contentDescription = "Device image",
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
+                            contentScale = ContentScale.FillWidth
                         )
                     }
                 }
@@ -313,23 +276,40 @@ fun DeviceDetailsPage(
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(horizontal = 16.dp)
+                        .height(300.dp)
+                        .padding(8.dp)
+                        .clip(RoundedCornerShape(8.dp))
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                            shape = RoundedCornerShape(8.dp)
+                        )
                 ) {
-                    val context = LocalContext.current
                     val cameraState = rememberCameraState {
                         geoPoint = GeoPoint(dev.latitude, dev.longitude)
                         zoom = 15.0
                     }
 
-                    val icon: Drawable? by remember {
+                    val deviceIcon: Drawable? by remember {
                         mutableStateOf(AppCompatResources.getDrawable(context, R.drawable.custom_marker_icon))
                     }
 
+                    val userIcon: Drawable? by remember {
+                        mutableStateOf(AppCompatResources.getDrawable(context, R.drawable.user_marker_icon))
+                    }
+
                     OpenStreetMap(
-                        modifier = Modifier.fillMaxSize(),
-                        cameraState = cameraState
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .pointerInput(Unit) {
+                                detectTapGestures { }
+                            },
+                        cameraState = cameraState,
+                        properties = MapProperties(
+                            zoomButtonVisibility = ZoomButtonVisibility.NEVER // Disable +- buttons
+                        )
                     ) {
+                        // Device marker
                         val markerState = rememberMarkerState(
                             geoPoint = GeoPoint(dev.latitude, dev.longitude),
                             rotation = 0f
@@ -337,10 +317,25 @@ fun DeviceDetailsPage(
 
                         Marker(
                             state = markerState,
-                            icon = icon,
+                            icon = deviceIcon,
                             title = dev.deviceName,
                             snippet = "Lat: ${dev.latitude}, Lon: ${dev.longitude}"
                         )
+
+                        // User location marker
+                        userLocation?.let { (lat, lon) ->
+                            val userMarkerState = rememberMarkerState(
+                                geoPoint = GeoPoint(lat, lon),
+                                rotation = 0f
+                            )
+
+                            Marker(
+                                state = userMarkerState,
+                                icon = userIcon,
+                                title = "Your Location",
+                                snippet = "Lat: $lat, Lon: $lon"
+                            )
+                        }
                     }
                 }
             }
@@ -388,7 +383,10 @@ fun DeviceDetailsPage(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Yellow40
+                    )
                 ) {
                     Text(
                         if (startDate != null && endDate != null)
@@ -442,7 +440,10 @@ fun DeviceDetailsPage(
                                 navController.popBackStack()
                             }
                         )
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Yellow40
+                    )
                 ) {
                     Text("Confirm Payment")
                 }

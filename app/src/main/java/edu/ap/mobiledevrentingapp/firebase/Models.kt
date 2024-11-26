@@ -10,7 +10,9 @@ data class User(
     val profileImage: String = "",
     val streetName: String = "",
     val userId: String = "",
-    val zipCode: String = ""
+    val zipCode: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 )
 
 data class Device(
