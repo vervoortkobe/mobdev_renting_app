@@ -16,16 +16,16 @@ data class User(
 )
 
 data class Device(
-    val description: String = "",
     val deviceId: String = "",
-    val deviceName: String = "",
-    val imageIds: List<String> = emptyList(),
     val ownerId: String = "",
-    val price: String = "",
+    val deviceName: String = "",
     val category: String = "",
+    val description: String = "",
+    val price: String = "",
+    val images: List<String> = emptyList(),
     val latitude: Double = 0.0,
     val longitude: Double = 0.0
-)
+) 
 
 data class DeviceImage(
     val imageId: String = "",

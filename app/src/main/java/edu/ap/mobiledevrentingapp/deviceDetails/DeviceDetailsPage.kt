@@ -52,7 +52,7 @@ fun DeviceDetailsPage(
     deviceId: String
 ) {
     var device by remember { mutableStateOf<Device?>(null) }
-    var images by remember { mutableStateOf<List<Pair<String, Bitmap>>>(emptyList()) }
+    var images by remember { mutableStateOf<List<Bitmap>>(emptyList()) }
     var owner by remember { mutableStateOf<User?>(null) }
     var showFullScreenImage by remember { mutableStateOf(false) }
     var currentImageIndex by remember { mutableIntStateOf(0) }
@@ -115,6 +115,12 @@ fun DeviceDetailsPage(
                     FirebaseService.getDeviceById(deviceId) { success, document, _ ->
                         if (success && document != null) {
                             device = document.toObject(Device::class.java)
+                            // Convert image strings to bitmaps directly
+                            device?.let { dev ->
+                                images = dev.images.mapNotNull { imageString ->
+                                    AppUtil.decode(imageString)
+                                }
+                            }
                         }
                     }
                 }
@@ -130,14 +136,6 @@ fun DeviceDetailsPage(
                             }
                         }
                     }
-
-                    // Load device images
-                    val imageResults = dev.imageIds.map { imageId ->
-                        async {
-                            FirebaseService.getImageById(imageId)
-                        }
-                    }.awaitAll()
-                    images = imageResults.filterNotNull()
 
                     // Load existing rentals
                     launch {
@@ -199,19 +197,29 @@ fun DeviceDetailsPage(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(350.dp)
-                    .clickable { showFullScreenImage = true }
             ) {
                 if (images.isNotEmpty()) {
+                    val pagerState = rememberPagerState(pageCount = { images.size })
                     HorizontalPager(
                         state = pagerState,
                         modifier = Modifier.fillMaxSize()
                     ) { page ->
                         Image(
-                            bitmap = images[page].second.asImageBitmap(),
+                            bitmap = images[page].asImageBitmap(),
                             contentDescription = "Device image",
                             modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.FillWidth
+                            contentScale = ContentScale.Fit
                         )
+                    }
+                } else {
+                    // Show placeholder when no images are available
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.LightGray),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("No images available")
                     }
                 }
             }
@@ -480,7 +488,7 @@ fun DeviceDetailsPage(
                     )
                 ) { page ->
                     Image(
-                        bitmap = images[page].second.asImageBitmap(),
+                        bitmap = images[page].asImageBitmap(),
                         contentDescription = null,
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Fit

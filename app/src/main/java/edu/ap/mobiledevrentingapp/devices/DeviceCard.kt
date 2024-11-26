@@ -52,7 +52,6 @@ import kotlin.coroutines.resumeWithException
 @Composable
 fun DeviceCard(
     device: Device,
-    images: List<Pair<String, Bitmap>>,
     userLocation: android.location.Location,
     navController: androidx.navigation.NavController
 ) {
@@ -75,6 +74,12 @@ fun DeviceCard(
         ownerProfileImage = decode(ownerData.profileImage)
     }
 
+    val deviceImages = remember(device) {
+        device.images.mapNotNull { imageString ->
+            AppUtil.decode(imageString)
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -92,9 +97,9 @@ fun DeviceCard(
                 .clip(RoundedCornerShape(8.dp))
                 .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp))
         ) {
-            if (images.isNotEmpty()) {
+            if (deviceImages.isNotEmpty()) {
                 Image(
-                    bitmap = images.first().second.asImageBitmap(),
+                    bitmap = deviceImages.first().asImageBitmap(),
                     contentDescription = "Device image",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop

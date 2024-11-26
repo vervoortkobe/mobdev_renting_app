@@ -52,7 +52,7 @@ import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 @Composable
 fun DisplayDevicesWithImages(navController: NavController) {
     val context = LocalContext.current
-    var devicesWithImages by remember { mutableStateOf<List<Pair<Device, List<Pair<String, Bitmap>>>>>(emptyList()) }
+    var devicesList by remember { mutableStateOf<List<Device>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
@@ -85,10 +85,10 @@ fun DisplayDevicesWithImages(navController: NavController) {
 
     // Fetch devices from Firebase
     LaunchedEffect(Unit) {
-        FirebaseService.getAllDevicesWithImages { success, devicesList, error ->
+        FirebaseService.getAllDevices { success, devices, error ->
             if (success) {
                 isLoading = false
-                devicesWithImages = devicesList
+                devicesList = devices
             } else {
                 Toast.makeText(
                     context,
@@ -186,7 +186,7 @@ fun DisplayDevicesWithImages(navController: NavController) {
         }
 
         // Filter and sort logic
-        val filteredDevices = devicesWithImages.filter { (device, _) ->
+        val filteredDevices = devicesList.filter { device ->
             val matchesCategory = selectedCategoryIndex == 0 || 
                 device.category == DeviceCategory.entries[selectedCategoryIndex - 1].name
             val matchesQuery = device.deviceName.contains(searchQuery, ignoreCase = true)
@@ -203,7 +203,7 @@ fun DisplayDevicesWithImages(navController: NavController) {
             val isNotOwnDevice = device.ownerId != currentUserId
 
             matchesCategory && matchesQuery && matchesDistance && isNotOwnDevice
-        }.sortedBy { (device, _) ->
+        }.sortedBy { device ->
             userLocation?.let { (userLat, userLon) ->
                 calculateDistance(
                     userLat, userLon,
@@ -228,11 +228,10 @@ fun DisplayDevicesWithImages(navController: NavController) {
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                items(filteredDevices) { (device, images) ->
+                items(filteredDevices) { device ->
                     userLocationObject?.let { location ->
                         DeviceCard(
                             device = device,
-                            images = images,
                             userLocation = location,
                             navController = navController
                         )
