@@ -12,6 +12,8 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import androidx.appcompat.content.res.AppCompatResources
+import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 object AppUtil {
@@ -87,5 +89,11 @@ object AppUtil {
             Log.e("AppUtil", "Error decoding base64 string", e)
             null
         }
+    }
+
+    fun formatDate(date: Date): String {
+        val cal = Calendar.getInstance()
+        cal.time = date
+        return "${cal.get(Calendar.DAY_OF_MONTH)}/${cal.get(Calendar.MONTH) + 1}/${cal.get(Calendar.YEAR)}"
     }
 }

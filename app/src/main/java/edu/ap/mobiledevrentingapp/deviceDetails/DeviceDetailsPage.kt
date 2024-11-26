@@ -193,6 +193,51 @@ fun DeviceDetailsPage(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
+            // Current user's rental (if exists)
+            userRental?.let { rental ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = "${rental.startDate} - ${rental.endDate}",
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontSize = 16.sp,
+                                color = Yellow40,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Text(
+                            text = "€${calculateTotalPrice(
+                                device?.price?.toDoubleOrNull() ?: 0.0,
+                                dateFormat.parse(rental.startDate)!!,
+                                dateFormat.parse(rental.endDate)!!
+                            )}",
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Yellow40
+                        )
+                    }
+                }
+            }
+
             // Image Slider
             Box(
                 modifier = Modifier
@@ -267,6 +312,77 @@ fun DeviceDetailsPage(
                 modifier = Modifier.padding(16.dp)
             )
 
+            // Rental Periods
+            if (existingRentals.isNotEmpty()) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .border(
+                            width = 1.dp,
+                            color = MaterialTheme.colorScheme.outline,
+                            shape = RoundedCornerShape(8.dp)
+                        ),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                    )
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = "Your Rental Periods",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        existingRentals.forEach { rental ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 6.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Row {
+                                    if (rental.renterId == currentUser?.userId) {
+                                        Text(
+                                            text = "${rental.startDate} - ${rental.endDate}",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontSize = 16.sp,
+                                            color = Yellow40,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    } else {
+                                        Text(
+                                            text = "${rental.startDate} - ${rental.endDate}",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontSize = 16.sp
+                                        )
+                                    }
+                                }
+                                Text(
+                                    text = "€${calculateTotalPrice(
+                                        device?.price?.toDoubleOrNull() ?: 0.0,
+                                        dateFormat.parse(rental.startDate)!!,
+                                        dateFormat.parse(rental.endDate)!!
+                                    )}",
+                                    style = MaterialTheme.typography.bodyLarge,
+                                    fontSize = 16.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (rental.renterId == currentUser?.userId) Yellow40 else MaterialTheme.colorScheme.onSurface
+                                )
+                            }
+                            if (existingRentals.last() != rental) {
+                                Divider(
+                                    modifier = Modifier.padding(vertical = 8.dp),
+                                    color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Owner details
@@ -289,7 +405,7 @@ fun DeviceDetailsPage(
                                 shape = RoundedCornerShape(8.dp)
                             )
                             .clip(RoundedCornerShape(8.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
+                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
                     ) {
                         Row(
                             modifier = Modifier
@@ -573,57 +689,6 @@ fun DeviceDetailsPage(
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
-                }
-            }
-        }
-    }
-
-    // Show all rental periods if there are any
-    if (existingRentals.isNotEmpty()) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
-            )
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Rental Periods",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                existingRentals.forEach { rental ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Column {
-                            Text(
-                                text = "From: ${rental.startDate}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                            Text(
-                                text = "To: ${rental.endDate}",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-                        if (rental.renterId == currentUser?.userId) {
-                            Text(
-                                text = "Your rental",
-                                color = Yellow40,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
-                        }
-                    }
-                    if (existingRentals.last() != rental) {
-                        Divider(modifier = Modifier.padding(vertical = 8.dp))
-                    }
                 }
             }
         }
