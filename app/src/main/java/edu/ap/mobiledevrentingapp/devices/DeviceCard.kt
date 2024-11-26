@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,15 +52,15 @@ import kotlin.coroutines.resumeWithException
 @Composable
 fun DeviceCard(
     device: Device,
-    images: List<Pair<String, Bitmap>>,
-    userLocation: android.location.Location
+    userLocation: android.location.Location,
+    navController: androidx.navigation.NavController
 ) {
     var ownerData by remember { mutableStateOf(User("", "")) }
     var ownerName by remember { mutableStateOf("Loading...") }
     var ownerProfileImage by remember { mutableStateOf<Bitmap?>(null) }
 
     val distance = remember(userLocation, device) {
-        calculateDistanceUsingLocation(
+        AppUtil.calculateDistanceUsingLocation(
             userLocation.latitude,
             userLocation.longitude,
             device.latitude,
@@ -73,11 +74,20 @@ fun DeviceCard(
         ownerProfileImage = decode(ownerData.profileImage)
     }
 
+    val deviceImages = remember(device) {
+        device.images.mapNotNull { imageString ->
+            AppUtil.decode(imageString)
+        }
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = 8.dp, end = 8.dp, top = 2.dp, bottom = 4.dp)
             .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+            .clickable {
+                navController.navigate("device_details/${device.deviceId}")
+            }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -87,9 +97,9 @@ fun DeviceCard(
                 .clip(RoundedCornerShape(8.dp))
                 .border(1.dp, Color.Transparent, RoundedCornerShape(8.dp))
         ) {
-            if (images.isNotEmpty()) {
+            if (deviceImages.isNotEmpty()) {
                 Image(
-                    bitmap = images.first().second.asImageBitmap(),
+                    bitmap = deviceImages.first().asImageBitmap(),
                     contentDescription = "Device image",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
@@ -114,20 +124,24 @@ fun DeviceCard(
 
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = device.deviceName,
+                    text = if (device.deviceName.length > 15) {
+                        device.deviceName.replaceFirstChar { it.uppercase() }.take(12) + "..."
+                    } else {
+                        device.deviceName.replaceFirstChar { it.uppercase() }
+                    },
                     style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                     modifier = Modifier.weight(1f)
                 )
                 Text(
                     text = AppUtil.convertUppercaseToTitleCase(device.category),
-                    style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
                     color = Yellow40,
                     textAlign = TextAlign.End,
                     modifier = Modifier.padding(end = 8.dp)
@@ -142,12 +156,15 @@ fun DeviceCard(
             ) {
                 Icon(Icons.Default.LocationOn, contentDescription = "location", tint = Color.Gray)
                 Text(
-                    text = "${"%.1f".format(distance)}km • ${ownerData.city}",
+                    text = "${"%.1f".format(distance)}km • ${ownerData.city.replaceFirstChar { it.uppercase() }}",
                     style = MaterialTheme.typography.bodyMedium
                 )
+            }
 
-                Spacer(modifier = Modifier.width(0.dp))
-
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Icon(Icons.Default.ShoppingCart, contentDescription = "price", tint = Color.Gray)
                 Text(text = "€ ${device.price} / day", style = MaterialTheme.typography.bodyMedium)
             }
@@ -167,14 +184,14 @@ fun DeviceCard(
                     if (ownerProfileImage != null) {
                         Image(
                             bitmap = ownerProfileImage!!.asImageBitmap(),
-                            contentDescription = "Owner profile image",
+                            contentDescription = ownerName.replaceFirstChar { it.uppercase() },
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
                         )
                     }
                 }
                 Text(
-                    text = ownerName,
+                    text = "${ownerData.fullName.split(" ").first().replaceFirstChar { it.uppercase() }} ${ownerData.fullName.split(" ").last().replaceFirstChar { it.uppercase() }}",
                     style = MaterialTheme.typography.bodyMedium
                 )
             }
@@ -186,21 +203,17 @@ suspend fun getOwnerData(ownerId: String): User {
     return suspendCancellableCoroutine { continuation ->
         FirebaseService.getUserById(ownerId) { success, document, error ->
             if (success && document != null) {
-                val fullName = document.getString("fullName") ?: "Unknown"
-                val phoneNumber = document.getString("phoneNumber")
-                val streetName = document.getString("streetName")
-                val zipCode = document.getString("zipCode")
-                val city = document.getString("city")
-                val addressNr = document.getString("addressNr")
-                val ibanNumber = document.getString("ibanNumber")
-                val country = document.getString("country")
-                val userId = document.getString("userId")
-                val profileImage = document.getString("profileImage")
-
                 val ownerData = User(
-                    fullName = fullName,
-                    city = city ?: "Unknown",
-                    profileImage = profileImage.toString()
+                    fullName = document.getString("fullName") ?: "Unknown",
+                    phoneNumber = document.getString("phoneNumber") ?: "Unknown",
+                    streetName = document.getString("streetName") ?: "Unknown",
+                    zipCode = document.getString("zipCode") ?: "Unknown",
+                    city = document.getString("city") ?: "Unknown",
+                    addressNr = document.getString("addressNr") ?: "Unknown",
+                    ibanNumber = document.getString("ibanNumber") ?: "Unknown",
+                    country = document.getString("country") ?: "Unknown",
+                    userId = document.getString("userId") ?: "Unknown",
+                    profileImage = document.getString("profileImage").toString()
                 )
 
                 continuation.resume(ownerData)
@@ -211,10 +224,4 @@ suspend fun getOwnerData(ownerId: String): User {
             }
         }
     }
-}
-
-private fun calculateDistanceUsingLocation(userLat: Double, userLong: Double, deviceLat: Double, deviceLong: Double): Float {
-    val results = FloatArray(1)
-    android.location.Location.distanceBetween(userLat, userLong, deviceLat, deviceLong, results)
-    return results[0] / 1000 // Convert meters to kilometers
 }

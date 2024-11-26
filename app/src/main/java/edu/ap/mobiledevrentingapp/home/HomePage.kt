@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -30,7 +30,7 @@ fun HomePage(onLogout: () -> Unit) {
         OutlinedButton(
             onClick = onLogout,
             content = {
-                Icon(Icons.Filled.ExitToApp, contentDescription = "Logout")
+                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout")
                 Text(text = "Log out")
             }
         )

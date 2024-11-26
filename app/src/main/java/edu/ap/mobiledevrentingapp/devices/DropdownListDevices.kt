@@ -37,7 +37,6 @@ fun DropdownListDevices(
             .background(Color.White, RoundedCornerShape(4.dp))
             .border(1.dp, Color.Gray, RoundedCornerShape(4.dp))
             .clickable { expanded = true }
-
             .padding(8.dp),
         contentAlignment = Alignment.Center
     ) {

@@ -7,12 +7,12 @@ plugins {
 
 android {
     namespace = "edu.ap.mobiledevrentingapp"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "edu.ap.mobiledevrentingapp"
         minSdk = 24
-        targetSdk = 34
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -89,9 +89,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose.v253)
     implementation(project(":osm-compose"))
     implementation(libs.osmdroid.android)
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.gson)
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
 }

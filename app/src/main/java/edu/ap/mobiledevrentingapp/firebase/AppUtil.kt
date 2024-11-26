@@ -12,6 +12,8 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import androidx.appcompat.content.res.AppCompatResources
+import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 object AppUtil {
@@ -71,5 +73,27 @@ object AppUtil {
 
         // Return a new drawable from the rotated bitmap
         return BitmapDrawable(context.resources, rotatedBitmap)
+    }
+
+    fun calculateDistanceUsingLocation(latitude1: Double, longitude1: Double, latitude2: Double, longitude2: Double): Float {
+        val results = FloatArray(1)
+        android.location.Location.distanceBetween(latitude1, longitude1, latitude2, longitude2, results)
+        return results[0] / 1000 // Convert meters to kilometers
+    }
+
+    fun decode(base64String: String): Bitmap? {
+        return try {
+            val imageBytes = android.util.Base64.decode(base64String, android.util.Base64.DEFAULT)
+            android.graphics.BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+        } catch (e: Exception) {
+            Log.e("AppUtil", "Error decoding base64 string", e)
+            null
+        }
+    }
+
+    fun formatDate(date: Date): String {
+        val cal = Calendar.getInstance()
+        cal.time = date
+        return "${cal.get(Calendar.DAY_OF_MONTH)}/${cal.get(Calendar.MONTH) + 1}/${cal.get(Calendar.YEAR)}"
     }
 }
