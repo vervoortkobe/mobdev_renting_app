@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -24,7 +25,6 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -109,9 +109,31 @@ fun AddDevicePage(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.Black
+                    )
+                }
+                Text(
+                    "Device Information",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.size(48.dp))
+            }
 
             Spacer(modifier = Modifier.height(8.dp))
 
@@ -163,11 +185,11 @@ fun AddDevicePage(navController: NavController) {
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Text("Device Images", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(22.dp))
 
             Button(
                 onClick = { galleryLauncher.launch("image/*") },
@@ -177,9 +199,11 @@ fun AddDevicePage(navController: NavController) {
                 Text("Select images to upload", color = Color.White)
             }
 
+            Spacer(modifier = Modifier.height(2.dp))
+
             Button(
                 onClick = { cameraLauncher.launch() },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
             ) {
                 Text("Take a picture", color = Color.White)
@@ -332,21 +356,6 @@ fun AddDevicePage(navController: NavController) {
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-        }
-
-        IconButton(
-            onClick = { navController.popBackStack() },
-            modifier = Modifier
-                .padding(16.dp)
-                .size(48.dp)
-                .background(Color.White, CircleShape)
-                .border(1.dp, Color.Gray, CircleShape)
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = Color.Black
-            )
         }
     }
 }

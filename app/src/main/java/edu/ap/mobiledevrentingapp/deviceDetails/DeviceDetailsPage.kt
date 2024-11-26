@@ -1,7 +1,9 @@
 package edu.ap.mobiledevrentingapp.deviceDetails
 
 import android.graphics.Bitmap
+import android.graphics.drawable.Drawable
 import android.widget.Toast
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
@@ -25,9 +27,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
+import com.utsman.osmandcompose.Marker
+import com.utsman.osmandcompose.OpenStreetMap
+import com.utsman.osmandcompose.rememberCameraState
+import com.utsman.osmandcompose.rememberMarkerState
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.*
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.*
+import org.osmdroid.util.GeoPoint
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -298,6 +306,43 @@ fun DeviceDetailsPage(
                 Icon(Icons.Default.LocationOn, contentDescription = "Location")
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "${distance.toInt()}km • ${owner?.city ?: ""}")
+            }
+
+            // Map
+            device?.let { dev ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    val context = LocalContext.current
+                    val cameraState = rememberCameraState {
+                        geoPoint = GeoPoint(dev.latitude, dev.longitude)
+                        zoom = 15.0
+                    }
+
+                    val icon: Drawable? by remember {
+                        mutableStateOf(AppCompatResources.getDrawable(context, R.drawable.custom_marker_icon))
+                    }
+
+                    OpenStreetMap(
+                        modifier = Modifier.fillMaxSize(),
+                        cameraState = cameraState
+                    ) {
+                        val markerState = rememberMarkerState(
+                            geoPoint = GeoPoint(dev.latitude, dev.longitude),
+                            rotation = 0f
+                        )
+
+                        Marker(
+                            state = markerState,
+                            icon = icon,
+                            title = dev.deviceName,
+                            snippet = "Lat: ${dev.latitude}, Lon: ${dev.longitude}"
+                        )
+                    }
+                }
             }
 
             // User's existing rental
