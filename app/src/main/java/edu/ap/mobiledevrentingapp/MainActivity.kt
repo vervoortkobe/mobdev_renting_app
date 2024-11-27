@@ -8,8 +8,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +40,7 @@ import edu.ap.mobiledevrentingapp.profile.ProfilePage
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import edu.ap.mobiledevrentingapp.deviceDetails.DeviceDetailsPage
+import edu.ap.mobiledevrentingapp.profile.ProfilePageSettings
 
 class MainActivity : AppCompatActivity() {
 
@@ -92,7 +93,8 @@ fun MainPage(onLogout: () -> Unit) {
         ) {
             composable("devices") { DevicesPage(navController = navController) }
             composable("home") { HomePage(onLogout = onLogout) }
-            composable("profile") { ProfilePage() }
+            composable("profile") { ProfilePage(navController = navController) }
+            composable("profileSettings") { ProfilePageSettings(navController = navController) }
             composable("map") { MapPage(navController = navController) }
             composable("add_device") { AddDevicePage(navController = navController) }
             composable(
@@ -120,7 +122,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     ) {
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val items = listOf(
-            NavigationItem("devices", Icons.AutoMirrored.Filled.List, "Devices"),
+            NavigationItem("devices", Icons.Filled.List, "Devices"),
             NavigationItem("home", Icons.Filled.Home, "Home"),
             NavigationItem("profile", Icons.Filled.Person, "Profile")
         )
