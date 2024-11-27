@@ -40,10 +40,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import edu.ap.mobiledevrentingapp.firebase.AppUtil
+import edu.ap.mobiledevrentingapp.firebase.AppUtil.decode
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.firebase.User
-import edu.ap.mobiledevrentingapp.profile.decode
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume

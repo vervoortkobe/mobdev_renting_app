@@ -1,14 +1,7 @@
 package edu.ap.mobiledevrentingapp.profile
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.net.Uri
-import android.provider.MediaStore.Images.Media.getBitmap
-import android.util.Base64
-import android.util.Log
 import android.widget.Toast
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,14 +11,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,11 +35,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import edu.ap.mobiledevrentingapp.firebase.AppUtil.decode
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
-fun ProfilePage() {
+fun ProfilePage(navController: NavController) {
     val context = LocalContext.current
     var name by remember { mutableStateOf<String?>(null) }
     var phoneNumber by remember { mutableStateOf<String?>(null) }
@@ -55,6 +54,7 @@ fun ProfilePage() {
     var ibanNumber by remember { mutableStateOf<String?>(null) }
     var totalAdress by remember { mutableStateOf<String?>(null) }
     var email by remember { mutableStateOf<String?>(null) }
+    var country by remember { mutableStateOf<String?>(null) }
     var encodedImage by remember { mutableStateOf<String?>(null) }
     var id by remember { mutableStateOf<String?>(null) }
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
@@ -69,12 +69,12 @@ fun ProfilePage() {
                 city = document.getString("city")
                 adressNr = document.getString("addressNr")
                 ibanNumber = document.getString("ibanNumber")
-                totalAdress = "${streetName} ${adressNr} ${city} ${zipCode}"
+                country = document.getString("country")
+                totalAdress = "${streetName} ${adressNr} ${city} ${zipCode} ${country}"
                 email = FirebaseService.getCurrentUserEmail()
                 id = document.getString("userId")
                 encodedImage = document.getString("profileImage")
-                encodedImage?.let { Log.e("ErrorImage", it) }
-                profileBitmap = if (!encodedImage.isNullOrEmpty()) decode(encodedImage) else null
+                profileBitmap = if (!encodedImage.isNullOrEmpty()) decode(encodedImage!!) else null
             } else {
                 profileBitmap = null
                 Toast.makeText(
@@ -86,104 +86,92 @@ fun ProfilePage() {
         }
     }
 
-    val launcher = rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-        uri?.let {
-            val bitmap = getBitmap(context.contentResolver, it)
-            profileBitmap = bitmap
-            id?.let { userId ->
-                FirebaseService.uploadUserProfileImage(userId, bitmap) { success, _, _ ->
-                    if (success) {
-                        Toast.makeText(context, "Profile image uploaded successfully!", Toast.LENGTH_SHORT).show()
-                    } else {
-                        Toast.makeText(context, "Failed to upload image", Toast.LENGTH_SHORT).show()
-                    }
-                }
-            }
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .padding(16.dp)
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
+            modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box() {
-                Box(
-                    modifier = Modifier
-                        .size(100.dp)
-                        .clip(RoundedCornerShape(50.dp))
-                        .border(2.dp, Color.Gray, RoundedCornerShape(50.dp))
-                ) {
-                    if (profileBitmap != null) {
-                        Image(
-                            bitmap = profileBitmap!!.asImageBitmap(),
-                            contentDescription = "Profile Image",
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(50.dp)),
-                            contentScale = ContentScale.Crop
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .clip(RoundedCornerShape(50.dp))
-                                .background(Color.Gray)
-                                .border(2.dp, Color.LightGray, RoundedCornerShape(50.dp))
-                        )
-                    }
-                }
-                Box(
-                    modifier = Modifier
-                        .size(30.dp)
-                        .clip(RoundedCornerShape(50.dp))
-                        .background(Color.White)
-                        .border(2.dp, Color.Gray, RoundedCornerShape(50.dp))
-                        .clickable {
-                            launcher.launch("image/*")
-                        }
-                        .align(Alignment.TopEnd)
-                        .offset(x = 18.dp, y = (-18).dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Home,
-                        contentDescription = "Edit Profile Image",
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(50.dp))
+                    .border(2.dp, Color.Gray, RoundedCornerShape(50.dp))
+            ) {
+                if (profileBitmap != null) {
+                    Image(
+                        bitmap = profileBitmap!!.asImageBitmap(),
+                        contentDescription = "Profile Image",
                         modifier = Modifier
-                            .size(18.dp)
-                            .align(Alignment.Center),
-                        tint = Color.Gray
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(50.dp)),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(RoundedCornerShape(50.dp))
+                            .background(Color.Gray)
+                            .border(2.dp, Color.LightGray, RoundedCornerShape(50.dp))
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            name?.let { Text(text = it, color = Color.Black) }
-            Spacer(modifier = Modifier.height(4.dp))
-            email?.let { Text(text = it, color = Color.Black) }
-            Spacer(modifier = Modifier.height(4.dp))
-            phoneNumber?.let { Text(text = it, color = Color.Black) }
-            Spacer(modifier = Modifier.height(4.dp))
-            ibanNumber?.let { Text(text = it, color = Color.Black) }
-            Spacer(modifier = Modifier.height(4.dp))
-            totalAdress?.let { Text(text = it, color = Color.Black) }
+            Text(
+                text = name ?: "N/A",
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = email ?: "N/A",
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = phoneNumber ?: "N/A",
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = totalAdress ?: "N/A",
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+            Text(
+                text = ibanNumber ?: "N/A",
+                modifier = Modifier.fillMaxWidth(),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
         }
-    }
-}
-
-fun decode(toDecodeString: String?): Bitmap? {
-    if (toDecodeString.isNullOrEmpty()) return null
-    return try {
-        val byteArray = Base64.decode(toDecodeString, Base64.DEFAULT)
-        BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-    } catch (e: IllegalArgumentException) {
-        null
+        Box(
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(16.dp)
+                .size(50.dp)
+                .clip(CircleShape)
+                .background(Yellow40)
+                .clickable {
+                    navController.navigate("profileSettings")
+                }
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Settings",
+                tint = Color.Black,
+                modifier = Modifier.align(Alignment.Center)
+            )
+        }
     }
 }
