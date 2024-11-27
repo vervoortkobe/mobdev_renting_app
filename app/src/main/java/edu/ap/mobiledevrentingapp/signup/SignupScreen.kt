@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.map.GeocodingService
+import edu.ap.mobiledevrentingapp.map.RetrofitClient
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -71,22 +72,7 @@ fun SignupScreen(
     var longitude by remember { mutableDoubleStateOf(50.0) }
     var isLoading by remember { mutableStateOf(false) }
 
-    val retrofit = Retrofit.Builder()
-        .baseUrl("https://nominatim.openstreetmap.org/")
-        .addConverterFactory(GsonConverterFactory.create())
-        .client(
-            OkHttpClient.Builder()
-                .addInterceptor { chain ->
-                    val request = chain.request().newBuilder()
-                        .header("User-Agent", "BorrowBee/1.0 (kobe.vervoort@student.ap.be)")
-                        .build()
-                    chain.proceed(request)
-                }
-                .build()
-        )
-        .build()
-
-    val geocodingService = retrofit.create(GeocodingService::class.java)
+    val geocodingService = RetrofitClient.retrofit.create(GeocodingService::class.java)
 
     suspend fun getCoordinatesFromAddress(address: String): Pair<Double, Double>? {
         return withContext(Dispatchers.IO) {
