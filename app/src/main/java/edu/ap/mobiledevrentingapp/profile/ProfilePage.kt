@@ -31,6 +31,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -115,6 +116,16 @@ fun ProfilePage() {
     var editableAdressNr by remember { mutableStateOf(adressNr) }
     var editableIbanNumber by remember { mutableStateOf(ibanNumber) }
     var editableCountry by remember { mutableStateOf(country) }
+
+    // Error state for each field
+    var nameError by remember { mutableStateOf<String?>(null) }
+    var phoneError by remember { mutableStateOf<String?>(null) }
+    var streetError by remember { mutableStateOf<String?>(null) }
+    var zipError by remember { mutableStateOf<String?>(null) }
+    var cityError by remember { mutableStateOf<String?>(null) }
+    var addressError by remember { mutableStateOf<String?>(null) }
+    var countryError by remember { mutableStateOf<String?>(null) }
+    var ibanError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
         FirebaseService.getCurrentUser { success, document, _ ->
@@ -234,46 +245,53 @@ fun ProfilePage() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Editable fields
-            EditableField(
+            // Editable fields with error handling
+            EditableFieldWithError(
                 label = "Name",
                 value = editableName,
+                error = nameError,
                 onValueChange = { editableName = it }
             )
-            EditableField(
+            EditableFieldWithError(
                 label = "Phone Number",
                 value = editablePhoneNumber,
+                error = phoneError,
                 onValueChange = { editablePhoneNumber = it }
             )
-            EditableField(
+            EditableFieldWithError(
                 label = "Street Name",
                 value = editableStreetName,
+                error = streetError,
                 onValueChange = { editableStreetName = it }
             )
-            EditableField(
+            EditableFieldWithError(
                 label = "Zip Code",
                 value = editableZipCode,
+                error = zipError,
                 onValueChange = { editableZipCode = it }
             )
-            EditableField(
+            EditableFieldWithError(
                 label = "City",
                 value = editableCity,
+                error = cityError,
                 onValueChange = { editableCity = it }
-
             )
-            EditableField(
+            EditableFieldWithError(
                 label = "Address Number",
                 value = editableAdressNr,
+                error = addressError,
                 onValueChange = { editableAdressNr = it }
             )
-            EditableField(
+            EditableFieldWithError(
                 label = "Country",
                 value = editableCountry,
+                error = countryError,
                 onValueChange = { editableCountry = it }
             )
-            EditableField(
+            EditableFieldWithError(
                 label = "IBAN Number",
                 value = editableIbanNumber,
+                error = ibanError,
                 onValueChange = { editableIbanNumber = it }
             )
 
@@ -289,69 +307,145 @@ fun ProfilePage() {
                     modifier = Modifier
                         .padding(16.dp)
                         .clickable {
-                            CoroutineScope(Dispatchers.Main).launch {
-                                val fullAddress = "$editableStreetName+$editableAdressNr+$editableCity+$editableCountry"
-                                val coordinates = getCoordinatesFromAddress(fullAddress)
-                                if (coordinates == null) {
-                                    Toast.makeText(context, "Address not found. Please check your address.", Toast.LENGTH_SHORT).show()
-                                } else {
-                                    val (lat, lon) = coordinates
-                                    FirebaseService.getCurrentUserId()?.let {
-                                        FirebaseService.updateUserProfile(
-                                            userId = it,
-                                            fullName = editableName,
-                                            phoneNumber = editablePhoneNumber,
-                                            streetName = editableStreetName,
-                                            zipCode = editableZipCode,
-                                            city = editableCity,
-                                            addressNr = editableAdressNr,
-                                            ibanNumber = editableIbanNumber,
-                                            country = editableCountry,
-                                            longitude = lon,
-                                            latitude = lat
-                                        ) { success, errorMessage ->
-                                            Toast.makeText(
-                                                context,
-                                                errorMessage ?: if (success) "Profile Updated" else "Failed to update",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
+                            validateAndSave(
+                                name = editableName,
+                                phoneNumber = editablePhoneNumber,
+                                streetName = editableStreetName,
+                                zipCode = editableZipCode,
+                                city = editableCity,
+                                addressNumber = editableAdressNr,
+                                country = editableCountry,
+                                ibanNumber = editableIbanNumber,
+                                onError = { field, message ->
+                                    when (field) {
+                                        "Name" -> nameError = message
+                                        "Phone" -> phoneError = message
+                                        "Street" -> streetError = message
+                                        "Zip" -> zipError = message
+                                        "City" -> cityError = message
+                                        "Address" -> addressError = message
+                                        "Country" -> countryError = message
+                                        "IBAN" -> ibanError = message
+                                    }
+                                },
+                                onSuccess = {
+                                    CoroutineScope(Dispatchers.Main).launch {
+                                        val fullAddress = "$editableStreetName+$editableAdressNr+$editableCity+$editableCountry"
+                                    val coordinates = getCoordinatesFromAddress(fullAddress)
+                                    if (coordinates == null) {
+                                        Toast.makeText(context, "Address not found. Please check your address.", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            val (lat, lon) = coordinates
+                                            FirebaseService.getCurrentUserId()?.let {
+                                                FirebaseService.updateUserProfile(
+                                                    userId = it,
+                                                    fullName = editableName,
+                                                    phoneNumber = editablePhoneNumber,
+                                                    streetName = editableStreetName,
+                                                    zipCode = editableZipCode,
+                                                    city = editableCity,
+                                                    addressNr = editableAdressNr,
+                                                    ibanNumber = editableIbanNumber,
+                                                    country = editableCountry,
+                                                    longitude = lon,
+                                                    latitude = lat
+                                                ) { success, errorMessage ->
+                                                    Toast.makeText(
+                                                        context,
+                                                        errorMessage
+                                                            ?: if (success) "Profile Updated" else "Failed to update",
+                                                        Toast.LENGTH_SHORT
+                                                    ).show()
+                                                }
+                                            }
                                         }
                                     }
                                 }
-                            }
+                            )
                         },
-                    color = Color.Blue
+                    color = Color.Blue,
                 )
             }
         }
     }
 }
 
+fun validateAndSave(
+    name: String?,
+    phoneNumber: String?,
+    streetName: String?,
+    zipCode: String?,
+    city: String?,
+    addressNumber: String?,
+    country: String?,
+    ibanNumber: String?,
+    onError: (field: String, message: String?) -> Unit,
+    onSuccess: () -> Unit
+) {
+    var isValid = true
+
+    if (name.isNullOrEmpty() || name.length < 1) {
+        onError("Name", "Name must be at least 1 character")
+        isValid = false
+    }
+    if (phoneNumber.isNullOrEmpty()) {
+        onError("Phone", "Invalid phone number")
+        isValid = false
+    }
+    if (streetName.isNullOrEmpty() || streetName.length < 3) {
+        onError("Street", "Street name must be at least 3 characters")
+        isValid = false
+    }
+    if (zipCode.isNullOrEmpty() || !zipCode.matches("\\d+".toRegex())) {
+        onError("Zip", "Invalid zip code")
+        isValid = false
+    }
+    if (city.isNullOrEmpty() || city.length < 2) {
+        onError("City", "City must be at least 2 characters")
+        isValid = false
+    }
+    if (addressNumber.isNullOrEmpty() || !addressNumber.matches("\\d+".toRegex())) {
+        onError("Address", "Invalid address number")
+        isValid = false
+    }
+    if (country.isNullOrEmpty() || country.length < 2) {
+        onError("Country", "Country must be at least 2 characters")
+        isValid = false
+    }
+    if (ibanNumber.isNullOrEmpty() || !ibanNumber.matches("BE[0-9]+ [0-9]+".toRegex())) {
+        onError("IBAN", "Invalid IBAN format")
+        isValid = false
+    }
+
+    if (isValid) {
+        onSuccess()
+    }
+}
+
 @Composable
-fun EditableField(label: String, value: String?, onValueChange: (String) -> Unit) {
+fun EditableFieldWithError(label: String, value: String?, error: String?, onValueChange: (String) -> Unit) {
     Column(
-        modifier = Modifier.padding(8.dp),
+        modifier = Modifier.padding(vertical = 8.dp),
         horizontalAlignment = Alignment.Start
     ) {
         Text(text = label, color = Color.Gray)
         Spacer(modifier = Modifier.height(4.dp))
         BasicTextField(
             value = value ?: "",
-            onValueChange = { newValue ->
-                // Ignore newline characters to ensure single-line behavior
-                if (!newValue.contains("\n")) {
-                    onValueChange(newValue)
-                }
-            },
+            onValueChange = onValueChange,
             textStyle = LocalTextStyle.current.copy(color = Color.Black),
             modifier = Modifier
+                .fillMaxWidth()
                 .background(Color.LightGray, shape = RoundedCornerShape(8.dp))
-                .padding(8.dp)
-                .fillMaxWidth(),
-            maxLines = 1 // Restrict to a single line
+                .padding(8.dp),
+            maxLines = 1
         )
+        if (!error.isNullOrEmpty()) {
+            Text(text = error, color = Color.Red)
+        }
     }
 }
+
 
 
 
