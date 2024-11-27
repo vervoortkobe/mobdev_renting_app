@@ -2,6 +2,7 @@ package edu.ap.mobiledevrentingapp.addDevice
 
 import android.graphics.Bitmap
 import android.net.Uri
+import android.util.Base64
 import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -14,6 +15,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,8 +29,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -57,6 +63,7 @@ import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
+import java.io.ByteArrayOutputStream
 
 @Composable
 fun AddDevicePage(navController: NavController) {
@@ -104,18 +111,42 @@ fun AddDevicePage(navController: NavController) {
                 .fillMaxSize()
                 .padding(16.dp)
         ) {
-            Text("Device Information", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.Black
+                    )
+                }
+                Text(
+                    "Device Information",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Black,
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.size(48.dp))
+            }
 
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(8.dp))
 
             OutlinedTextField(
                 value = deviceName,
                 onValueChange = { deviceName = it },
                 label = { Text("Device Name", color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Makita Screwdriver") },
+                placeholder = { Text("Makita drill") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -136,7 +167,7 @@ fun AddDevicePage(navController: NavController) {
                 modifier = Modifier.fillMaxWidth().height(150.dp),
                 placeholder = { Text("Max. 500 characters") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
@@ -151,16 +182,16 @@ fun AddDevicePage(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text("10") },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Red,
+                    focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
                 )
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
 
             Text("Device Images", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(22.dp))
 
             Button(
                 onClick = { galleryLauncher.launch("image/*") },
@@ -170,9 +201,11 @@ fun AddDevicePage(navController: NavController) {
                 Text("Select images to upload", color = Color.White)
             }
 
+            Spacer(modifier = Modifier.height(2.dp))
+
             Button(
                 onClick = { cameraLauncher.launch() },
-                modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
             ) {
                 Text("Take a picture", color = Color.White)
@@ -253,65 +286,52 @@ fun AddDevicePage(navController: NavController) {
             Button(
                 onClick = {
                     if (bitmaps.isNotEmpty()) {
-                        FirebaseService.uploadImages(bitmaps) { success, imageIds, error ->
-                            if (error != null) {
-                                Toast.makeText(
-                                    context,
-                                    "Error uploading images: $error",
-                                    Toast.LENGTH_LONG
-                                ).show()
-                            }
-                            if (success && imageIds != null) {
-                                var latitude = 0.0
-                                var longitude = 0.0
+                        val imageStrings = bitmaps.map { bitmap ->
+                            val outputStream = ByteArrayOutputStream()
+                            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
+                            val byteArray = outputStream.toByteArray()
+                            Base64.encodeToString(byteArray, Base64.DEFAULT)
+                        }
 
-                                FirebaseService.getCurrentUser { success, document, error ->
-                                    if (success && document != null) {
-                                        latitude = document.getDouble("latitude")!!
-                                        longitude = document.getDouble("longitude")!!
-                                        FirebaseService.getCurrentUserId()?.let {
-                                            FirebaseService.saveDevice(
-                                                it,
-                                                deviceName,
-                                                enumValues<DeviceCategory>()[selectedCategoryIndex],
-                                                description,
-                                                price,
-                                                imageIds,
-                                                latitude,
-                                                longitude
-                                            ) { success, _, error ->
-                                                if (success) {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "The device was added successfully!",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                    navController.popBackStack()
-                                                } else {
-                                                    Toast.makeText(
-                                                        context,
-                                                        "Failed to save the device. Please try again.",
-                                                        Toast.LENGTH_LONG
-                                                    ).show()
-                                                    Log.e(
-                                                        "AddDevice",
-                                                        "Error saving device: $error"
-                                                    )
-                                                }
-                                            }
+                        FirebaseService.getCurrentUser { succ, document, error ->
+                            if (succ && document != null) {
+                                val latitude = document.getDouble("latitude")!!
+                                val longitude = document.getDouble("longitude")!!
+                                FirebaseService.getCurrentUserId()?.let {
+                                    FirebaseService.saveDevice(
+                                        it,
+                                        deviceName,
+                                        enumValues<DeviceCategory>()[selectedCategoryIndex],
+                                        description,
+                                        price,
+                                        imageStrings,
+                                        latitude,
+                                        longitude
+                                    ) { success, _, saveError ->
+                                        if (success) {
+                                            Toast.makeText(
+                                                context,
+                                                "The device was added successfully!",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            navController.popBackStack()
+                                        } else {
+                                            Toast.makeText(
+                                                context,
+                                                "Failed to save the device. Please try again.",
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            Log.e(
+                                                "AddDevice",
+                                                "Error saving device: $saveError"
+                                            )
                                         }
-                                    } else {
-                                        Toast.makeText(
-                                            context,
-                                            "Failed to load user data: $error",
-                                            Toast.LENGTH_LONG
-                                        ).show()
                                     }
                                 }
                             } else {
                                 Toast.makeText(
                                     context,
-                                    "Failed to upload images.",
+                                    "Failed to load user data: $error",
                                     Toast.LENGTH_LONG
                                 ).show()
                             }

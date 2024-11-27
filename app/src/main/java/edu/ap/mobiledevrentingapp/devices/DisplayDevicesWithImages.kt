@@ -33,21 +33,26 @@ import android.location.Location
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.List
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
+import androidx.navigation.NavController
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
-fun DisplayDevicesWithImages() {
+fun DisplayDevicesWithImages(navController: NavController) {
     val context = LocalContext.current
-    var devicesWithImages by remember { mutableStateOf<List<Pair<Device, List<Pair<String, Bitmap>>>>>(emptyList()) }
+    var devicesList by remember { mutableStateOf<List<Device>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var searchQuery by remember { mutableStateOf("") }
     var selectedCategoryIndex by remember { mutableIntStateOf(0) }
@@ -55,6 +60,7 @@ fun DisplayDevicesWithImages() {
     var maxDistance by remember { mutableFloatStateOf(100f) }
     var userLocation by remember { mutableStateOf<Pair<Double, Double>?>(null) }
     var userLocationObject by remember { mutableStateOf<Location?>(null) }
+    var currentUserId by remember { mutableStateOf<String?>(null) }
 
     // Fetch user location
     LaunchedEffect(Unit) {
@@ -63,6 +69,9 @@ fun DisplayDevicesWithImages() {
                 val lat = document.getDouble("latitude") ?: 0.0
                 val lon = document.getDouble("longitude") ?: 0.0
                 userLocation = Pair(lat, lon)
+                
+                // Store the current user ID
+                currentUserId = document.getString("userId")
                 
                 // Create Location object
                 val location = Location("").apply {
@@ -76,10 +85,10 @@ fun DisplayDevicesWithImages() {
 
     // Fetch devices from Firebase
     LaunchedEffect(Unit) {
-        FirebaseService.getAllDevicesWithImages { success, devicesList, error ->
+        FirebaseService.getAllDevices { success, devices, error ->
             if (success) {
                 isLoading = false
-                devicesWithImages = devicesList
+                devicesList = devices
             } else {
                 Toast.makeText(
                     context,
@@ -91,7 +100,7 @@ fun DisplayDevicesWithImages() {
     }
 
     Column {
-        // Search bar and options button in same row
+        // Search bar and options button row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -105,18 +114,29 @@ fun DisplayDevicesWithImages() {
                 onSearchQueryChange = { searchQuery = it },
                 modifier = Modifier
                     .weight(1f)
-                    .padding(end = 8.dp)
+                    .padding(end = 4.dp)
+                    .height(52.dp)
+                    .background(Color.White, RoundedCornerShape(8.dp))
+                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
             )
 
             // Options button
-            IconButton(onClick = { showFilters = !showFilters }) {
+            IconButton(
+                onClick = { showFilters = !showFilters },
+                Modifier
+                    .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
+                    .size(52.dp),
+            ) {
                 Icon(
-                    imageVector = Icons.Default.List,
+                    imageVector = Icons.Default.Settings,
                     contentDescription = "Filter options",
-                    tint = Yellow40
+                    tint = Yellow40,
+                    modifier = Modifier.size(32.dp)
                 )
             }
         }
+
+        Spacer(modifier = Modifier.height(4.dp))
 
         // Filters section
         AnimatedVisibility(
@@ -165,13 +185,12 @@ fun DisplayDevicesWithImages() {
             }
         }
 
-        // Filter logic
-        val filteredDevices = devicesWithImages.filter { (device, _) ->
+        // Filter and sort logic
+        val filteredDevices = devicesList.filter { device ->
             val matchesCategory = selectedCategoryIndex == 0 || 
                 device.category == DeviceCategory.entries[selectedCategoryIndex - 1].name
             val matchesQuery = device.deviceName.contains(searchQuery, ignoreCase = true)
             val matchesDistance = if (maxDistance < 100f) {
-                // Only apply distance filter if not at max
                 userLocation?.let { (userLat, userLon) ->
                     calculateDistance(
                         userLat, userLon,
@@ -179,16 +198,24 @@ fun DisplayDevicesWithImages() {
                     ) <= maxDistance
                 } ?: true
             } else {
-                true // Skip distance filtering when slider is at max
+                true
             }
+            val isNotOwnDevice = device.ownerId != currentUserId
 
-            matchesCategory && matchesQuery && matchesDistance
+            matchesCategory && matchesQuery && matchesDistance && isNotOwnDevice
+        }.sortedBy { device ->
+            userLocation?.let { (userLat, userLon) ->
+                calculateDistance(
+                    userLat, userLon,
+                    device.latitude, device.longitude
+                )
+            } ?: Float.MAX_VALUE
         }
 
         // Display results
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(color = Yellow40)
             }
         } else if (filteredDevices.isEmpty()) {
             Text(
@@ -201,12 +228,12 @@ fun DisplayDevicesWithImages() {
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(0.dp)
             ) {
-                items(filteredDevices) { (device, images) ->
+                items(filteredDevices) { device ->
                     userLocationObject?.let { location ->
                         DeviceCard(
                             device = device,
-                            images = images,
-                            userLocation = location
+                            userLocation = location,
+                            navController = navController
                         )
                     }
                 }

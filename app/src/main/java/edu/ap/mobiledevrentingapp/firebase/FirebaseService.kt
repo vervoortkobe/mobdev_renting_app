@@ -303,7 +303,7 @@ object FirebaseService {
         }
     }
 
-    private suspend fun getImageById(imageId: String): Pair<String, Bitmap>? {
+    suspend fun getImageById(imageId: String): Pair<String, Bitmap>? {
         return try {
             val document = firestore.collection("images").document(imageId).get().await()
             val base64String = document.getString("image")
@@ -319,45 +319,35 @@ object FirebaseService {
         }
     }
 
-    fun saveDevice(ownerId: String, deviceName: String, category: DeviceCategory?, description: String, price: String, imageIds: List<String>, latitude: Double, longitude: Double, callback: (Boolean, String?, String?) -> Unit) {
-        if (ownerId.isEmpty()) {
-            callback(false, null, "The owner of the device couldn't be registered.")
-            return
-        }
-        if (deviceName.isEmpty()) {
-            callback(false, null, "Please provide a device name.")
-            return
-        }
-        if (category == null) {
-            callback(false, null, "Please select a category for the device.")
-            return
-        }
-        if (description.isEmpty()) {
-            callback(false, null, "Please provide a device description.")
-            return
-        }
-        if (description.length !in 5..500) {
-            callback(false, null, "Please provide a valid phone number.")
-            return
-        }
-        if (price.isEmpty()) {
-            callback(false, null, "Please provide a realistic price for the lease of the device.")
-            return
-        }
-        if (imageIds.isEmpty() || imageIds.size !in 1..5) {
-            callback(false, null, "Please provide at least 1 and at most 5 images of the device.")
-            return
-        }
+    fun saveDevice(
+        ownerId: String,
+        deviceName: String,
+        category: DeviceCategory,
+        description: String,
+        price: String,
+        images: List<String>,
+        latitude: Double,
+        longitude: Double,
+        callback: (Boolean, String?, String?) -> Unit
+    ) {
+        val deviceId = UUID.randomUUID().toString()
+        val device = hashMapOf(
+            "deviceId" to deviceId,
+            "ownerId" to ownerId,
+            "deviceName" to deviceName,
+            "category" to category.toString(),
+            "description" to description,
+            "price" to price,
+            "images" to images,
+            "latitude" to latitude,
+            "longitude" to longitude
+        )
 
-        val uuid = UUID.randomUUID().toString()
-
-        val data = Device(description, uuid, deviceName, imageIds.toList(), ownerId, price, category.name, latitude, longitude)
-
-        firestore.collection("devices").document(uuid)
-            .set(data)
+        firestore.collection("devices").document(deviceId)
+            .set(device)
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
-                    callback(true, uuid, null) // Return the device ID on success
+                    callback(true, deviceId, null) // Return the device ID on success
                 } else {
                     callback(false, null, "Failed to save device data. Please try again.")
                 }
@@ -383,7 +373,7 @@ object FirebaseService {
         }
     }
 
-    fun getAllDevices(callback: (Boolean, List<Device?>, String?) -> Unit) {
+    fun getAllDevices(callback: (Boolean, List<Device>, String?) -> Unit) {
         firestore.collection("devices").get()
             .addOnCompleteListener { task ->
                 if (task.isSuccessful) {
@@ -391,7 +381,7 @@ object FirebaseService {
                     if (documents != null && !documents.isEmpty) {
                         callback(true,
                             documents.mapNotNull { document ->
-                                document.toObject<Device?>()?.copy(deviceId = document.id)
+                                document.toObject<Device>().copy(deviceId = document.id)
                             },
                             null
                         )
@@ -420,32 +410,32 @@ object FirebaseService {
             }
     }
 
-    fun getAllDevicesWithImages(callback: (Boolean, List<Pair<Device, List<Pair<String, Bitmap>>>>, String?) -> Unit) {
-        getAllDevices { success, devices, errorMessage ->
-            if (success) {
-                val devicesWithImages = mutableListOf<Pair<Device, List<Pair<String, Bitmap>>>>()
-                val jobs = mutableListOf<Job>()
-
-                val scope = CoroutineScope(Dispatchers.IO)
-                for (device in devices.filterNotNull()) {
-                    val job = scope.launch {
-                        val images = device.imageIds.mapNotNull { imageId ->
-                            getImageById(imageId)
-                        }
-                        synchronized(devicesWithImages) {
-                            devicesWithImages.add(Pair(device, images))
-                        }
-                    }
-                    jobs.add(job)
+    fun getRentalsByDeviceId(deviceId: String, callback: (List<Rental>) -> Unit) {
+        firestore.collection("rentals")
+            .whereEqualTo("deviceId", deviceId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val rentals = querySnapshot.documents.mapNotNull { doc ->
+                    doc.toObject(Rental::class.java)
                 }
-
-                scope.launch {
-                    jobs.joinAll()
-                    callback(true, devicesWithImages, null)
-                }
-            } else {
-                callback(false, emptyList(), errorMessage)
+                callback(rentals)
             }
-        }
+            .addOnFailureListener {
+                Log.e("FirebaseService", "Error getting rentals", it)
+                callback(emptyList())
+            }
+    }
+
+    fun createRental(rental: Rental, callback: (Boolean) -> Unit) {
+        firestore.collection("rentals")
+            .document(rental.rentalId)
+            .set(rental)
+            .addOnSuccessListener {
+                callback(true)
+            }
+            .addOnFailureListener { e ->
+                Log.e("FirebaseService", "Error creating rental", e)
+                callback(false)
+            }
     }
 }

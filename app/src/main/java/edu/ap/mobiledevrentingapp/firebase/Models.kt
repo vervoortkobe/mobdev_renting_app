@@ -10,24 +10,35 @@ data class User(
     val profileImage: String = "",
     val streetName: String = "",
     val userId: String = "",
-    val zipCode: String = ""
-)
-
-data class Device(
-    val description: String = "",
-    val deviceId: String = "",
-    val deviceName: String = "",
-    val imageIds: List<String> = emptyList(),
-    val ownerId: String = "",
-    val price: String = "",
-    val category: String = "",
+    val zipCode: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0
 )
 
+data class Device(
+    val deviceId: String = "",
+    val ownerId: String = "",
+    val deviceName: String = "",
+    val category: String = "",
+    val description: String = "",
+    val price: String = "",
+    val images: List<String> = emptyList(),
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
+) 
+
 data class DeviceImage(
     val imageId: String = "",
     val imageUrl: String = ""
+)
+
+data class Rental(
+    val rentalId: String = "",
+    val deviceId: String = "",
+    val ownerId: String = "",
+    val renterId: String = "",
+    val startDate: String = "",
+    val endDate: String = ""
 )
 
 enum class DeviceCategory {

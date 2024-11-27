@@ -7,8 +7,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.List
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +27,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
 import edu.ap.mobiledevrentingapp.addDevice.AddDevicePage
 import edu.ap.mobiledevrentingapp.devices.DevicesPage
@@ -36,6 +38,7 @@ import edu.ap.mobiledevrentingapp.map.MapPage
 import edu.ap.mobiledevrentingapp.profile.ProfilePage
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
+import edu.ap.mobiledevrentingapp.deviceDetails.DeviceDetailsPage
 
 class MainActivity : AppCompatActivity() {
 
@@ -87,8 +90,18 @@ fun MainPage(onLogout: () -> Unit) {
             composable("devices") { DevicesPage(navController = navController) }
             composable("home") { HomePage(onLogout = onLogout) }
             composable("profile") { ProfilePage() }
-            composable("map") { MapPage() }
+            composable("map") { MapPage(navController = navController) }
             composable("add_device") { AddDevicePage(navController = navController) }
+            composable(
+                route = "device_details/{deviceId}",
+                arguments = listOf(
+                    navArgument("deviceId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val deviceId = backStackEntry.arguments?.getString("deviceId")
+                requireNotNull(deviceId) { "Device ID parameter wasn't found" }
+                DeviceDetailsPage(navController = navController, deviceId = deviceId)
+            }
         }
     }
 }
@@ -104,7 +117,7 @@ fun BottomNavigationBar(navController: NavHostController) {
     ) {
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val items = listOf(
-            NavigationItem("devices", Icons.Filled.List, "Devices"),
+            NavigationItem("devices", Icons.AutoMirrored.Filled.List, "Devices"),
             NavigationItem("home", Icons.Filled.Home, "Home"),
             NavigationItem("profile", Icons.Filled.Person, "Profile")
         )
