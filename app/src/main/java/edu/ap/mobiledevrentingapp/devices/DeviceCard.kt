@@ -156,7 +156,11 @@ fun DeviceCard(
             ) {
                 Icon(Icons.Default.LocationOn, contentDescription = "location", tint = Color.Gray)
                 Text(
-                    text = "${"%.1f".format(distance)}km • ${ownerData.city.replaceFirstChar { it.uppercase() }}",
+                    text = "${"%.1f".format(distance)}km",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = ownerData.city.replaceFirstChar { it.uppercase() },
                     style = MaterialTheme.typography.bodyMedium
                 )
             }

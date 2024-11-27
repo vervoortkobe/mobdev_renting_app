@@ -5,18 +5,54 @@ import android.graphics.drawable.Drawable
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ShoppingCart
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,30 +65,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
-import com.utsman.osmandcompose.Marker
-import com.utsman.osmandcompose.OpenStreetMap
 import com.utsman.osmandcompose.rememberCameraState
-import com.utsman.osmandcompose.rememberMarkerState
 import edu.ap.mobiledevrentingapp.R
-import edu.ap.mobiledevrentingapp.firebase.*
+import edu.ap.mobiledevrentingapp.firebase.AppUtil
+import edu.ap.mobiledevrentingapp.firebase.Device
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService
+import edu.ap.mobiledevrentingapp.firebase.Rental
+import edu.ap.mobiledevrentingapp.firebase.User
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.osmdroid.util.GeoPoint
 import java.text.SimpleDateFormat
-import java.util.*
-import androidx.compose.foundation.border
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.ui.input.pointer.pointerInput
-import com.utsman.osmandcompose.MapProperties
-import com.utsman.osmandcompose.ZoomButtonVisibility
-import androidx.compose.ui.window.DialogProperties
-import androidx.compose.foundation.clickable
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.foundation.background
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.UUID
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -194,56 +226,63 @@ fun DeviceDetailsPage(
                 .verticalScroll(rememberScrollState())
         ) {
             // After successful payment, show rental period
-            if (userRental != null) {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .border(
-                            width = 1.dp,
-                            color = MaterialTheme.colorScheme.outline,
-                            shape = RoundedCornerShape(8.dp)
-                        ),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-                    )
-                ) {
-                    Box(
+            userRental?.let { rental ->
+                val currentDate = Date()
+                val rentalStartDate = dateFormat.parse(rental.startDate)
+                val rentalEndDate = dateFormat.parse(rental.endDate)
+                
+                if (rentalStartDate != null && rentalEndDate != null &&
+                    currentDate.after(rentalStartDate) && currentDate.before(rentalEndDate)) {
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
+                            .border(
+                                width = 1.dp,
+                                color = MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(8.dp)
+                            ),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                        )
                     ) {
-                        Column(modifier = Modifier.fillMaxWidth()) {
-                            Text(
-                                text = "Current Ongoing Rental Period",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Spacer(modifier = Modifier.height(12.dp))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Column {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
+                        ) {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Text(
+                                    text = "Current Ongoing Rental Period",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = "${AppUtil.formatDate(dateFormat.parse(userRental!!.startDate)!!)} - ${AppUtil.formatDate(dateFormat.parse(userRental!!.endDate)!!)}",
+                                            style = MaterialTheme.typography.bodyLarge,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                    }
                                     Text(
-                                        text = "${AppUtil.formatDate(dateFormat.parse(userRental!!.startDate)!!)} - ${AppUtil.formatDate(dateFormat.parse(userRental!!.endDate)!!)}",
+                                        text = "€${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0,
+                                            dateFormat.parse(userRental!!.startDate)!!,
+                                            dateFormat.parse(userRental!!.endDate)!!
+                                        )}",
                                         style = MaterialTheme.typography.bodyLarge,
                                         fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold
+                                        fontWeight = FontWeight.Bold,
+                                        color = Yellow40
                                     )
                                 }
-                                Text(
-                                    text = "€${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0,
-                                        dateFormat.parse(userRental!!.startDate)!!,
-                                        dateFormat.parse(userRental!!.endDate)!!
-                                    )}",
-                                    style = MaterialTheme.typography.bodyLarge,
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Yellow40
-                                )
                             }
                         }
                     }
@@ -325,7 +364,7 @@ fun DeviceDetailsPage(
             )
 
             // Rental Periods
-            if (existingRentals.isNotEmpty()) {
+            if (existingRentals.any { it.renterId == currentUser?.userId }) {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -347,7 +386,7 @@ fun DeviceDetailsPage(
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(12.dp))
-                        existingRentals.forEach { rental ->
+                        existingRentals.filter { it.renterId == currentUser?.userId }.forEach { rental ->
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -359,7 +398,7 @@ fun DeviceDetailsPage(
                                     Text(
                                         text = "${AppUtil.formatDate(dateFormat.parse(rental.startDate)!!)} - ${AppUtil.formatDate(dateFormat.parse(rental.endDate)!!)}",
                                         style = MaterialTheme.typography.bodyLarge,
-                                        fontSize = 16.sp,
+                                        fontSize = 18.sp,
                                         fontWeight = FontWeight.ExtraBold
                                     )
                                 }
@@ -370,12 +409,12 @@ fun DeviceDetailsPage(
                                         dateFormat.parse(rental.endDate)!!
                                     )}",
                                     style = MaterialTheme.typography.bodyLarge,
-                                    fontSize = 16.sp,
+                                    fontSize = 18.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = Yellow40
                                 )
                             }
-                            if (existingRentals.last() != rental) {
+                            if (existingRentals.last { it.renterId == currentUser?.userId } != rental) {
                                 HorizontalDivider(
                                     modifier = Modifier.padding(vertical = 8.dp),
                                     color = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
@@ -416,7 +455,7 @@ fun DeviceDetailsPage(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(60.dp)
+                                    .size(70.dp)
                                     .clip(CircleShape)
                                     .background(Color.LightGray)
                             ) {
@@ -436,22 +475,29 @@ fun DeviceDetailsPage(
                                 Text(
                                     text = ownerData.fullName,
                                     fontWeight = FontWeight.Bold,
-                                    fontSize = 18.sp
+                                    fontSize = 20.sp
                                 )
+                                if (existingRentals.isNotEmpty()) {
+                                    Text(
+                                        text = ownerData.phoneNumber,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 18.sp
+                                    )
+                                }
                                 Text(
-                                    text = if (userRental != null) {
+                                    text = if (existingRentals.isNotEmpty()) {
                                         "${ownerData.streetName} ${ownerData.addressNr}"
                                     } else {
                                         ownerData.city
                                     },
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 14.sp
+                                    fontSize = 18.sp
                                 )
-                                if (userRental != null) {
+                                if (existingRentals.isNotEmpty()) {
                                     Text(
                                         text = "${ownerData.zipCode} ${ownerData.city}",
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 14.sp
+                                        fontSize = 18.sp
                                     )
                                 }
                             }
@@ -475,7 +521,7 @@ fun DeviceDetailsPage(
             ) {
                 Icon(Icons.Default.LocationOn, contentDescription = "Location")
                 Spacer(modifier = Modifier.width(8.dp))
-                Text(text = "${distance.toInt()}km • ${owner?.city  ?: ""}")
+                Text(text = "${distance.toInt()}km • ${owner?.city  ?: ""}", fontSize = 18.sp, fontWeight = FontWeight.Normal)
             }
 
             // Map
@@ -739,7 +785,7 @@ private fun calculateTotalPrice(pricePerDay: Double, startDate: Date, endDate: D
     val diffInMillis = endDate.time - startDate.time
     val days = (diffInMillis / (1000 * 60 * 60 * 24)) + 1
     val total = pricePerDay * days
-    return String.format(Locale.US, "%.2f", total);
+    return String.format(Locale.US, "%.2f", total)
 }
 
 private fun processRental(
