@@ -21,25 +21,21 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun HomePage(onLogout: () -> Unit) {
-    Box(
-        modifier = Modifier.background(Color.White)
-    ){
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Text(text = "Welcome to Home!", color = Color.Black)
-            Spacer(modifier = Modifier.height(16.dp))
-            OutlinedButton(
-                onClick = onLogout,
-                content = {
-                    Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color.Black)
-                    Text(text = "Log out", color = Color.Black)
-                }
-            )
-        }
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(text = "Welcome to Home!", color = Color.Black)
+        Spacer(modifier = Modifier.height(16.dp))
+        OutlinedButton(
+            onClick = onLogout,
+            content = {
+                Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color.Black)
+                Text(text = "Log out", color = Color.Black)
+            }
+        )
     }
 }

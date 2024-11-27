@@ -47,7 +47,6 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.map.GeocodingService
 import kotlinx.coroutines.CoroutineScope
@@ -182,11 +181,6 @@ fun ProfilePage() {
 
     val scrollState = rememberScrollState()
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color.White)
-    ) {
         Column(
             modifier = Modifier
                 .verticalScroll(scrollState)
@@ -368,7 +362,6 @@ fun ProfilePage() {
             }
         }
     }
-}
 
 fun validateAndSave(
     name: String?,
