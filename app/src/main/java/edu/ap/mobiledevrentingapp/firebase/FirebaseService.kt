@@ -12,11 +12,11 @@ import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.toObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
@@ -173,7 +173,6 @@ object FirebaseService {
                 }
             }
     }
-
 
     fun getUserById(userId: String, callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
         firestore.collection("users").document(userId).get()
@@ -436,6 +435,74 @@ object FirebaseService {
             .addOnFailureListener { e ->
                 Log.e("FirebaseService", "Error creating rental", e)
                 callback(false)
+            }
+    }
+
+    fun getDevicesRentedByUser(userId: String, callback: (List<Device>) -> Unit) {
+        firestore.collection("rentals")
+            .whereEqualTo("renterId", userId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val deviceIds = querySnapshot.documents.mapNotNull { doc ->
+                    doc.getString("deviceId")
+                }
+
+                if (deviceIds.isEmpty()) {
+                    callback(emptyList())
+                    return@addOnSuccessListener
+                }
+
+                firestore.collection("devices")
+                    .whereIn(FieldPath.documentId(), deviceIds)
+                    .get()
+                    .addOnSuccessListener { devicesSnapshot ->
+                        val devices = devicesSnapshot.documents.mapNotNull { doc ->
+                            doc.toObject<Device>()?.copy(deviceId = doc.id)
+                        }
+                        callback(devices)
+                    }
+                    .addOnFailureListener {
+                        Log.e("FirebaseService", "Error getting rented devices", it)
+                        callback(emptyList())
+                    }
+            }
+            .addOnFailureListener {
+                Log.e("FirebaseService", "Error getting rentals", it)
+                callback(emptyList())
+            }
+    }
+
+    fun getMyDevicesBeingRented(userId: String, callback: (List<Device>) -> Unit) {
+        firestore.collection("rentals")
+            .whereEqualTo("ownerId", userId)
+            .get()
+            .addOnSuccessListener { querySnapshot ->
+                val deviceIds = querySnapshot.documents.mapNotNull { doc ->
+                    doc.getString("deviceId")
+                }
+
+                if (deviceIds.isEmpty()) {
+                    callback(emptyList())
+                    return@addOnSuccessListener
+                }
+
+                firestore.collection("devices")
+                    .whereIn(FieldPath.documentId(), deviceIds)
+                    .get()
+                    .addOnSuccessListener { devicesSnapshot ->
+                        val devices = devicesSnapshot.documents.mapNotNull { doc ->
+                            doc.toObject<Device>()?.copy(deviceId = doc.id)
+                        }
+                        callback(devices)
+                    }
+                    .addOnFailureListener {
+                        Log.e("FirebaseService", "Error getting my rented devices", it)
+                        callback(emptyList())
+                    }
+            }
+            .addOnFailureListener {
+                Log.e("FirebaseService", "Error getting rentals", it)
+                callback(emptyList())
             }
     }
 }
