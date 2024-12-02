@@ -74,9 +74,14 @@ fun DeviceCardToDelete(device: Map<String, Any>, onDelete: (String) -> Unit) {
             .padding(16.dp)) {
             Text(
                 text = device["deviceName"]?.toString() ?: "Unknown Device",
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = device["description"]?.toString() ?: "Unknown",
+                style = MaterialTheme.typography.bodyMedium
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Category: ${device["category"]?.toString() ?: "N/A"}",
                 style = MaterialTheme.typography.bodySmall
