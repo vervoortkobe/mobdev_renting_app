@@ -244,6 +244,7 @@ fun ProfileHeader(
 fun DeviceCard(device: Map<String, Any>, onDelete: (String) -> Unit) {
     val context = LocalContext.current
     var renterName by remember { mutableStateOf<String>("Loading...") }
+    var showConfirmationDialog by remember { mutableStateOf(false) }
 
     val deviceId = device["deviceId"]?.toString()
     LaunchedEffect(deviceId) {
@@ -296,16 +297,48 @@ fun DeviceCard(device: Map<String, Any>, onDelete: (String) -> Unit) {
 
             androidx.compose.material3.Button(
                 onClick = {
-                    if (!deviceId.isNullOrEmpty()) {
-                        onDelete(deviceId)
-                    } else {
-                        Toast.makeText(context, "Invalid Device ID", Toast.LENGTH_SHORT).show()
-                    }
+                    showConfirmationDialog = true
                 }
             ) {
                 Text(text = "Delete Device")
             }
+
+            if (showConfirmationDialog) {
+                androidx.compose.material3.AlertDialog(
+                    onDismissRequest = { showConfirmationDialog = false },
+                    title = {
+                        Text(text = "Delete Device")
+                    },
+                    text = {
+                        Text(
+                            text = "Are you sure you want to delete this device? This action cannot be undone."
+                        )
+                    },
+                    confirmButton = {
+                        androidx.compose.material3.Button(
+                            onClick = {
+                                showConfirmationDialog = false
+                                if (!deviceId.isNullOrEmpty()) {
+                                    onDelete(deviceId)
+                                } else {
+                                    Toast.makeText(context, "Invalid Device ID", Toast.LENGTH_SHORT).show()
+                                }
+                            }
+                        ) {
+                            Text("Yes")
+                        }
+                    },
+                    dismissButton = {
+                        androidx.compose.material3.Button(
+                            onClick = { showConfirmationDialog = false }
+                        ) {
+                            Text("No")
+                        }
+                    }
+                )
+            }
         }
     }
 }
+
 
