@@ -85,6 +85,32 @@ fun MapPage(navController: NavController) {
             modifier = Modifier.fillMaxSize(),
             cameraState = cameraState
         ) {
+            // Show device markers
+            geoPoints.forEachIndexed { index, geoPoint ->
+                val markerState = rememberMarkerState(
+                    geoPoint = geoPoint,
+                    rotation = 0f
+                )
+
+                Marker(
+                    state = markerState,
+                    icon = deviceIcon,
+                    title = "Device $index",
+                    snippet = "Lat: ${geoPoint.latitude}, Lon: ${geoPoint.longitude}"
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(color = Color.Gray, shape = RoundedCornerShape(7.dp)),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(text = it.title)
+                        Text(text = it.snippet, fontSize = 10.sp)
+                    }
+                }
+            }
+
             // Show account location marker
             accountLocation?.let { location ->
                 val userMarkerState = rememberMarkerState(
@@ -107,32 +133,6 @@ fun MapPage(navController: NavController) {
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(text = it.title, color = Color.Blue)
-                        Text(text = it.snippet, fontSize = 10.sp)
-                    }
-                }
-            }
-
-            // Show device markers
-            geoPoints.forEachIndexed { index, geoPoint ->
-                val markerState = rememberMarkerState(
-                    geoPoint = geoPoint,
-                    rotation = 0f
-                )
-
-                Marker(
-                    state = markerState,
-                    icon = deviceIcon,
-                    title = "Device $index",
-                    snippet = "Lat: ${geoPoint.latitude}, Lon: ${geoPoint.longitude}"
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .background(color = Color.Gray, shape = RoundedCornerShape(7.dp)),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(text = it.title)
                         Text(text = it.snippet, fontSize = 10.sp)
                     }
                 }
@@ -165,16 +165,24 @@ fun MapPage(navController: NavController) {
             },
             modifier = Modifier
                 .padding(16.dp)
-                .align(Alignment.TopEnd) // Position it at the top right
+                .align(Alignment.TopEnd)
                 .size(48.dp)
-                .background(Color.Transparent) // Make background transparent
-                .border(1.dp, Color.Gray, CircleShape) // Add circular border
+                .background(Color.White, CircleShape)
+                .border(1.dp, Color.Gray, CircleShape)
         ) {
-            Icon(
-                painter = painterResource(id = R.drawable.user_marker_icon),
-                contentDescription = "My Location",
-                tint = Color.Unspecified // Use original colors of the icon
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.user_marker_icon),
+                    contentDescription = "My Location",
+                    tint = Color.Unspecified,
+                    modifier = Modifier.size(52.dp)
+                        .padding(start = 8.dp, top = 8.dp)
+                )
+            }
         }
     }
 }

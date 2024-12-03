@@ -6,7 +6,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
@@ -33,9 +32,8 @@ fun HomePage(navController: NavController) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        // Devices I'm Renting
         Text(
-            text = "Devices I'm Renting",
+            text = "My current rentals",
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -49,9 +47,8 @@ fun HomePage(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Devices I'm Renting Out
         Text(
-            text = "Devices I'm Renting Out",
+            text = "My Rented Devices",
             style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
             modifier = Modifier.padding(bottom = 8.dp)
         )
@@ -60,35 +57,6 @@ fun HomePage(navController: NavController) {
         } else {
             for (device in myRentedDevices) {
                 DeviceCard(device = device, isRentedOut = true)
-            }
-        }
-    }
-}
-
-@Composable
-fun DeviceCard(device: Device, renterName: String? = null, isRentedOut: Boolean = false) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Column(
-            modifier = Modifier.padding(16.dp)
-        ) {
-            Text(
-                text = device.deviceName,
-                style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Bold, fontSize = 18.sp)
-            )
-            Text(
-                text = "Price: €${device.price}/day",
-                style = MaterialTheme.typography.bodyMedium
-            )
-            if (isRentedOut && renterName != null) {
-                Text(
-                    text = "Rented by: $renterName",
-                    style = MaterialTheme.typography.bodyMedium
-                )
             }
         }
     }
