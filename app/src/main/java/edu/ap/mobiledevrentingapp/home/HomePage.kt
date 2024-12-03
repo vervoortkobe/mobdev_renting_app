@@ -89,7 +89,7 @@ fun HomePage(navController: NavController) {
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(
-                    modifier = Modifier.size(48.dp),
+                    modifier = Modifier.size(42.dp),
                     color = Yellow40
                 )
             }
