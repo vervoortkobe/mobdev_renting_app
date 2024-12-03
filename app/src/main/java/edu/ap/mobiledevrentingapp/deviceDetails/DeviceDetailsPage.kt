@@ -273,7 +273,7 @@ fun DeviceDetailsPage(
                                         )
                                     }
                                     Text(
-                                        text = "€${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0,
+                                        text = "€${AppUtil.calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0,
                                             dateFormat.parse(userRental!!.startDate)!!,
                                             dateFormat.parse(userRental!!.endDate)!!
                                         )}",
@@ -403,7 +403,7 @@ fun DeviceDetailsPage(
                                     )
                                 }
                                 Text(
-                                    text = "€${calculateTotalPrice(
+                                    text = "€${AppUtil.calculateTotalPrice(
                                         device?.price?.toDoubleOrNull() ?: 0.0,
                                         dateFormat.parse(rental.startDate)!!,
                                         dateFormat.parse(rental.endDate)!!
@@ -579,7 +579,7 @@ fun DeviceDetailsPage(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                "Total amount: €${calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0, startDate!!, endDate!!)}",
+                                "Total amount: €${AppUtil.calculateTotalPrice(device?.price?.toDoubleOrNull() ?: 0.0, startDate!!, endDate!!)}",
                                 fontSize = 18.sp,
                                 textAlign = TextAlign.Center
                             )
@@ -749,7 +749,7 @@ fun DeviceDetailsPage(
                 Text(
                     text = if (startDate != null && endDate != null) {
                         "Pay €${
-                            calculateTotalPrice(
+                            AppUtil.calculateTotalPrice(
                                 device?.price?.toDoubleOrNull() ?: 0.0,
                                 startDate!!,
                                 endDate!!
@@ -779,13 +779,6 @@ fun DeviceDetailsPage(
             disabledDates = getDisabledDates(existingRentals)
         )
     }
-}
-
-private fun calculateTotalPrice(pricePerDay: Double, startDate: Date, endDate: Date): String {
-    val diffInMillis = endDate.time - startDate.time
-    val days = (diffInMillis / (1000 * 60 * 60 * 24)) + 1
-    val total = pricePerDay * days
-    return String.format(Locale.US, "%.2f", total)
 }
 
 private fun processRental(
