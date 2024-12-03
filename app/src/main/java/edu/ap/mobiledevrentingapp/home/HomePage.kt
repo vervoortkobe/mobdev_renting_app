@@ -24,6 +24,7 @@ fun HomePage(navController: NavController) {
     var userRentals by remember { mutableStateOf<List<Rental>>(emptyList()) }
     var userLocation by remember { mutableStateOf<Location?>(null) }
     var isLoading by remember { mutableStateOf(true) } // Loading state
+    var rentedDevicesWithRenterData by remember { mutableStateOf<List<Pair<Device, User>>>(emptyList()) }
 
     LaunchedEffect(Unit) {
         val currentUserId = FirebaseService.getCurrentUserId()
@@ -57,6 +58,22 @@ fun HomePage(navController: NavController) {
             FirebaseService.getDevicesRentedByUser(currentUserId) { devicesWithNames ->
                 userRentals = devicesWithNames.map { (device, _) ->
                     Rental(deviceId = device.deviceId, renterId = currentUserId, startDate = "2023-01-01", endDate = "2023-01-10") // Example rental data
+                }
+            }
+
+            // Fetch renter data for each rented device
+            myRentedDevices.forEach { rentedDevice ->
+                val rentalPeriod = userRentals.find { it.deviceId == rentedDevice.deviceId }
+                rentalPeriod?.let { period ->
+                    FirebaseService.getUserById(period.renterId) { success, document, _ ->
+                        if (success && document != null) {
+                            val renterData = User(
+                                fullName = document.getString("fullName") ?: "Unknown",
+                                phoneNumber = document.getString("phoneNumber") ?: "Unknown"
+                            )
+                            rentedDevicesWithRenterData = rentedDevicesWithRenterData + Pair(rentedDevice, renterData)
+                        }
+                    }
                 }
             }
         }
@@ -118,13 +135,13 @@ fun HomePage(navController: NavController) {
                         Text("You're not renting out any devices", color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {
-                    items(myRentedDevices) { rentedDevice ->
+                    items(rentedDevicesWithRenterData) { (rentedDevice, renterData) ->
                         val rentalPeriod = userRentals.find { it.deviceId == rentedDevice.deviceId }
                         rentalPeriod?.let { period ->
                             RentedDeviceCard(
                                 rentedDevice = rentedDevice,
                                 rentalPeriod = period,
-                                renterData = User("Renter Name", "Renter Phone"), // Replace with actual renter data
+                                renterData = renterData,
                                 onClick = {
                                     navController.navigate("device_details/${rentedDevice.deviceId}")
                                 }
