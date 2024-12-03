@@ -84,10 +84,15 @@ fun HomePage(navController: NavController) {
         contentAlignment = Alignment.Center
     ) {
         if (isLoading) {
-            CircularProgressIndicator(
-                color = Yellow40, // Use your theme color
-                modifier = Modifier.size(48.dp) // Adjust size as needed
-            )
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(48.dp),
+                    color = Yellow40
+                )
+            }
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
