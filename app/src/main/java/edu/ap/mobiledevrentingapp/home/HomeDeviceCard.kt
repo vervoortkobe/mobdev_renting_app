@@ -37,10 +37,6 @@ fun HomeDeviceCard(
     userLocation: android.location.Location,
     onClick: () -> Unit
 ) {
-    var ownerData by remember { mutableStateOf(User("", "")) }
-    var ownerName by remember { mutableStateOf("Loading...") }
-    var ownerProfileImage by remember { mutableStateOf<Bitmap?>(null) }
-
     val deviceImages = remember(device) {
         device.images.mapNotNull { AppUtil.decode(it) }
     }

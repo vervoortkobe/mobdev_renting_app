@@ -36,7 +36,6 @@ fun HomePage(navController: NavController) {
                         phoneNumber = document.getString("phoneNumber") ?: "Unknown",
                         latitude = document.getDouble("latitude") ?: 0.0,
                         longitude = document.getDouble("longitude") ?: 0.0,
-                        // Add other user properties as needed
                     )
                     // Create a Location object
                     userLocation = Location("").apply {
@@ -79,7 +78,7 @@ fun HomePage(navController: NavController) {
             ) {
                 item {
                     Text(
-                        text = "My Rented Devices",
+                        text = "Devices I'm Currently Renting",
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -99,6 +98,35 @@ fun HomePage(navController: NavController) {
                                 userLocation = location, // Pass userLocation here
                                 onClick = {
                                     navController.navigate("device_details/${device.deviceId}")
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // New section for devices currently being rented out
+                item {
+                    Text(
+                        text = "Devices I'm Currently Renting Out",
+                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                    )
+                }
+
+                if (myRentedDevices.isEmpty()) {
+                    item {
+                        Text("You're not renting out any devices", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                } else {
+                    items(myRentedDevices) { rentedDevice ->
+                        val rentalPeriod = userRentals.find { it.deviceId == rentedDevice.deviceId }
+                        rentalPeriod?.let { period ->
+                            RentedDeviceCard(
+                                rentedDevice = rentedDevice,
+                                rentalPeriod = period,
+                                renterData = User("Renter Name", "Renter Phone"), // Replace with actual renter data
+                                onClick = {
+                                    navController.navigate("device_details/${rentedDevice.deviceId}")
                                 }
                             )
                         }
