@@ -27,8 +27,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -42,12 +44,14 @@ import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.firebase.User
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import org.osmdroid.util.GeoPoint
 
 @Composable
 fun MapPage(navController: NavController) {
     val context = LocalContext.current
     var accountLocation by remember { mutableStateOf<GeoPoint?>(null) }
+    var userProfileImage by remember { mutableStateOf<String?>(null) }
     var markers by remember { mutableStateOf<List<MarkerInfo>>(emptyList()) }
 
     val cameraState = rememberCameraState {
@@ -69,6 +73,7 @@ fun MapPage(navController: NavController) {
                 val user = document.toObject(User::class.java)
                 user?.let {
                     accountLocation = GeoPoint(it.latitude, it.longitude)
+                    userProfileImage = it.profileImage
                     // Center the camera on the user's location once it's retrieved
                     cameraState.geoPoint = accountLocation as GeoPoint
                     cameraState.zoom = 15.0 // Zoom in more when showing account location
@@ -104,10 +109,9 @@ fun MapPage(navController: NavController) {
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(80.dp)
+                            .size(60.dp)
                             .background(Color.White, CircleShape)
-                            .border(2.dp, Color.Gray, CircleShape)
-                            .padding(8.dp)
+                            .border(1.dp, Yellow40, CircleShape)
                             .clickable { 
                                 // Navigate to device details with actual device ID
                                 navController.navigate("device_details/${markerInfo.deviceId}")
@@ -118,7 +122,12 @@ fun MapPage(navController: NavController) {
                             Image(
                                 bitmap = it.asImageBitmap(),
                                 contentDescription = "Device Image",
-                                modifier = Modifier.size(60.dp)
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(CircleShape)
+                                    .background(Color.White, CircleShape)
+                                    .border(1.dp, Color.Gray, CircleShape),
+                                contentScale = ContentScale.Crop
                             )
                         }
                     }
@@ -138,16 +147,27 @@ fun MapPage(navController: NavController) {
                     title = "Your Location",
                     snippet = "Lat: ${location.latitude}, Lon: ${location.longitude}"
                 ) {
-                    Column(
+                    Box(
                         modifier = Modifier
-                            .size(100.dp)
-                            .background(color = Color.White, shape = RoundedCornerShape(7.dp))
-                            .border(1.dp, Color.Blue, RoundedCornerShape(7.dp)),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .size(60.dp)
+                            .background(Color.White, CircleShape)
+                            .border(1.dp, Color.Black, CircleShape),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(text = it.title, color = Color.Blue)
-                        Text(text = it.snippet, fontSize = 10.sp)
+                        userProfileImage?.let { imageBase64 ->
+                            AppUtil.decode(imageBase64)?.let { bitmap ->
+                                Image(
+                                    bitmap = bitmap.asImageBitmap(),
+                                    contentDescription = "Your Profile Image",
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape)
+                                        .background(Color.White, CircleShape)
+                                        .border(1.dp, Color.Gray, CircleShape),
+                                    contentScale = ContentScale.Crop
+                                )
+                            }
+                        }
                     }
                 }
             }
