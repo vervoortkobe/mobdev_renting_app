@@ -33,7 +33,7 @@ data class DeviceImage(
 )
 
 data class Rental(
-    val rentalId: String = "",
+    var rentalId: String = "",
     val deviceId: String = "",
     val ownerId: String = "",
     val renterId: String = "",
