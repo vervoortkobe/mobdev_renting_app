@@ -2,8 +2,10 @@ package edu.ap.mobiledevrentingapp.map
 
 import android.graphics.drawable.Drawable
 import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -26,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -36,15 +39,16 @@ import com.utsman.osmandcompose.OpenStreetMap
 import com.utsman.osmandcompose.rememberCameraState
 import com.utsman.osmandcompose.rememberMarkerState
 import edu.ap.mobiledevrentingapp.R
+import edu.ap.mobiledevrentingapp.firebase.AppUtil
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.firebase.User
 import org.osmdroid.util.GeoPoint
-import edu.ap.mobiledevrentingapp.firebase.FirebaseService as FirebaseService1
 
 @Composable
 fun MapPage(navController: NavController) {
     val context = LocalContext.current
     var accountLocation by remember { mutableStateOf<GeoPoint?>(null) }
-    var geoPoints by remember { mutableStateOf<List<GeoPoint>>(emptyList()) }
+    var markers by remember { mutableStateOf<List<MarkerInfo>>(emptyList()) }
 
     val cameraState = rememberCameraState {
         zoom = 12.0 // Default zoom level
@@ -60,7 +64,7 @@ fun MapPage(navController: NavController) {
 
     // Load account location from Firebase
     LaunchedEffect(Unit) {
-        FirebaseService1.getCurrentUser { success, document, _ ->
+        FirebaseService.getCurrentUser { success, document, _ ->
             if (success && document != null) {
                 val user = document.toObject(User::class.java)
                 user?.let {
@@ -75,8 +79,8 @@ fun MapPage(navController: NavController) {
 
     // Load device locations
     LaunchedEffect(Unit) {
-        Coordinates.fetchAllDevices { points ->
-            geoPoints = points
+        Coordinates.fetchAllDevices { markerInfoList ->
+            markers = markerInfoList
         }
     }
 
@@ -86,27 +90,37 @@ fun MapPage(navController: NavController) {
             cameraState = cameraState
         ) {
             // Show device markers
-            geoPoints.forEachIndexed { index, geoPoint ->
+            markers.forEach { markerInfo ->
                 val markerState = rememberMarkerState(
-                    geoPoint = geoPoint,
+                    geoPoint = markerInfo.geoPoint,
                     rotation = 0f
                 )
 
                 Marker(
                     state = markerState,
                     icon = deviceIcon,
-                    title = "Device $index",
-                    snippet = "Lat: ${geoPoint.latitude}, Lon: ${geoPoint.longitude}"
+                    title = "Device ${markerInfo.deviceId}",
+                    snippet = "Lat: ${markerInfo.geoPoint.latitude}, Lon: ${markerInfo.geoPoint.longitude}"
                 ) {
-                    Column(
+                    Box(
                         modifier = Modifier
-                            .size(100.dp)
-                            .background(color = Color.Gray, shape = RoundedCornerShape(7.dp)),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                            .size(80.dp)
+                            .background(Color.White, CircleShape)
+                            .border(2.dp, Color.Gray, CircleShape)
+                            .padding(8.dp)
+                            .clickable { 
+                                // Navigate to device details with actual device ID
+                                navController.navigate("device_details/${markerInfo.deviceId}")
+                            },
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(text = it.title)
-                        Text(text = it.snippet, fontSize = 10.sp)
+                        AppUtil.decode(markerInfo.imageUrl)?.let { it ->
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = "Device Image",
+                                modifier = Modifier.size(60.dp)
+                            )
+                        }
                     }
                 }
             }
