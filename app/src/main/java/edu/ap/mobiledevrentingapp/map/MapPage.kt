@@ -22,12 +22,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -139,6 +139,7 @@ fun MapPage(navController: NavController) {
             }
         }
 
+        // Back Button
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
@@ -151,6 +152,28 @@ fun MapPage(navController: NavController) {
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                 contentDescription = "Back",
                 tint = Color.Black
+            )
+        }
+
+        // My Location Button
+        IconButton(
+            onClick = {
+                accountLocation?.let { location ->
+                    cameraState.geoPoint = location // Set camera to user's location
+                    cameraState.zoom = 15.0 // Zoom in on the user's location
+                }
+            },
+            modifier = Modifier
+                .padding(16.dp)
+                .align(Alignment.TopEnd) // Position it at the top right
+                .size(48.dp)
+                .background(Color.Transparent) // Make background transparent
+                .border(1.dp, Color.Gray, CircleShape) // Add circular border
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.user_marker_icon),
+                contentDescription = "My Location",
+                tint = Color.Unspecified // Use original colors of the icon
             )
         }
     }
