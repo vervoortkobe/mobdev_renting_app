@@ -438,19 +438,22 @@ object FirebaseService {
             }
     }
 
-    fun getDevicesRentedByUser(userId: String, callback: (List<Device>) -> Unit) {
+    fun getDevicesRentedByUser(userId: String, callback: (List<Pair<Device, String>>) -> Unit) {
         firestore.collection("rentals")
             .whereEqualTo("renterId", userId)
             .get()
             .addOnSuccessListener { querySnapshot ->
-                val deviceIds = querySnapshot.documents.mapNotNull { doc ->
-                    doc.getString("deviceId")
+                val rentals = querySnapshot.documents.mapNotNull { doc ->
+                    val rental = doc.toObject(Rental::class.java)
+                    rental?.apply { rentalId = doc.id } // Assign rentalId here
                 }
 
-                if (deviceIds.isEmpty()) {
+                if (rentals.isEmpty()) {
                     callback(emptyList())
                     return@addOnSuccessListener
                 }
+
+                val deviceIds = rentals.map { it.deviceId }
 
                 firestore.collection("devices")
                     .whereIn(FieldPath.documentId(), deviceIds)
@@ -459,7 +462,35 @@ object FirebaseService {
                         val devices = devicesSnapshot.documents.mapNotNull { doc ->
                             doc.toObject<Device>()?.copy(deviceId = doc.id)
                         }
-                        callback(devices)
+
+                        // Create a list of pairs (Device, renterName)
+                        val rentedDevicesWithNames = mutableListOf<Pair<Device, String>>()
+
+                        // Fetch user details for each rental
+                        rentals.forEach { rental ->
+                            val device = devices.find { it.deviceId == rental.deviceId }
+                            if (device != null) {
+                                // Fetch user by renterId
+                                firestore.collection("users").document(rental.renterId).get()
+                                    .addOnSuccessListener { userDoc ->
+                                        val userName = userDoc.getString("fullName") ?: "Unknown User"
+                                        rentedDevicesWithNames.add(Pair(device, userName))
+
+                                        // Call the callback only after all users have been fetched
+                                        if (rentedDevicesWithNames.size == rentals.size) {
+                                            callback(rentedDevicesWithNames)
+                                        }
+                                    }
+                                    .addOnFailureListener {
+                                        Log.e("FirebaseService", "Error getting user details", it)
+                                        // Handle error, you might want to return an empty list or a default name
+                                        rentedDevicesWithNames.add(Pair(device, "Unknown User"))
+                                        if (rentedDevicesWithNames.size == rentals.size) {
+                                            callback(rentedDevicesWithNames)
+                                        }
+                                    }
+                            }
+                        }
                     }
                     .addOnFailureListener {
                         Log.e("FirebaseService", "Error getting rented devices", it)

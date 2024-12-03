@@ -477,7 +477,7 @@ fun DeviceDetailsPage(
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 20.sp
                                 )
-                                if (existingRentals.isNotEmpty()) {
+                                if (existingRentals.any { it.renterId == currentUser?.userId }) {
                                     Text(
                                         text = ownerData.phoneNumber,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -485,7 +485,7 @@ fun DeviceDetailsPage(
                                     )
                                 }
                                 Text(
-                                    text = if (existingRentals.isNotEmpty()) {
+                                    text = if (existingRentals.any { it.renterId == currentUser?.userId }) {
                                         "${ownerData.streetName} ${ownerData.addressNr}"
                                     } else {
                                         ownerData.city
@@ -493,7 +493,7 @@ fun DeviceDetailsPage(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     fontSize = 18.sp
                                 )
-                                if (existingRentals.isNotEmpty()) {
+                                if (existingRentals.any { it.renterId == currentUser?.userId }) {
                                     Text(
                                         text = "${ownerData.zipCode} ${ownerData.city}",
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
