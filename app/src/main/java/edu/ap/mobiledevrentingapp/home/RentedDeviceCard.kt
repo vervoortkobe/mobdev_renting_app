@@ -156,14 +156,18 @@ fun RentedDeviceCard(
                 )
             }
 
-            val rentalPrice = startDate?.let {
-                if (endDate != null) {
-                    AppUtil.calculateTotalPrice(rentedDevice.price.toDouble(),
-                        it, endDate)
-                }
-            }
             Text(
-                text = "€ $rentalPrice",
+                text = "€ ${
+                    startDate?.let { start ->
+                        endDate?.let { end ->
+                            String.format(
+                                Locale.getDefault(),
+                                "%.2f",
+                                AppUtil.calculateTotalPrice(rentedDevice.price.toDouble(), start, end).toDouble()
+                            )
+                        }
+                    } ?: "0.00"
+                }",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Yellow40
             )

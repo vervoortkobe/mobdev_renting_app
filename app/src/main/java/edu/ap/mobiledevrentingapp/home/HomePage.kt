@@ -83,13 +83,13 @@ fun HomePage(navController: NavController) {
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp)
+                contentPadding = PaddingValues(8.dp)
             ) {
                 item {
                     Text(
                         text = context.getString(R.string.home_currently_renting),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(start= 8.dp, top = 16.dp, bottom = 8.dp)
                     )
                 }
 
@@ -128,7 +128,7 @@ fun HomePage(navController: NavController) {
                     Text(
                         text = context.getString(R.string.home_devices_currently_renting_out),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                        modifier = Modifier.padding(start= 8.dp, top = 16.dp, bottom = 8.dp)
                     )
                 }
 
