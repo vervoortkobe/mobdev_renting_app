@@ -53,7 +53,7 @@ fun DeviceDetailsMap(cameraState: CameraState, device: Device, userLocation: Pai
             Marker(
                 state = userMarkerState,
                 icon = userIcon,
-                title = context.getString(R.string.device_details_my_location),
+                title = context.getString(R.string.your_location),
                 snippet = "Lat: $lat, Lon: $lon"
             )
         }
