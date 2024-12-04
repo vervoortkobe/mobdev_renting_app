@@ -12,6 +12,7 @@ import android.os.Build
 import android.provider.MediaStore
 import android.util.Log
 import androidx.appcompat.content.res.AppCompatResources
+import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -102,5 +103,14 @@ object AppUtil {
         val days = (diffInMillis / (1000 * 60 * 60 * 24)) + 1
         val total = pricePerDay * days
         return String.format(Locale.US, "%.2f", total)
+    }
+
+    fun parseDate(dateStr: String): Date {
+        return try {
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(dateStr) ?: Date()
+        } catch (e: Exception) {
+            Log.e("AppUtil", "Error parsing date: $dateStr", e)
+            Date()
+        }
     }
 }

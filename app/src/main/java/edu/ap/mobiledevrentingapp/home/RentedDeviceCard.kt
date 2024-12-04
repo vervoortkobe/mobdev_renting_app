@@ -1,5 +1,6 @@
 package edu.ap.mobiledevrentingapp.home
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -22,6 +23,7 @@ import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.Rental
 import edu.ap.mobiledevrentingapp.firebase.User
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
+import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,6 +35,31 @@ fun RentedDeviceCard(
     onClick: () -> Unit
 ) {
     val deviceImage = AppUtil.decode(rentedDevice.images.firstOrNull() ?: "")?.asImageBitmap()
+
+    val startDateString = rentalPeriod.startDate
+    val endDateString = rentalPeriod.endDate
+
+    val startDate: Date? = if (startDateString.isNotEmpty()) {
+        try {
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(startDateString)
+        } catch (e: ParseException) {
+            Log.e("RentedDeviceCard", "Error parsing start date: $startDateString", e)
+            null // Return null if parsing fails
+        }
+    } else {
+        null // Return null if the string is empty
+    }
+
+    val endDate: Date? = if (endDateString.isNotEmpty()) {
+        try {
+            SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(endDateString)
+        } catch (e: ParseException) {
+            Log.e("RentedDeviceCard", "Error parsing end date: $endDateString", e)
+            null // Return null if parsing fails
+        }
+    } else {
+        null // Return null if the string is empty
+    }
 
     Row(
         modifier = Modifier
@@ -115,10 +142,6 @@ fun RentedDeviceCard(
             }
 
             // Rental Period
-            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val startDate = dateFormat.parse(rentalPeriod.startDate)
-            val endDate = dateFormat.parse(rentalPeriod.endDate)
-
             if (startDate != null && endDate != null) {
                 Text(
                     text = "${AppUtil.formatDate(startDate)} - ${AppUtil.formatDate(endDate)}",
