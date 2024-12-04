@@ -58,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
@@ -87,7 +88,7 @@ fun AddDevicePage(navController: NavController) {
             } else {
                 Toast.makeText(
                     context,
-                    "You can select up to 5 images.",
+                    context.getString(R.string.add_device_images_max_images_exceeded),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -98,7 +99,7 @@ fun AddDevicePage(navController: NavController) {
             if (bitmap != null) {
                 bitmaps = bitmaps + bitmap
             } else {
-                Toast.makeText(context, "Failed to capture image.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(context, context.getString(R.string.add_device_capture_failed), Toast.LENGTH_SHORT).show()
             }
         }
 
@@ -122,12 +123,12 @@ fun AddDevicePage(navController: NavController) {
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = context.getString(R.string.back_button),
                         tint = Color.Black
                     )
                 }
                 Text(
-                    "Device Information",
+                    context.getString(R.string.add_device_device_information),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.Black,
@@ -142,9 +143,9 @@ fun AddDevicePage(navController: NavController) {
             OutlinedTextField(
                 value = deviceName,
                 onValueChange = { deviceName = it },
-                label = { Text("Device Name", color = Color.Black) },
+                label = { Text(context.getString(R.string.add_device_device_name), color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Makita drill") },
+                placeholder = { Text(context.getString(R.string.add_device_device_name_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
@@ -163,9 +164,9 @@ fun AddDevicePage(navController: NavController) {
             OutlinedTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text("Description", color = Color.Black) },
+                label = { Text(context.getString(R.string.add_device_device_description), color = Color.Black) },
                 modifier = Modifier.fillMaxWidth().height(150.dp),
-                placeholder = { Text("Max. 500 characters") },
+                placeholder = { Text(context.getString(R.string.add_device_device_description_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
@@ -177,10 +178,10 @@ fun AddDevicePage(navController: NavController) {
             OutlinedTextField(
                 value = price,
                 onValueChange = { price = it },
-                label = { Text("Price (in Euro €)", color = Color.Black) },
+                label = { Text(context.getString(R.string.add_device_device_price), color = Color.Black) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("10") },
+                placeholder = { Text(context.getString(R.string.add_device_device_price_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
@@ -189,7 +190,7 @@ fun AddDevicePage(navController: NavController) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            Text("Device Images", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
+            Text(context.getString(R.string.add_device_device_images), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.Black)
 
             Spacer(modifier = Modifier.height(22.dp))
 
@@ -198,7 +199,7 @@ fun AddDevicePage(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black)
             ) {
-                Text("Select images to upload", color = Color.White)
+                Text(context.getString(R.string.add_device_select_images_button), color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(2.dp))
@@ -208,7 +209,7 @@ fun AddDevicePage(navController: NavController) {
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Gray)
             ) {
-                Text("Take a picture", color = Color.White)
+                Text(context.getString(R.string.add_device_capture_image_button), color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -222,12 +223,12 @@ fun AddDevicePage(navController: NavController) {
                         .border(1.dp, Color.LightGray, RoundedCornerShape(16.dp))
                         .background(Color.LightGray)
                 ) {
-                    Text("No images selected.", color = Color.Black)
+                    Text(context.getString(R.string.add_device_no_images_selected), color = Color.Black)
                 }
                 Spacer(modifier = Modifier.height(16.dp))
-                Text("Select at least 1 and at most 5 images to upload.", color = Color.Black)
+                Text(context.getString(R.string.add_device_images_min_max), color = Color.Black)
             } else {
-                Text("Swipe left or right to view all images.")
+                Text(context.getString(R.string.add_device_images_swipe))
                 Spacer(modifier = Modifier.height(2.dp))
                 LazyRow(
                     state = listState,
@@ -254,7 +255,7 @@ fun AddDevicePage(navController: NavController) {
                         ) {
                             Image(
                                 bitmap = bitmap.asImageBitmap(),
-                                contentDescription = "Selected image",
+                                contentDescription = context.getString(R.string.add_device_image),
                                 modifier = Modifier.fillMaxSize(),
                             )
                         }
@@ -311,20 +312,16 @@ fun AddDevicePage(navController: NavController) {
                                         if (success) {
                                             Toast.makeText(
                                                 context,
-                                                "The device was added successfully!",
+                                                context.getString(R.string.add_device_device_saved_successfully),
                                                 Toast.LENGTH_LONG
                                             ).show()
                                             navController.popBackStack()
                                         } else {
                                             Toast.makeText(
                                                 context,
-                                                "Failed to save the device. Please try again.",
+                                                context.getString(R.string.add_device_device_save_failed),
                                                 Toast.LENGTH_LONG
                                             ).show()
-                                            Log.e(
-                                                "AddDevice",
-                                                "Error saving device: $saveError"
-                                            )
                                         }
                                     }
                                 }

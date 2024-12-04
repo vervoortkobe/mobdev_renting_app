@@ -46,6 +46,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.navigation.NavController
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
@@ -87,7 +88,7 @@ fun DisplayDevicesWithImages(navController: NavController) {
             } else {
                 Toast.makeText(
                     context,
-                    error ?: "An error occurred while fetching devices.",
+                    error ?: context.getString(R.string.devices_error_loading_devices),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -121,7 +122,7 @@ fun DisplayDevicesWithImages(navController: NavController) {
             ) {
                 Icon(
                     imageVector = Icons.Default.Settings,
-                    contentDescription = "Filter options",
+                    contentDescription = context.getString(R.string.devices_filter_button),
                     tint = Yellow40,
                     modifier = Modifier.size(32.dp)
                 )
@@ -153,7 +154,7 @@ fun DisplayDevicesWithImages(navController: NavController) {
                     text = if (maxDistance < 100f) 
                         "Maximum distance: ${maxDistance.toInt()} km"
                     else 
-                        "No distance limit",
+                        context.getString(R.string.devices_no_distance_limit),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(start = 4.dp)
                 )
@@ -206,7 +207,7 @@ fun DisplayDevicesWithImages(navController: NavController) {
             }
         } else if (filteredDevices.isEmpty()) {
             Text(
-                text = "No devices found.",
+                text = context.getString(R.string.devices_no_devices_found),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.Gray
             )

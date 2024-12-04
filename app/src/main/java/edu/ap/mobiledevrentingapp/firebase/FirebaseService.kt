@@ -1,7 +1,6 @@
 package edu.ap.mobiledevrentingapp.firebase
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Base64
 import android.util.Log
 import com.google.firebase.FirebaseNetworkException
@@ -14,7 +13,6 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.toObject
-import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 
@@ -200,29 +198,6 @@ object FirebaseService {
             .addOnSuccessListener {
                 Log.d("UploadSingleImage", "Image uploaded!")
                 onComplete(true, userId, null)
-            }
-            .addOnFailureListener { e ->
-                Log.e("UploadSingleImage", "Error while uploading: ", e)
-                onComplete(false, null, e.localizedMessage)
-            }
-    }
-
-    private fun uploadSingleImage(bitmap: Bitmap, onComplete: (Boolean, String?, String?) -> Unit) {
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-        val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
-        val uuid = UUID.randomUUID().toString()
-
-        val data = hashMapOf(
-            "image" to base64String,
-            "id" to uuid
-        )
-
-        firestore.collection("images").document(uuid)
-            .set(data)
-            .addOnSuccessListener {
-                Log.d("UploadSingleImage", "Image uploaded!")
-                onComplete(true, uuid, null)
             }
             .addOnFailureListener { e ->
                 Log.e("UploadSingleImage", "Error while uploading: ", e)

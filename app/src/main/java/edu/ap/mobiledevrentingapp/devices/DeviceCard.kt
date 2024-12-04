@@ -36,9 +36,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.AppUtil.decode
 import edu.ap.mobiledevrentingapp.firebase.Device
@@ -58,6 +60,7 @@ fun DeviceCard(
     var ownerData by remember { mutableStateOf(User("", "")) }
     var ownerName by remember { mutableStateOf("Loading...") }
     var ownerProfileImage by remember { mutableStateOf<Bitmap?>(null) }
+    val context = LocalContext.current
 
     val distance = remember(userLocation, device) {
         AppUtil.calculateDistanceUsingLocation(
@@ -100,7 +103,7 @@ fun DeviceCard(
             if (deviceImages.isNotEmpty()) {
                 Image(
                     bitmap = deviceImages.first().asImageBitmap(),
-                    contentDescription = "Device image",
+                    contentDescription = context.getString(R.string.devices_device_image),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -112,7 +115,7 @@ fun DeviceCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No image",
+                        text = context.getString(R.string.devices_no_image),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White
                     )

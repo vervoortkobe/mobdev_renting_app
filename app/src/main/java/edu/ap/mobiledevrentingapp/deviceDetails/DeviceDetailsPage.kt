@@ -141,7 +141,7 @@ fun DeviceDetailsPage(
             } else {
                 Toast.makeText(
                     context,
-                    "Your user data couldn't be loaded.",
+                    context.getString(R.string.device_details_error_loading_user_data),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -159,11 +159,9 @@ fun DeviceDetailsPage(
                 device = document.toObject(Device::class.java)
                 
                 device?.let { dev ->
-                    FirebaseService.getUserById(dev.ownerId) { ownerSuccess, ownerDoc, ownerError ->
+                    FirebaseService.getUserById(dev.ownerId) { ownerSuccess, ownerDoc, _ ->
                         if (ownerSuccess && ownerDoc != null) {
                             owner = ownerDoc.toObject(User::class.java)
-                        } else {
-                            Log.e("DeviceDetailsPage", "Failed to load owner: $ownerError")
                         }
                         isLoadingOwner = false
                     }
@@ -190,7 +188,7 @@ fun DeviceDetailsPage(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Spacer(modifier = Modifier.width(2.dp))
                             IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, context.getString(R.string.back_button))
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
@@ -246,7 +244,7 @@ fun DeviceDetailsPage(
                         ) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
-                                    text = "Current Ongoing Rental Period",
+                                    text = context.getString(R.string.device_details_current_ongoing_rental),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold
@@ -303,7 +301,7 @@ fun DeviceDetailsPage(
                     ) { page ->
                         Image(
                             bitmap = images[page].asImageBitmap(),
-                            contentDescription = "Device image",
+                            contentDescription = context.getString(R.string.device_details_image_slider),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clickable { 
@@ -335,7 +333,7 @@ fun DeviceDetailsPage(
             ) {
                 Icon(
                     Icons.Default.ShoppingCart,
-                    contentDescription = "Price",
+                    contentDescription = context.getString(R.string.device_details_price_per_day),
                     tint = Yellow40,
                     modifier = Modifier.size(28.dp)
                 )
@@ -451,7 +449,7 @@ fun DeviceDetailsPage(
                                     AppUtil.decode(profileImageString)?.let { bitmap ->
                                         Image(
                                             bitmap = bitmap.asImageBitmap(),
-                                            contentDescription = "Owner profile",
+                                            contentDescription = context.getString(R.string.device_details_owner_profile_image),
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
@@ -493,7 +491,7 @@ fun DeviceDetailsPage(
                     }
                 } ?: run {
                     Text(
-                        text = "Owner information unavailable",
+                        text = context.getString(R.string.device_details_error_loading_owner_data),
                         modifier = Modifier.padding(16.dp),
                         color = MaterialTheme.colorScheme.error
                     )
@@ -506,7 +504,7 @@ fun DeviceDetailsPage(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.LocationOn, contentDescription = "Location")
+                Icon(Icons.Default.LocationOn, contentDescription = context.getString(R.string.device_details_distance_icon))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "${distance.toInt()}km • ${owner?.city  ?: ""}", fontSize = 18.sp, fontWeight = FontWeight.Normal)
             }
@@ -555,7 +553,7 @@ fun DeviceDetailsPage(
                             modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Confirm Rental", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text(context.getString(R.string.device_details_payment_dialog_title), fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         }
                     },
                     text = {
@@ -585,11 +583,9 @@ fun DeviceDetailsPage(
                                         CoroutineScope(Dispatchers.Main).launch {
                                             delay(3000)
                                             isLoading = false
-                                            // Reset date selection
                                             startDate = null
                                             endDate = null
                                             showDatePicker = false
-                                            // Refresh rentals instead of navigating
                                             FirebaseService.getRentalsByDeviceId(deviceId) { rentals ->
                                                 existingRentals = rentals
                                                 userRental = rentals.find { it.renterId == currentUser?.userId }
@@ -602,12 +598,12 @@ fun DeviceDetailsPage(
                                 containerColor = Yellow40
                             )
                         ) {
-                            Text("Confirm Payment")
+                            Text(context.getString(R.string.device_details_payment_dialog_confirm_button))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showPaymentDialog = false }) {
-                            Text("Cancel")
+                            Text(context.getString(R.string.cancel))
                         }
                     }
                 )
@@ -716,7 +712,7 @@ fun DeviceDetailsPage(
                     } else {
                         Toast.makeText(
                             context,
-                            "Please wait while we load your user data.",
+                            context.getString(R.string.device_details_loading_user_data),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -738,7 +734,7 @@ fun DeviceDetailsPage(
                             )
                         }"
                     } else {
-                        "Select duration to rent"
+                        context.getString(R.string.device_details_select_period)
                     },
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold

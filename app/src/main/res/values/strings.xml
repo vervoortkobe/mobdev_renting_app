@@ -1,5 +1,62 @@
 <resources>
     <string name="app_name">BorrowBee</string>
+
+    <!-- button strings -->
+    <string name="back_button">Back</string>
+    <string name="cancel">Cancel</string>
+    <string name="confirm">Confirm</string>
+
+    <!-- addDevice strings -->
+    <string name="add_device_images_max_images_exceeded">You can select up to 5 images.</string>
+    <string name="add_device_capture_failed">Failed to capture image.</string>
+    <string name="add_device_device_information">Device Information</string>
+    <string name="add_device_device_name">Device Name</string>
+    <string name="add_device_device_name_placeholder">Makita drill</string>
+    <string name="add_device_device_description">Description</string>
+    <string name="add_device_device_description_placeholder">Max. 500 characters</string>
+    <string name="add_device_device_price">Price (in Euro €)</string>
+    <string name="add_device_device_price_placeholder">10.00</string>
+    <string name="add_device_device_images">Device Images</string>
+    <string name="add_device_select_images_button">Select images to upload</string>
+    <string name="add_device_capture_image_button">Take a picture</string>
+    <string name="add_device_no_images_selected">No images selected.</string>
+    <string name="add_device_images_min_max">Select at least 1 and at most 5 images to upload.</string>
+    <string name="add_device_images_swipe">Swipe left or right to view all images.</string>
+    <string name="add_device_image">Selected image</string>
+    <string name="add_device_device_saved_successfully">The device was added successfully!</string>
+    <string name="add_device_device_save_failed">Failed to save the device. Please try again.</string>
+
+    <!-- deviceDetails strings -->
+    <string name="device_details_select_dates">Select Rental Period</string>
+    <string name="device_details_select_dates_headline">Choose your start and end dates</string>
+    <string name="device_details_my_location">Your Location</string>
+    <string name="device_details_error_loading_user_data">Your user data couldn\'t be loaded.</string>
+    <string name="device_details_current_ongoing_rental">Current Ongoing Rental Period</string>
+    <string name="device_details_image_slider">Device Image</string>
+    <string name="device_details_price_per_day">Price</string>
+    <string name="device_details_owner_profile_image">Owner profile</string>
+    <string name="device_details_error_loading_owner_data">Owner information unavailable</string>
+    <string name="device_details_distance_icon">Location</string>
+    <string name="device_details_payment_dialog_title">Confirm Rental</string>
+    <string name="device_details_payment_dialog_confirm_button">Confirm Payment</string>
+    <string name="device_details_loading_user_data">Please wait while we load your user data.</string>
+    <string name="device_details_select_period">Select duration to rent</string>
+
+    <!-- devices strings -->
+    <string name="devices_device_image">Device Image</string>
+    <string name="devices_no_image">No image</string>
+    <string name="devices_map_icon">Map Icon</string>
+    <string name="devices_add_icon">Add Device Icon</string>
+    <string name="devices_add_button">Add Device</string>
+    <string name="devices_error_loading_devices">An error occurred while fetching devices.</string>
+    <string name="devices_filter_button">Filter options</string>
+    <string name="devices_no_distance_limit">No distance limit</string>
+    <string name="devices_no_devices_found">No devices found.</string>
+    <string name="devices_all_categories">All Categories</string>
+    <string name="devices_all">All</string>
+    <string name="devices_search_placeholder">Search devices…</string>
+    <string name="devices_clear_search">Clear text</string>
+
     <!-- Strings used for fragments for navigation -->
     <string name="first_fragment_label">First Fragment</string>
     <string name="second_fragment_label">Second Fragment</string>

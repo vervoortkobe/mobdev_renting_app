@@ -17,9 +17,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.DeviceCategory
 
@@ -31,6 +33,7 @@ fun DropdownListDevices(
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
+    val context = LocalContext.current
 
     Box(
         modifier = modifier
@@ -41,7 +44,7 @@ fun DropdownListDevices(
         contentAlignment = Alignment.Center
     ) {
         Text(
-            text = if (selectedCategoryIndex == 0) "All Categories" else AppUtil.convertUppercaseToTitleCase(categories[selectedCategoryIndex - 1].name),
+            text = if (selectedCategoryIndex == 0) context.getString(R.string.devices_all_categories) else AppUtil.convertUppercaseToTitleCase(categories[selectedCategoryIndex - 1].name),
             color = Color.Black
         )
     }
@@ -69,7 +72,7 @@ fun DropdownListDevices(
                         .padding(8.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    Text("All")
+                    Text(context.getString(R.string.devices_all))
                 }
                 categories.forEachIndexed { index, category ->
                     Box(
