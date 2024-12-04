@@ -4,11 +4,20 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,7 +35,8 @@ import edu.ap.mobiledevrentingapp.firebase.User
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun RentedDeviceCard(
@@ -117,21 +127,24 @@ fun RentedDeviceCard(
                 modifier = Modifier.padding(end = 8.dp)
             )
 
-            Text(
-                text = renterData.fullName,
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+
 
             renterData.profileImage.let { profileImage ->
                 AppUtil.decode(profileImage)?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = context.getString(R.string.home_renters_profile_image),
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            bitmap = it.asImageBitmap(),
+                            contentDescription = context.getString(R.string.home_renters_profile_image),
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                        )
+                        Text(
+                            text = renterData.fullName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             }
 
@@ -139,7 +152,7 @@ fun RentedDeviceCard(
                 Text(
                     text = "${AppUtil.formatDate(startDate)} - ${AppUtil.formatDate(endDate)}",
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 4.dp).weight(1f)
                 )
             }
 
