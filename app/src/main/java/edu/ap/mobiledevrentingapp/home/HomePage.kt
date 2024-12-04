@@ -30,12 +30,10 @@ fun HomePage(navController: NavController) {
     var isLoading by remember { mutableStateOf(true) }
     var userRentals by remember { mutableStateOf<List<Rental>>(emptyList()) }
 
-    // Fetch data on first composition
     LaunchedEffect(Unit) {
         isLoading = true
         val currentUserId = FirebaseService.getCurrentUserId()
         if (currentUserId != null) {
-            // Fetch user location
             FirebaseService.getUserById(currentUserId) { success, document, _ ->
                 if (success && document != null) {
                     userLocation = Location("").apply {
@@ -45,26 +43,22 @@ fun HomePage(navController: NavController) {
                 }
             }
 
-            // Fetch rented devices
             FirebaseService.getDevicesRentedByUser(currentUserId) { devicesWithNames ->
                 rentedDevices = devicesWithNames
             }
 
-            // Fetch my rented out devices
             FirebaseService.getMyRentedOutDevices(currentUserId) { rentedOutDevices ->
-                myRentedOutDevices = rentedOutDevices // Populate myRentedOutDevices
-                Log.d("HomePage", "My Rented Out Devices: $myRentedOutDevices") // Log rented out devices
+                myRentedOutDevices = rentedOutDevices
+                Log.d("HomePage", "My Rented Out Devices: $myRentedOutDevices")
             }
 
-            // Fetch all rentals for the current user
             FirebaseService.getUserRentals(currentUserId) { rentals ->
-                userRentals = rentals // Assuming rentals is a list of Rental objects
+                userRentals = rentals
             }
         }
         isLoading = false
     }
 
-    // UI Content
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -79,7 +73,6 @@ fun HomePage(navController: NavController) {
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(16.dp)
             ) {
-                // Devices currently rented by the user
                 item {
                     Text(
                         text = "Devices I'm Currently Renting",
@@ -96,22 +89,20 @@ fun HomePage(navController: NavController) {
                         )
                     }
                 } else {
-                    items(rentedDevices) { (device, rentalId) ->
+                    items(rentedDevices) { (device, _) ->
                         userLocation?.let { location ->
-                            // Get the current date
                             val currentDate = LocalDate.now()
 
-                            // Filter rentals for the current device where the owner is the current user and the rental period is ongoing
                             val rentalPeriods = userRentals.filter { rental ->
                                 rental.deviceId == device.deviceId &&
-                                rental.ownerId == FirebaseService.getCurrentUserId() && // Assuming Rental has an ownerId field
-                                LocalDate.parse(rental.startDate) <= currentDate && // Check if rental has started
-                                LocalDate.parse(rental.endDate) >= currentDate // Check if rental has not ended
+                                rental.ownerId == FirebaseService.getCurrentUserId() &&
+                                LocalDate.parse(rental.startDate) <= currentDate &&
+                                LocalDate.parse(rental.endDate) >= currentDate
                             }
 
                             HomeDeviceCard(
                                 device = device,
-                                rentalPeriods = rentalPeriods, // Pass the filtered list of rental periods
+                                rentalPeriods = rentalPeriods,
                                 userLocation = location,
                                 onClick = {
                                     navController.navigate("device_details/${device.deviceId}")
@@ -121,7 +112,6 @@ fun HomePage(navController: NavController) {
                     }
                 }
 
-                // Devices rented out by the user
                 item {
                     Text(
                         text = "Devices I'm Currently Renting Out",
@@ -130,18 +120,13 @@ fun HomePage(navController: NavController) {
                     )
                 }
 
-                // Get the current date
                 val currentDate = LocalDate.now()
 
-                // Filter my rented out devices to show only those with ongoing rentals
-                val ongoingRentals = myRentedOutDevices.filter { (device, renter, rental) ->
-                    rental.ownerId == FirebaseService.getCurrentUserId() && // Ensure the current user is the owner
-                    LocalDate.parse(rental.startDate) <= currentDate && // Check if rental has started
-                    LocalDate.parse(rental.endDate) >= currentDate // Check if rental has not ended
+                val ongoingRentals = myRentedOutDevices.filter { (_, _, rental) ->
+                    rental.ownerId == FirebaseService.getCurrentUserId() &&
+                    LocalDate.parse(rental.startDate) <= currentDate &&
+                    LocalDate.parse(rental.endDate) >= currentDate
                 }
-
-                Log.d("HomePage", "Ongoing Rentals: $ongoingRentals")
-                Log.d("HomePage", "My Rented Out Devices: $myRentedOutDevices")
 
                 if (ongoingRentals.isEmpty()) {
                     item {

@@ -6,19 +6,15 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -34,7 +30,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.utsman.osmandcompose.Marker
 import com.utsman.osmandcompose.OpenStreetMap
@@ -55,7 +50,7 @@ fun MapPage(navController: NavController) {
     var markers by remember { mutableStateOf<List<MarkerInfo>>(emptyList()) }
 
     val cameraState = rememberCameraState {
-        zoom = 12.0 // Default zoom level
+        zoom = 12.0
     }
 
     val deviceIcon: Drawable? by remember {
@@ -66,7 +61,6 @@ fun MapPage(navController: NavController) {
         mutableStateOf(AppCompatResources.getDrawable(context, R.drawable.user_marker_icon))
     }
 
-    // Load account location from Firebase
     LaunchedEffect(Unit) {
         FirebaseService.getCurrentUser { success, document, _ ->
             if (success && document != null) {
@@ -74,15 +68,13 @@ fun MapPage(navController: NavController) {
                 user?.let {
                     accountLocation = GeoPoint(it.latitude, it.longitude)
                     userProfileImage = it.profileImage
-                    // Center the camera on the user's location once it's retrieved
                     cameraState.geoPoint = accountLocation as GeoPoint
-                    cameraState.zoom = 15.0 // Zoom in more when showing account location
+                    cameraState.zoom = 15.0
                 }
             }
         }
     }
 
-    // Load device locations
     LaunchedEffect(Unit) {
         Coordinates.fetchAllDevices { markerInfoList ->
             markers = markerInfoList
@@ -94,7 +86,6 @@ fun MapPage(navController: NavController) {
             modifier = Modifier.fillMaxSize(),
             cameraState = cameraState
         ) {
-            // Show device markers
             markers.forEach { markerInfo ->
                 val markerState = rememberMarkerState(
                     geoPoint = markerInfo.geoPoint,
@@ -113,7 +104,6 @@ fun MapPage(navController: NavController) {
                             .background(Color.White, CircleShape)
                             .border(1.dp, Yellow40, CircleShape)
                             .clickable { 
-                                // Navigate to device details with actual device ID
                                 navController.navigate("device_details/${markerInfo.deviceId}")
                             },
                         contentAlignment = Alignment.Center
@@ -134,7 +124,6 @@ fun MapPage(navController: NavController) {
                 }
             }
 
-            // Show account location marker
             accountLocation?.let { location ->
                 val userMarkerState = rememberMarkerState(
                     geoPoint = location,
@@ -173,7 +162,6 @@ fun MapPage(navController: NavController) {
             }
         }
 
-        // Back Button
         IconButton(
             onClick = { navController.popBackStack() },
             modifier = Modifier
@@ -189,12 +177,11 @@ fun MapPage(navController: NavController) {
             )
         }
 
-        // My Location Button
         IconButton(
             onClick = {
                 accountLocation?.let { location ->
-                    cameraState.geoPoint = location // Set camera to user's location
-                    cameraState.zoom = 15.0 // Zoom in on the user's location
+                    cameraState.geoPoint = location
+                    cameraState.zoom = 15.0
                 }
             },
             modifier = Modifier

@@ -1,8 +1,6 @@
 package edu.ap.mobiledevrentingapp.profile
 
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -32,7 +30,7 @@ import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 @Composable
 fun DeviceCardToDelete(device: Map<String, Any>, onDelete: (String) -> Unit) {
     val context = LocalContext.current
-    var renterName by remember { mutableStateOf<String>("Loading...") }
+    var renterName by remember { mutableStateOf("Loading...") }
     var showConfirmationDialog by remember { mutableStateOf(false) }
 
     val deviceId = device["deviceId"]?.toString()
@@ -87,7 +85,7 @@ fun DeviceCardToDelete(device: Map<String, Any>, onDelete: (String) -> Unit) {
                 style = MaterialTheme.typography.bodySmall
             )
             Text(
-                text = "Currently being rented by: ${renterName}",
+                text = "Currently being rented by: $renterName",
                 style = MaterialTheme.typography.bodySmall
             )
             Spacer(modifier = Modifier.height(8.dp))

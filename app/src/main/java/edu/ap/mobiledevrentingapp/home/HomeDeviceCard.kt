@@ -1,6 +1,5 @@
 package edu.ap.mobiledevrentingapp.home
 
-import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,7 +24,6 @@ import androidx.compose.ui.unit.dp
 import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.Rental
-import edu.ap.mobiledevrentingapp.firebase.User
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import java.text.SimpleDateFormat
 import java.util.*
@@ -85,14 +83,12 @@ fun HomeDeviceCard(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            // Display device name at the top
             Text(
                 text = device.deviceName.replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                modifier = Modifier.padding(bottom = 4.dp) // Add some padding for spacing
+                modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            // Display device category below the name
             Text(
                 text = AppUtil.convertUppercaseToTitleCase(device.category),
                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
@@ -100,7 +96,6 @@ fun HomeDeviceCard(
                 modifier = Modifier.padding(end = 8.dp)
             )
 
-            // Additional content...
             Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalAlignment = Alignment.CenterVertically
@@ -120,7 +115,6 @@ fun HomeDeviceCard(
                 Text(text = "€ ${device.price} / day", style = MaterialTheme.typography.bodyMedium)
             }
 
-            // Display rental periods with prices
             rentalPeriods.forEach { rental ->
                 val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
                 val startDate = dateFormat.parse(rental.startDate)

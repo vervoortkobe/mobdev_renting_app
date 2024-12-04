@@ -32,7 +32,6 @@ fun DateRangePickerModal(
     today.set(Calendar.SECOND, 0)
     today.set(Calendar.MILLISECOND, 0)
 
-    // Create a list of all dates that are within rental periods
     val allDisabledDates = mutableSetOf<Triple<Int, Int, Int>>()
     disabledDates.forEach { date ->
         val cal = Calendar.getInstance()
@@ -58,10 +57,8 @@ fun DateRangePickerModal(
                 val calendar = Calendar.getInstance()
                 calendar.timeInMillis = utcTimeMillis
                 
-                // Check if date is not in the past
                 val isNotPast = calendar.timeInMillis >= today.timeInMillis
                 
-                // Check if date is not in disabled dates
                 val dateTriple = Triple(
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),

@@ -134,7 +134,6 @@ fun DeviceDetailsPage(
         }
     }
 
-    // Load current user data
     LaunchedEffect(Unit) {
         FirebaseService.getCurrentUser { success, document, _ ->
             if (success && document != null) {
@@ -150,19 +149,15 @@ fun DeviceDetailsPage(
     }
 
     LaunchedEffect(deviceId) {
-        // Load existing rentals first
         FirebaseService.getRentalsByDeviceId(deviceId) { rentals ->
             existingRentals = rentals
-            // Find if current user has rented this device
             userRental = rentals.find { it.renterId == currentUser?.userId }
         }
 
-        // First, get device details
         FirebaseService.getDeviceById(deviceId) { success, document, _ ->
             if (success && document != null) {
                 device = document.toObject(Device::class.java)
                 
-                // Once we have the device, get the owner details
                 device?.let { dev ->
                     FirebaseService.getUserById(dev.ownerId) { ownerSuccess, ownerDoc, ownerError ->
                         if (ownerSuccess && ownerDoc != null) {
@@ -174,7 +169,6 @@ fun DeviceDetailsPage(
                     }
                 }
 
-                // Convert image strings to bitmaps
                 device?.let { dev ->
                     images = dev.images.mapNotNull { imageString ->
                         AppUtil.decode(imageString)
@@ -225,7 +219,6 @@ fun DeviceDetailsPage(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            // After successful payment, show rental period
             userRental?.let { rental ->
                 val currentDate = Date()
                 val rentalStartDate = dateFormat.parse(rental.startDate)
@@ -289,7 +282,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Image Slider
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -321,7 +313,7 @@ fun DeviceDetailsPage(
                             contentScale = ContentScale.Fit
                         )
                     }
-                    // Image counter
+
                     Text(
                         text = "${pagerState.currentPage + 1} / ${images.size}",
                         modifier = Modifier
@@ -337,7 +329,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Price per day
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -357,13 +348,11 @@ fun DeviceDetailsPage(
                 )
             }
 
-            // Description
             Text(
                 text = device?.description ?: "",
                 modifier = Modifier.padding(16.dp)
             )
 
-            // Rental Periods
             if (existingRentals.any { it.renterId == currentUser?.userId }) {
                 Card(
                     modifier = Modifier
@@ -425,7 +414,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Owner details
             if (isLoadingOwner) {
                 CircularProgressIndicator(
                     modifier = Modifier
@@ -512,7 +500,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Location
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -524,7 +511,6 @@ fun DeviceDetailsPage(
                 Text(text = "${distance.toInt()}km • ${owner?.city  ?: ""}", fontSize = 18.sp, fontWeight = FontWeight.Normal)
             }
 
-            // Map
             device?.let { dev ->
                 Box(
                     modifier = Modifier
@@ -561,7 +547,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Payment Confirmation Dialog
             if (showPaymentDialog) {
                 AlertDialog(
                     onDismissRequest = { showPaymentDialog = false },
@@ -628,7 +613,6 @@ fun DeviceDetailsPage(
                 )
             }
 
-            // Loading Dialog
             if (isLoading) {
                 Dialog(
                     onDismissRequest = { },
@@ -659,7 +643,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Full screen image viewer
             if (showFullScreenImage) {
                 Dialog(
                     onDismissRequest = { showFullScreenImage = false },
@@ -711,7 +694,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Calendar and Booking Section
             if (startDate != null && endDate != null) {
                 val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
                 Column(

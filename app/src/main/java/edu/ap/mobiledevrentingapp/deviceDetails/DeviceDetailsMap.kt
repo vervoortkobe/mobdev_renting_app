@@ -25,10 +25,9 @@ fun DeviceDetailsMap(cameraState: CameraState, device: Device, userLocation: Pai
             },
         cameraState = cameraState,
         properties = MapProperties(
-            zoomButtonVisibility = ZoomButtonVisibility.NEVER // Disable +- buttons
+            zoomButtonVisibility = ZoomButtonVisibility.NEVER
         )
     ) {
-        // Device marker
         val markerState = rememberMarkerState(
             geoPoint = GeoPoint(device.latitude, device.longitude),
             rotation = 0f
@@ -41,7 +40,6 @@ fun DeviceDetailsMap(cameraState: CameraState, device: Device, userLocation: Pai
             snippet = "Lat: ${device.latitude}, Lon: ${device.longitude}"
         )
 
-        // User location marker
         userLocation?.let { (lat, lon) ->
             val userMarkerState = rememberMarkerState(
                 geoPoint = GeoPoint(lat, lon),

@@ -8,7 +8,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +21,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -75,19 +73,18 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
                 adressNr = document.getString("addressNr")
                 ibanNumber = document.getString("ibanNumber")
                 country = document.getString("country")
-                totalAdress = "${streetName} ${adressNr} ${city} ${zipCode} ${country}"
+                totalAdress = "$streetName $adressNr $city $zipCode $country"
                 email = FirebaseService.getCurrentUserEmail()
                 encodedImage = document.getString("profileImage")
                 profileBitmap = if (!encodedImage.isNullOrEmpty()) decode(encodedImage!!) else null
 
-                // Fetch devices
                 val userId = document.getString("userId")
                 if (!userId.isNullOrEmpty()) {
-                    FirebaseService.getDevicesByUserId(userId) { success, documents, _ ->
-                        if (success) {
-                            devices = documents?.map { it.data ?: emptyMap() }
+                    FirebaseService.getDevicesByUserId(userId) { succ, documents, _ ->
+                        devices = if (succ) {
+                            documents?.map { it.data ?: emptyMap() }
                         } else {
-                            devices = emptyList()
+                            emptyList()
                         }
                     }
                 }
@@ -135,14 +132,12 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
                 )
             }
 
-            devices?.let {
+            devices?.let { it ->
                 items(it) { device ->
                     DeviceCardToDelete(device) { deviceId ->
-                        // Handle delete action
                         FirebaseService.deleteDeviceById(deviceId) { success, error ->
                             if (success) {
                                 Toast.makeText(context, "Device deleted successfully.", Toast.LENGTH_SHORT).show()
-                                // Refresh the device list
                                 devices = devices?.filterNot { it["deviceId"] == deviceId }
                             } else {
                                 Toast.makeText(context, "Failed to delete device: $error", Toast.LENGTH_LONG).show()

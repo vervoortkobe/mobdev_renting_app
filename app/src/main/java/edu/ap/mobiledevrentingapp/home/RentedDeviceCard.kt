@@ -43,22 +43,20 @@ fun RentedDeviceCard(
         try {
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(startDateString)
         } catch (e: ParseException) {
-            Log.e("RentedDeviceCard", "Error parsing start date: $startDateString", e)
-            null // Return null if parsing fails
+            null
         }
     } else {
-        null // Return null if the string is empty
+        null
     }
 
     val endDate: Date? = if (endDateString.isNotEmpty()) {
         try {
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(endDateString)
         } catch (e: ParseException) {
-            Log.e("RentedDeviceCard", "Error parsing end date: $endDateString", e)
-            null // Return null if parsing fails
+            null
         }
     } else {
-        null // Return null if the string is empty
+        null
     }
 
     Row(
@@ -70,7 +68,6 @@ fun RentedDeviceCard(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Device Image
         Box(
             modifier = Modifier
                 .size(135.dp)
@@ -106,14 +103,12 @@ fun RentedDeviceCard(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            // Device Name
             Text(
                 text = rentedDevice.deviceName.replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            // Device Category
             Text(
                 text = AppUtil.convertUppercaseToTitleCase(rentedDevice.category),
                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
@@ -121,14 +116,12 @@ fun RentedDeviceCard(
                 modifier = Modifier.padding(end = 8.dp)
             )
 
-            // Renter's Name
             Text(
                 text = "Renter: ${renterData.fullName}",
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 4.dp)
             )
 
-            // Renter's Profile Image (if available)
             renterData.profileImage.let { profileImage ->
                 AppUtil.decode(profileImage)?.let {
                     Image(
@@ -141,7 +134,6 @@ fun RentedDeviceCard(
                 }
             }
 
-            // Rental Period
             if (startDate != null && endDate != null) {
                 Text(
                     text = "${AppUtil.formatDate(startDate)} - ${AppUtil.formatDate(endDate)}",
@@ -150,7 +142,6 @@ fun RentedDeviceCard(
                 )
             }
 
-            // Rental Price
             val rentalPrice = startDate?.let {
                 if (endDate != null) {
                     AppUtil.calculateTotalPrice(rentedDevice.price.toDouble(),

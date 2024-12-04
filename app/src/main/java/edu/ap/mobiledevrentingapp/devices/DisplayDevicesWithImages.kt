@@ -62,7 +62,6 @@ fun DisplayDevicesWithImages(navController: NavController) {
     var userLocationObject by remember { mutableStateOf<Location?>(null) }
     var currentUserId by remember { mutableStateOf<String?>(null) }
 
-    // Fetch user location
     LaunchedEffect(Unit) {
         FirebaseService.getCurrentUser { success, document, _ ->
             if (success && document != null) {
@@ -70,10 +69,8 @@ fun DisplayDevicesWithImages(navController: NavController) {
                 val lon = document.getDouble("longitude") ?: 0.0
                 userLocation = Pair(lat, lon)
                 
-                // Store the current user ID
                 currentUserId = document.getString("userId")
                 
-                // Create Location object
                 val location = Location("").apply {
                     latitude = lat
                     longitude = lon
@@ -83,7 +80,6 @@ fun DisplayDevicesWithImages(navController: NavController) {
         }
     }
 
-    // Fetch devices from Firebase
     LaunchedEffect(Unit) {
         FirebaseService.getAllDevices { success, devices, error ->
             if (success) {
@@ -100,7 +96,6 @@ fun DisplayDevicesWithImages(navController: NavController) {
     }
 
     Column {
-        // Search bar and options button row
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -108,7 +103,6 @@ fun DisplayDevicesWithImages(navController: NavController) {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Search bar with weight to take available space
             SearchBar(
                 searchQuery = searchQuery,
                 onSearchQueryChange = { searchQuery = it },
@@ -120,7 +114,6 @@ fun DisplayDevicesWithImages(navController: NavController) {
                     .border(1.dp, Color.Gray, RoundedCornerShape(8.dp))
             )
 
-            // Options button
             IconButton(
                 onClick = { showFilters = !showFilters },
                 Modifier
@@ -138,7 +131,6 @@ fun DisplayDevicesWithImages(navController: NavController) {
 
         Spacer(modifier = Modifier.height(4.dp))
 
-        // Filters section
         AnimatedVisibility(
             visible = showFilters,
             enter = expandVertically(),
@@ -149,7 +141,6 @@ fun DisplayDevicesWithImages(navController: NavController) {
                     .fillMaxWidth()
                     .padding(start = 8.dp, end = 8.dp)
             ) {
-                // Category dropdown
                 DropdownListDevices(
                     categories = DeviceCategory.entries,
                     selectedCategoryIndex = selectedCategoryIndex,
@@ -159,7 +150,6 @@ fun DisplayDevicesWithImages(navController: NavController) {
 
                 Spacer(modifier = Modifier.height(0.dp))
 
-                // Distance slider
                 Text(
                     text = if (maxDistance < 100f) 
                         "Maximum distance: ${maxDistance.toInt()} km"
@@ -185,7 +175,6 @@ fun DisplayDevicesWithImages(navController: NavController) {
             }
         }
 
-        // Filter and sort logic
         val filteredDevices = devicesList.filter { device ->
             val matchesCategory = selectedCategoryIndex == 0 || 
                 device.category == DeviceCategory.entries[selectedCategoryIndex - 1].name
@@ -212,7 +201,6 @@ fun DisplayDevicesWithImages(navController: NavController) {
             } ?: Float.MAX_VALUE
         }
 
-        // Display results
         if (isLoading) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = Yellow40)
@@ -245,5 +233,5 @@ fun DisplayDevicesWithImages(navController: NavController) {
 private fun calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Float {
     val results = FloatArray(1)
     Location.distanceBetween(lat1, lon1, lat2, lon2, results)
-    return results[0] / 1000 // Convert meters to kilometers
+    return results[0] / 1000
 }
