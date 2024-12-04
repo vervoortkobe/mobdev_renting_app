@@ -76,7 +76,7 @@ fun DeviceCard(
 
     val deviceImages = remember(device) {
         device.images.mapNotNull { imageString ->
-            AppUtil.decode(imageString)
+            decode(imageString)
         }
     }
 
@@ -126,27 +126,22 @@ fun DeviceCard(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = if (device.deviceName.length > 15) {
-                        device.deviceName.replaceFirstChar { it.uppercase() }.take(12) + "..."
-                    } else {
-                        device.deviceName.replaceFirstChar { it.uppercase() }
-                    },
-                    style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = AppUtil.convertUppercaseToTitleCase(device.category),
-                    style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
-                    color = Yellow40,
-                    textAlign = TextAlign.End,
-                    modifier = Modifier.padding(end = 8.dp)
-                )
-            }
+            Text(
+                text = if (device.deviceName.length > 15) {
+                    device.deviceName.replaceFirstChar { it.uppercase() }.take(12) + "..."
+                } else {
+                    device.deviceName.replaceFirstChar { it.uppercase() }
+                },
+                style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                modifier = Modifier.weight(1f)
+            )
+            Text(
+                text = AppUtil.convertUppercaseToTitleCase(device.category),
+                style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
+                color = Yellow40,
+                textAlign = TextAlign.End,
+                modifier = Modifier.padding(end = 8.dp)
+            )
 
             Spacer(modifier = Modifier.height(1.dp))
 

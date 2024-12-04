@@ -92,8 +92,8 @@ fun MainPage(onLogout: () -> Unit) {
             modifier = Modifier.padding(paddingValues)
         ) {
             composable("devices") { DevicesPage(navController = navController) }
-            composable("home") { HomePage(onLogout = onLogout) }
-            composable("profile") { ProfilePage(navController = navController) }
+            composable("home") { HomePage(navController = navController) }
+            composable("profile") { ProfilePage(navController = navController, onLogout = onLogout) }
             composable("profileSettings") { ProfilePageSettings(navController = navController) }
             composable("map") { MapPage(navController = navController) }
             composable("add_device") { AddDevicePage(navController = navController) }

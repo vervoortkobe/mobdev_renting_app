@@ -96,4 +96,11 @@ object AppUtil {
         cal.time = date
         return "${cal.get(Calendar.DAY_OF_MONTH)}/${cal.get(Calendar.MONTH) + 1}/${cal.get(Calendar.YEAR)}"
     }
+
+    fun calculateTotalPrice(pricePerDay: Double, startDate: Date, endDate: Date): String {
+        val diffInMillis = endDate.time - startDate.time
+        val days = (diffInMillis / (1000 * 60 * 60 * 24)) + 1
+        val total = pricePerDay * days
+        return String.format(Locale.US, "%.2f", total)
+    }
 }
