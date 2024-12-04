@@ -121,7 +121,8 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
                     email = email,
                     phoneNumber = phoneNumber,
                     totalAdress = totalAdress,
-                    ibanNumber = ibanNumber
+                    ibanNumber = ibanNumber,
+                    onLogout
                 )
             }
 
@@ -150,43 +151,6 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
                     }
                 }
             }
-            Text(
-                text = name ?: "N/A",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = email ?: "N/A",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = phoneNumber ?: "N/A",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = totalAdress ?: "N/A",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = ibanNumber ?: "N/A",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            OutlinedButton(
-                onClick = onLogout,
-                content = {
-                    Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color.Black)
-                    Text(text = "Log out", color = Color.Black)
-                }
-            )
         }
 
         Box(
@@ -217,7 +181,8 @@ fun ProfileHeader(
     email: String?,
     phoneNumber: String?,
     totalAdress: String?,
-    ibanNumber: String?
+    ibanNumber: String?,
+    onLogout: () -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -276,6 +241,13 @@ fun ProfileHeader(
         modifier = Modifier.fillMaxWidth(),
         style = MaterialTheme.typography.bodyMedium,
         textAlign = TextAlign.Center
+    )
+    OutlinedButton(
+        onClick = onLogout,
+        content = {
+            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color.Black)
+            Text(text = "Log out", color = Color.Black)
+        }
     )
 }
 
