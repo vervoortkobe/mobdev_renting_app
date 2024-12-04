@@ -15,11 +15,14 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -58,8 +61,8 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
     var email by remember { mutableStateOf<String?>(null) }
     var country by remember { mutableStateOf<String?>(null) }
     var encodedImage by remember { mutableStateOf<String?>(null) }
-    var id by remember { mutableStateOf<String?>(null) }
     var profileBitmap by remember { mutableStateOf<Bitmap?>(null) }
+    var devices by remember { mutableStateOf<List<Map<String, Any>>?>(null) }
 
     LaunchedEffect(Unit) {
         FirebaseService.getCurrentUser { success, document, _ ->
@@ -74,9 +77,20 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
                 country = document.getString("country")
                 totalAdress = "${streetName} ${adressNr} ${city} ${zipCode} ${country}"
                 email = FirebaseService.getCurrentUserEmail()
-                id = document.getString("userId")
                 encodedImage = document.getString("profileImage")
                 profileBitmap = if (!encodedImage.isNullOrEmpty()) decode(encodedImage!!) else null
+
+                // Fetch devices
+                val userId = document.getString("userId")
+                if (!userId.isNullOrEmpty()) {
+                    FirebaseService.getDevicesByUserId(userId) { success, documents, _ ->
+                        if (success) {
+                            devices = documents?.map { it.data ?: emptyMap() }
+                        } else {
+                            devices = emptyList()
+                        }
+                    }
+                }
             } else {
                 profileBitmap = null
                 Toast.makeText(
@@ -93,77 +107,52 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Column(
-            modifier = Modifier.align(Alignment.Center),
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(top = 72.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .size(100.dp)
-                    .clip(RoundedCornerShape(50.dp))
-                    .border(2.dp, Color.Gray, RoundedCornerShape(50.dp))
-            ) {
-                if (profileBitmap != null) {
-                    Image(
-                        bitmap = profileBitmap!!.asImageBitmap(),
-                        contentDescription = "Profile Image",
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .clip(RoundedCornerShape(50.dp)),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(100.dp)
-                            .clip(RoundedCornerShape(50.dp))
-                            .background(Color.Gray)
-                            .border(2.dp, Color.LightGray, RoundedCornerShape(50.dp))
-                    )
-                }
+            item {
+                ProfileHeader(
+                    profileBitmap = profileBitmap,
+                    name = name,
+                    email = email,
+                    phoneNumber = phoneNumber,
+                    totalAdress = totalAdress,
+                    ibanNumber = ibanNumber,
+                    onLogout
+                )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            item {
+                Text(
+                    text = "Your Devices",
+                    style = MaterialTheme.typography.headlineSmall,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.Start
+                )
+            }
 
-            Text(
-                text = name ?: "N/A",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = email ?: "N/A",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = phoneNumber ?: "N/A",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = totalAdress ?: "N/A",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            Text(
-                text = ibanNumber ?: "N/A",
-                modifier = Modifier.fillMaxWidth(),
-                style = MaterialTheme.typography.bodyMedium,
-                textAlign = TextAlign.Center
-            )
-            OutlinedButton(
-                onClick = onLogout,
-                content = {
-                    Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color.Black)
-                    Text(text = "Log out", color = Color.Black)
+            devices?.let {
+                items(it) { device ->
+                    DeviceCardToDelete(device) { deviceId ->
+                        // Handle delete action
+                        FirebaseService.deleteDeviceById(deviceId) { success, error ->
+                            if (success) {
+                                Toast.makeText(context, "Device deleted successfully.", Toast.LENGTH_SHORT).show()
+                                // Refresh the device list
+                                devices = devices?.filterNot { it["deviceId"] == deviceId }
+                            } else {
+                                Toast.makeText(context, "Failed to delete device: $error", Toast.LENGTH_LONG).show()
+                            }
+                        }
+                    }
                 }
-            )
+            }
         }
+
         Box(
             modifier = Modifier
                 .align(Alignment.TopEnd)
@@ -184,3 +173,84 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
         }
     }
 }
+
+@Composable
+fun ProfileHeader(
+    profileBitmap: Bitmap?,
+    name: String?,
+    email: String?,
+    phoneNumber: String?,
+    totalAdress: String?,
+    ibanNumber: String?,
+    onLogout: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .size(100.dp)
+            .clip(RoundedCornerShape(50.dp))
+            .border(2.dp, Color.Gray, RoundedCornerShape(50.dp))
+    ) {
+        if (profileBitmap != null) {
+            Image(
+                bitmap = profileBitmap.asImageBitmap(),
+                contentDescription = "Profile Image",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(50.dp)),
+                contentScale = ContentScale.Crop
+            )
+        } else {
+            Box(
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(50.dp))
+                    .background(Color.Gray)
+                    .border(2.dp, Color.LightGray, RoundedCornerShape(50.dp))
+            )
+        }
+    }
+
+    Spacer(modifier = Modifier.height(16.dp))
+
+    Text(
+        text = name ?: "N/A",
+        modifier = Modifier.fillMaxWidth(),
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center
+    )
+    Text(
+        text = email ?: "N/A",
+        modifier = Modifier.fillMaxWidth(),
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center
+    )
+    Text(
+        text = phoneNumber ?: "N/A",
+        modifier = Modifier.fillMaxWidth(),
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center
+    )
+    Text(
+        text = totalAdress ?: "N/A",
+        modifier = Modifier.fillMaxWidth(),
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center
+    )
+    Text(
+        text = ibanNumber ?: "N/A",
+        modifier = Modifier.fillMaxWidth(),
+        style = MaterialTheme.typography.bodyMedium,
+        textAlign = TextAlign.Center
+    )
+    OutlinedButton(
+        onClick = onLogout,
+        content = {
+            Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color.Black)
+            Text(text = "Log out", color = Color.Black)
+        }
+    )
+}
+
+
+
+

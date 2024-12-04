@@ -382,6 +382,43 @@ object FirebaseService {
             }
     }
 
+    fun deleteDeviceById(deviceId: String, callback: (Boolean, String?) -> Unit) {
+        getRentalsByDeviceId(deviceId) { rentals ->
+            if (rentals.isNotEmpty()) {
+                callback(false, "The device is currently being rented and cannot be deleted.")
+            } else {
+                firestore.collection("devices").document(deviceId).delete()
+                    .addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            callback(true, null)
+                        } else {
+                            callback(false, "Failed to delete the device. Error: ${task.exception?.message}")
+                        }
+                    }
+                    .addOnFailureListener { exception ->
+                        callback(false, "An error occurred while deleting the device: ${exception.message}")
+                    }
+            }
+        }
+    }
+
+
+    fun getDevicesByUserId(userId: String, callback: (Boolean, List<DocumentSnapshot>?, String?) -> Unit) {
+        firestore.collection("devices").whereEqualTo("ownerId", userId).get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val documents = task.result?.documents
+                    if (!documents.isNullOrEmpty()) {
+                        callback(true, documents, null)
+                    } else {
+                        callback(false, null, "No devices found for the specified user ID.")
+                    }
+                } else {
+                    callback(false, null, "Failed to retrieve devices for the specified user ID.")
+                }
+            }
+    }
+
     fun getRentalsByDeviceId(deviceId: String, callback: (List<Rental>) -> Unit) {
         firestore.collection("rentals")
             .whereEqualTo("deviceId", deviceId)
