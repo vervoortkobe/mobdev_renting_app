@@ -14,10 +14,6 @@ import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FieldPath
 import com.google.firebase.firestore.toObject
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.util.UUID
@@ -186,29 +182,6 @@ object FirebaseService {
                     }
                 } else {
                     callback(false, null, "Failed to retrieve the details of the current user.")
-                }
-            }
-    }
-
-    fun getUserByEmail(email: String, callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
-        firestore.collection("users")
-            .whereEqualTo("email", email)
-            .get()
-            .addOnCompleteListener { task ->
-                if (task.isSuccessful) {
-                    val documents = task.result
-                    if (documents != null && !documents.isEmpty) {
-                        val document = documents.documents[0]
-                        val userId = document.id
-
-                        getUserById(userId) { success, userDocument, error ->
-                            callback(success, userDocument, error)
-                        }
-                    } else {
-                        callback(false, null, "User with the specified e-mail does not exist.")
-                    }
-                } else {
-                    callback(false, null, "Failed to retrieve user by e-mail.")
                 }
             }
     }
@@ -503,19 +476,39 @@ object FirebaseService {
             }
     }
 
-    fun getMyDevicesBeingRented(userId: String, callback: (List<Device>) -> Unit) {
+    fun getUserRentals(userId: String, callback: (List<Rental>) -> Unit) {
         firestore.collection("rentals")
-            .whereEqualTo("ownerId", userId)
+            .whereEqualTo("renterId", userId) // Assuming rentals have a renterId field
+            .get()
+            .addOnSuccessListener { documents ->
+                val rentals = documents.mapNotNull { document ->
+                    document.toObject(Rental::class.java) // Convert Firestore document to Rental object
+                }
+                callback(rentals) // Return the list of rentals to the callback
+            }
+            .addOnFailureListener { _ ->
+                // Handle the error
+                callback(emptyList()) // Return an empty list on failure
+            }
+    }
+
+    fun getMyRentedOutDevices(userId: String, callback: (List<Triple<Device, User, Rental>>) -> Unit) {
+        firestore.collection("rentals")
+            .whereEqualTo("ownerId", userId) // Assuming rentals have an ownerId field
             .get()
             .addOnSuccessListener { querySnapshot ->
-                val deviceIds = querySnapshot.documents.mapNotNull { doc ->
-                    doc.getString("deviceId")
+                val rentals = querySnapshot.documents.mapNotNull { doc ->
+                    val rental = doc.toObject(Rental::class.java)
+                    rental?.apply { rentalId = doc.id } // Assign rentalId here
                 }
 
-                if (deviceIds.isEmpty()) {
+                if (rentals.isEmpty()) {
+                    Log.d("FirebaseService", "No rentals found for user: $userId")
                     callback(emptyList())
                     return@addOnSuccessListener
                 }
+
+                val deviceIds = rentals.map { it.deviceId }
 
                 firestore.collection("devices")
                     .whereIn(FieldPath.documentId(), deviceIds)
@@ -524,10 +517,36 @@ object FirebaseService {
                         val devices = devicesSnapshot.documents.mapNotNull { doc ->
                             doc.toObject<Device>()?.copy(deviceId = doc.id)
                         }
-                        callback(devices)
+
+                        // Create a list of triples (Device, User, Rental)
+                        val rentedOutDevices = mutableListOf<Triple<Device, User, Rental>>()
+
+                        rentals.forEach { rental ->
+                            val device = devices.find { it.deviceId == rental.deviceId }
+                            if (device != null) {
+                                // Fetch user by renterId
+                                firestore.collection("users").document(rental.renterId).get()
+                                    .addOnSuccessListener { userDoc ->
+                                        val user = userDoc.toObject<User>() ?: User("Unknown", "Unknown")
+                                        rentedOutDevices.add(Triple(device, user, rental))
+
+                                        // Call the callback only after all users have been fetched
+                                        if (rentedOutDevices.size == rentals.size) {
+                                            callback(rentedOutDevices)
+                                        }
+                                    }
+                                    .addOnFailureListener {
+                                        Log.e("FirebaseService", "Error getting user details", it)
+                                        rentedOutDevices.add(Triple(device, User("Unknown", "Unknown"), rental))
+                                        if (rentedOutDevices.size == rentals.size) {
+                                            callback(rentedOutDevices)
+                                        }
+                                    }
+                            }
+                        }
                     }
                     .addOnFailureListener {
-                        Log.e("FirebaseService", "Error getting my rented devices", it)
+                        Log.e("FirebaseService", "Error getting rented devices", it)
                         callback(emptyList())
                     }
             }
