@@ -18,17 +18,21 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
 fun DevicesPage(navController: NavController) {
+    val context = LocalContext.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -50,7 +54,7 @@ fun DevicesPage(navController: NavController) {
             ) {
                 Icon(
                     imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Map Icon",
+                    contentDescription = context.getString(R.string.devices_map_icon),
                     modifier = Modifier
                         .size(22.dp)
                         .padding(end = 4.dp)
@@ -67,12 +71,12 @@ fun DevicesPage(navController: NavController) {
             ) {
                 Icon(
                     imageVector = Icons.Default.Add,
-                    contentDescription = "Add Device Icon",
+                    contentDescription = context.getString(R.string.devices_add_icon),
                     modifier = Modifier
                         .size(22.dp)
                         .padding(end = 4.dp)
                 )
-                Text("Add Device", style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium, fontSize = 16.sp))
+                Text(context.getString(R.string.devices_add_button), style = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium, fontSize = 16.sp))
             }
         }
 

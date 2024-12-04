@@ -2,7 +2,6 @@ package edu.ap.mobiledevrentingapp.deviceDetails
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Image
@@ -134,7 +133,6 @@ fun DeviceDetailsPage(
         }
     }
 
-    // Load current user data
     LaunchedEffect(Unit) {
         FirebaseService.getCurrentUser { success, document, _ ->
             if (success && document != null) {
@@ -142,7 +140,7 @@ fun DeviceDetailsPage(
             } else {
                 Toast.makeText(
                     context,
-                    "Your user data couldn't be loaded.",
+                    context.getString(R.string.error_loading_user_data),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -150,31 +148,24 @@ fun DeviceDetailsPage(
     }
 
     LaunchedEffect(deviceId) {
-        // Load existing rentals first
         FirebaseService.getRentalsByDeviceId(deviceId) { rentals ->
             existingRentals = rentals
-            // Find if current user has rented this device
             userRental = rentals.find { it.renterId == currentUser?.userId }
         }
 
-        // First, get device details
         FirebaseService.getDeviceById(deviceId) { success, document, _ ->
             if (success && document != null) {
                 device = document.toObject(Device::class.java)
                 
-                // Once we have the device, get the owner details
                 device?.let { dev ->
-                    FirebaseService.getUserById(dev.ownerId) { ownerSuccess, ownerDoc, ownerError ->
+                    FirebaseService.getUserById(dev.ownerId) { ownerSuccess, ownerDoc, _ ->
                         if (ownerSuccess && ownerDoc != null) {
                             owner = ownerDoc.toObject(User::class.java)
-                        } else {
-                            Log.e("DeviceDetailsPage", "Failed to load owner: $ownerError")
                         }
                         isLoadingOwner = false
                     }
                 }
 
-                // Convert image strings to bitmaps
                 device?.let { dev ->
                     images = dev.images.mapNotNull { imageString ->
                         AppUtil.decode(imageString)
@@ -196,7 +187,7 @@ fun DeviceDetailsPage(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Spacer(modifier = Modifier.width(2.dp))
                             IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, "Back")
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, context.getString(R.string.back))
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
@@ -225,7 +216,6 @@ fun DeviceDetailsPage(
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
         ) {
-            // After successful payment, show rental period
             userRental?.let { rental ->
                 val currentDate = Date()
                 val rentalStartDate = dateFormat.parse(rental.startDate)
@@ -253,7 +243,7 @@ fun DeviceDetailsPage(
                         ) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
-                                    text = "Current Ongoing Rental Period",
+                                    text = context.getString(R.string.device_details_current_ongoing_rental),
                                     style = MaterialTheme.typography.titleMedium,
                                     fontSize = 20.sp,
                                     fontWeight = FontWeight.Bold
@@ -289,7 +279,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Image Slider
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -311,7 +300,7 @@ fun DeviceDetailsPage(
                     ) { page ->
                         Image(
                             bitmap = images[page].asImageBitmap(),
-                            contentDescription = "Device image",
+                            contentDescription = context.getString(R.string.device_image),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clickable { 
@@ -321,7 +310,7 @@ fun DeviceDetailsPage(
                             contentScale = ContentScale.Fit
                         )
                     }
-                    // Image counter
+
                     Text(
                         text = "${pagerState.currentPage + 1} / ${images.size}",
                         modifier = Modifier
@@ -337,14 +326,13 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Price per day
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
                 Icon(
                     Icons.Default.ShoppingCart,
-                    contentDescription = "Price",
+                    contentDescription = context.getString(R.string.device_details_price_per_day),
                     tint = Yellow40,
                     modifier = Modifier.size(28.dp)
                 )
@@ -357,13 +345,11 @@ fun DeviceDetailsPage(
                 )
             }
 
-            // Description
             Text(
                 text = device?.description ?: "",
                 modifier = Modifier.padding(16.dp)
             )
 
-            // Rental Periods
             if (existingRentals.any { it.renterId == currentUser?.userId }) {
                 Card(
                     modifier = Modifier
@@ -425,7 +411,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Owner details
             if (isLoadingOwner) {
                 CircularProgressIndicator(
                     modifier = Modifier
@@ -463,7 +448,7 @@ fun DeviceDetailsPage(
                                     AppUtil.decode(profileImageString)?.let { bitmap ->
                                         Image(
                                             bitmap = bitmap.asImageBitmap(),
-                                            contentDescription = "Owner profile",
+                                            contentDescription = context.getString(R.string.device_details_owner_profile_image),
                                             modifier = Modifier.fillMaxSize(),
                                             contentScale = ContentScale.Crop
                                         )
@@ -505,26 +490,24 @@ fun DeviceDetailsPage(
                     }
                 } ?: run {
                     Text(
-                        text = "Owner information unavailable",
+                        text = context.getString(R.string.device_details_error_loading_owner_data),
                         modifier = Modifier.padding(16.dp),
                         color = MaterialTheme.colorScheme.error
                     )
                 }
             }
 
-            // Location
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.LocationOn, contentDescription = "Location")
+                Icon(Icons.Default.LocationOn, contentDescription = context.getString(R.string.your_location))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "${distance.toInt()}km • ${owner?.city  ?: ""}", fontSize = 18.sp, fontWeight = FontWeight.Normal)
             }
 
-            // Map
             device?.let { dev ->
                 Box(
                     modifier = Modifier
@@ -561,7 +544,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Payment Confirmation Dialog
             if (showPaymentDialog) {
                 AlertDialog(
                     onDismissRequest = { showPaymentDialog = false },
@@ -570,7 +552,7 @@ fun DeviceDetailsPage(
                             modifier = Modifier.fillMaxWidth(),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text("Confirm Rental", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+                            Text(context.getString(R.string.device_details_payment_dialog_title), fontSize = 20.sp, fontWeight = FontWeight.Bold)
                         }
                     },
                     text = {
@@ -600,11 +582,9 @@ fun DeviceDetailsPage(
                                         CoroutineScope(Dispatchers.Main).launch {
                                             delay(3000)
                                             isLoading = false
-                                            // Reset date selection
                                             startDate = null
                                             endDate = null
                                             showDatePicker = false
-                                            // Refresh rentals instead of navigating
                                             FirebaseService.getRentalsByDeviceId(deviceId) { rentals ->
                                                 existingRentals = rentals
                                                 userRental = rentals.find { it.renterId == currentUser?.userId }
@@ -617,18 +597,17 @@ fun DeviceDetailsPage(
                                 containerColor = Yellow40
                             )
                         ) {
-                            Text("Confirm Payment")
+                            Text(context.getString(R.string.device_details_payment_dialog_confirm_button))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { showPaymentDialog = false }) {
-                            Text("Cancel")
+                            Text(context.getString(R.string.cancel))
                         }
                     }
                 )
             }
 
-            // Loading Dialog
             if (isLoading) {
                 Dialog(
                     onDismissRequest = { },
@@ -659,7 +638,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Full screen image viewer
             if (showFullScreenImage) {
                 Dialog(
                     onDismissRequest = { showFullScreenImage = false },
@@ -711,7 +689,6 @@ fun DeviceDetailsPage(
                 }
             }
 
-            // Calendar and Booking Section
             if (startDate != null && endDate != null) {
                 val formatter = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
                 Column(
@@ -727,41 +704,48 @@ fun DeviceDetailsPage(
                 }
             }
 
-            Button(
-                onClick = {
-                    if (currentUser != null) {
-                        showDatePicker = true
-                    } else {
-                        Toast.makeText(
-                            context,
-                            "Please wait while we load your user data.",
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Yellow40
-                )
-            ) {
-                Text(
-                    text = if (startDate != null && endDate != null) {
-                        "Pay €${
-                            AppUtil.calculateTotalPrice(
-                                device?.price?.toDoubleOrNull() ?: 0.0,
-                                startDate!!,
-                                endDate!!
-                            )
-                        }"
-                    } else {
-                        "Select duration to rent"
-                    },
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            if (device != null) {
+                if (currentUser?.userId != device!!.ownerId) {
 
+                    Button(
+                        onClick = {
+                            if (currentUser != null) {
+                                showDatePicker = true
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.device_details_loading_user_data),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Yellow40
+                        )
+                    ) {
+                        Text(
+                            text = if (startDate != null && endDate != null) {
+                                "Pay €${
+                                    AppUtil.calculateTotalPrice(
+                                        device?.price?.toDoubleOrNull() ?: 0.0,
+                                        startDate!!,
+                                        endDate!!
+                                    )
+                                }"
+                            } else {
+                                context.getString(R.string.device_details_select_period)
+                            },
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                    }
+                } else {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }

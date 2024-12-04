@@ -14,7 +14,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDateRangePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import java.util.Calendar
 import java.util.Date
@@ -27,12 +29,12 @@ fun DateRangePickerModal(
     disabledDates: List<Date>
 ) {
     val today = Calendar.getInstance()
+    val context = LocalContext.current
     today.set(Calendar.HOUR_OF_DAY, 0)
     today.set(Calendar.MINUTE, 0)
     today.set(Calendar.SECOND, 0)
     today.set(Calendar.MILLISECOND, 0)
 
-    // Create a list of all dates that are within rental periods
     val allDisabledDates = mutableSetOf<Triple<Int, Int, Int>>()
     disabledDates.forEach { date ->
         val cal = Calendar.getInstance()
@@ -58,10 +60,8 @@ fun DateRangePickerModal(
                 val calendar = Calendar.getInstance()
                 calendar.timeInMillis = utcTimeMillis
                 
-                // Check if date is not in the past
                 val isNotPast = calendar.timeInMillis >= today.timeInMillis
                 
-                // Check if date is not in disabled dates
                 val dateTriple = Triple(
                     calendar.get(Calendar.YEAR),
                     calendar.get(Calendar.MONTH),
@@ -90,7 +90,7 @@ fun DateRangePickerModal(
                 enabled = dateRangePickerState.selectedStartDateMillis != null && 
                          dateRangePickerState.selectedEndDateMillis != null
             ) {
-                Text("Confirm")
+                Text(context.getString(R.string.confirm))
             }
         },
         dismissButton = {
@@ -103,14 +103,14 @@ fun DateRangePickerModal(
             state = dateRangePickerState,
             title = { 
                 Text(
-                    "Select Rental Period",
+                    context.getString(R.string.device_details_select_dates),
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 16.dp)
                 )
             },
             headline = { 
                 Text(
-                    "Choose your start and end dates",
+                    context.getString(R.string.device_details_select_dates_headline),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 16.dp)
                 )

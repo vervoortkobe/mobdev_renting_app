@@ -10,6 +10,8 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
 @Composable
@@ -18,17 +20,19 @@ fun SearchBar(
     onSearchQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     TextField(
         value = searchQuery,
         singleLine = true,
         onValueChange = onSearchQueryChange,
-        placeholder = { Text("Search devices...") },
+        placeholder = { Text(context.getString(R.string.devices_search_placeholder)) },
         trailingIcon = {
             if (searchQuery.isNotEmpty()) {
                 IconButton(onClick = { onSearchQueryChange("") }) {
                     Icon(
                         imageVector = Icons.Default.Close,
-                        contentDescription = "Clear text",
+                        contentDescription = context.getString(R.string.devices_clear_search),
                         tint = Color.Gray
                     )
                 }

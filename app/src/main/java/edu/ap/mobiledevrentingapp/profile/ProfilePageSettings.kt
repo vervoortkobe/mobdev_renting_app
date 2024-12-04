@@ -11,7 +11,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -27,12 +26,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -47,9 +44,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.AppUtil.decode
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.map.GeocodingService
@@ -60,8 +57,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-
-val geocodingService = RetrofitClient.retrofit.create(GeocodingService::class.java)
+val geocodingService: GeocodingService = RetrofitClient.retrofit.create(GeocodingService::class.java)
 
 suspend fun getCoordinatesFromAddress(address: String): Pair<Double, Double>? {
     return withContext(Dispatchers.IO) {
@@ -127,7 +123,7 @@ fun ProfilePageSettings(navController: NavController) {
                 adressNr = document.getString("addressNr")
                 ibanNumber = document.getString("ibanNumber")
                 country = document.getString("country")
-                totalAdress = "${streetName} ${adressNr} ${city} ${zipCode} ${country}"
+                totalAdress = "$streetName $adressNr $city $zipCode $country"
                 email = FirebaseService.getCurrentUserEmail()
                 id = document.getString("userId")
                 encodedImage = document.getString("profileImage")
@@ -146,7 +142,7 @@ fun ProfilePageSettings(navController: NavController) {
                 profileBitmap = null
                 Toast.makeText(
                     context,
-                    "Your user data couldn't be loaded.",
+                    context.getString(R.string.error_loading_user_data),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -160,9 +156,9 @@ fun ProfilePageSettings(navController: NavController) {
             id?.let { userId ->
                 FirebaseService.uploadUserProfileImage(userId, bitmap) { success, _, _ ->
                     if (success) {
-                        Toast.makeText(context, "Profile image uploaded successfully!", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.profile_profile_image_uploaded_successfully), Toast.LENGTH_SHORT).show()
                     } else {
-                        Toast.makeText(context, "Failed to upload image", Toast.LENGTH_SHORT).show()
+                        Toast.makeText(context, context.getString(R.string.profile_profile_image_upload_failed), Toast.LENGTH_SHORT).show()
                     }
                 }
             }
@@ -194,8 +190,8 @@ fun ProfilePageSettings(navController: NavController) {
                     }
             ) {
                 Icon(
-                    imageVector = Icons.Default.ArrowBack,
-                    contentDescription = "ArrowBack",
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = context.getString(R.string.arrow_back),
                     tint = Color.Black,
                     modifier = Modifier.align(Alignment.Center)
                 )
@@ -211,7 +207,7 @@ fun ProfilePageSettings(navController: NavController) {
                 if (profileBitmap != null) {
                     Image(
                         bitmap = profileBitmap!!.asImageBitmap(),
-                        contentDescription = "Profile Image",
+                        contentDescription = context.getString(R.string.profile_image),
                         modifier = Modifier
                             .fillMaxSize()
                             .clip(RoundedCornerShape(50.dp)),
@@ -241,7 +237,7 @@ fun ProfilePageSettings(navController: NavController) {
             ) {
                 Icon(
                     imageVector = Icons.Filled.Home,
-                    contentDescription = "Edit Profile Image",
+                    contentDescription = context.getString(R.string.profile_edit_profile_image),
                     modifier = Modifier
                         .size(18.dp)
                         .align(Alignment.Center),
@@ -254,49 +250,49 @@ fun ProfilePageSettings(navController: NavController) {
 
         // Editable fields with error handling
         EditableFieldWithError(
-            label = "Name",
+            label = context.getString(R.string.signup_full_name),
             value = editableName,
             error = nameError,
             onValueChange = { editableName = it }
         )
         EditableFieldWithError(
-            label = "Phone Number",
+            label = context.getString(R.string.signup_phone_number),
             value = editablePhoneNumber,
             error = phoneError,
             onValueChange = { editablePhoneNumber = it }
         )
         EditableFieldWithError(
-            label = "Street Name",
+            label = context.getString(R.string.signup_street_name),
             value = editableStreetName,
             error = streetError,
             onValueChange = { editableStreetName = it }
         )
         EditableFieldWithError(
-            label = "Zip Code",
+            label = context.getString(R.string.profile_zip_code),
             value = editableZipCode,
             error = zipError,
             onValueChange = { editableZipCode = it }
         )
         EditableFieldWithError(
-            label = "City",
+            label = context.getString(R.string.signup_city),
             value = editableCity,
             error = cityError,
             onValueChange = { editableCity = it }
         )
         EditableFieldWithError(
-            label = "Address Number",
+            label = context.getString(R.string.signup_street_number),
             value = editableAdressNr,
             error = addressError,
             onValueChange = { editableAdressNr = it }
         )
         EditableFieldWithError(
-            label = "Country",
+            label = context.getString(R.string.signup_country),
             value = editableCountry,
             error = countryError,
             onValueChange = { editableCountry = it }
         )
         EditableFieldWithError(
-            label = "IBAN Number",
+            label = context.getString(R.string.signup_iban_number),
             value = editableIbanNumber,
             error = ibanError,
             onValueChange = { editableIbanNumber = it }
@@ -304,13 +300,12 @@ fun ProfilePageSettings(navController: NavController) {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Save button
         Box(
             modifier = Modifier.fillMaxSize(),
             contentAlignment = Alignment.BottomCenter
         ) {
             Text(
-                text = "Save Changes",
+                text = context.getString(R.string.profile_save_changes),
                 modifier = Modifier
                     .padding(16.dp)
                     .clickable {
@@ -340,7 +335,7 @@ fun ProfilePageSettings(navController: NavController) {
                                     val fullAddress = "$editableStreetName+$editableAdressNr+$editableCity+$editableCountry"
                                     val coordinates = getCoordinatesFromAddress(fullAddress)
                                     if (coordinates == null) {
-                                        Toast.makeText(context, "Address not found. Please check your address.", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(context, context.getString(R.string.profile_error_getting_coordinates), Toast.LENGTH_SHORT).show()
                                     } else {
                                         val (lat, lon) = coordinates
                                         FirebaseService.getCurrentUserId()?.let {
@@ -360,7 +355,7 @@ fun ProfilePageSettings(navController: NavController) {
                                                 Toast.makeText(
                                                     context,
                                                     errorMessage
-                                                        ?: if (success) "Profile Updated" else "Failed to update",
+                                                        ?: if (success) context.getString(R.string.profile_profile_updated_successfully) else context.getString(R.string.profile_profile_update_failed),
                                                     Toast.LENGTH_SHORT
                                                 ).show()
                                             }

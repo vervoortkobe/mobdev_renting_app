@@ -1,23 +1,33 @@
 package edu.ap.mobiledevrentingapp.home
 
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.Rental
@@ -25,7 +35,8 @@ import edu.ap.mobiledevrentingapp.firebase.User
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import java.text.ParseException
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Date
+import java.util.Locale
 
 @Composable
 fun RentedDeviceCard(
@@ -35,7 +46,7 @@ fun RentedDeviceCard(
     onClick: () -> Unit
 ) {
     val deviceImage = AppUtil.decode(rentedDevice.images.firstOrNull() ?: "")?.asImageBitmap()
-
+    val context = LocalContext.current
     val startDateString = rentalPeriod.startDate
     val endDateString = rentalPeriod.endDate
 
@@ -43,22 +54,20 @@ fun RentedDeviceCard(
         try {
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(startDateString)
         } catch (e: ParseException) {
-            Log.e("RentedDeviceCard", "Error parsing start date: $startDateString", e)
-            null // Return null if parsing fails
+            null
         }
     } else {
-        null // Return null if the string is empty
+        null
     }
 
     val endDate: Date? = if (endDateString.isNotEmpty()) {
         try {
             SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(endDateString)
         } catch (e: ParseException) {
-            Log.e("RentedDeviceCard", "Error parsing end date: $endDateString", e)
-            null // Return null if parsing fails
+            null
         }
     } else {
-        null // Return null if the string is empty
+        null
     }
 
     Row(
@@ -70,7 +79,6 @@ fun RentedDeviceCard(
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Device Image
         Box(
             modifier = Modifier
                 .size(135.dp)
@@ -80,7 +88,7 @@ fun RentedDeviceCard(
             if (deviceImage != null) {
                 Image(
                     bitmap = deviceImage,
-                    contentDescription = "Rented device image",
+                    contentDescription = context.getString(R.string.device_image),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -92,7 +100,7 @@ fun RentedDeviceCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No image",
+                        text = context.getString(R.string.no_image),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White
                     )
@@ -106,14 +114,12 @@ fun RentedDeviceCard(
             modifier = Modifier.weight(1f),
             verticalArrangement = Arrangement.spacedBy(3.dp)
         ) {
-            // Device Name
             Text(
                 text = rentedDevice.deviceName.replaceFirstChar { it.uppercase() },
                 style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                 modifier = Modifier.padding(bottom = 4.dp)
             )
 
-            // Device Category
             Text(
                 text = AppUtil.convertUppercaseToTitleCase(rentedDevice.category),
                 style = MaterialTheme.typography.bodySmall.copy(fontWeight = FontWeight.Medium),
@@ -121,44 +127,47 @@ fun RentedDeviceCard(
                 modifier = Modifier.padding(end = 8.dp)
             )
 
-            // Renter's Name
-            Text(
-                text = "Renter: ${renterData.fullName}",
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(top = 4.dp)
-            )
 
-            // Renter's Profile Image (if available)
+
             renterData.profileImage.let { profileImage ->
                 AppUtil.decode(profileImage)?.let {
-                    Image(
-                        bitmap = it.asImageBitmap(),
-                        contentDescription = "Renter's profile image",
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(RoundedCornerShape(20.dp))
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Image(
+                            bitmap = it.asImageBitmap(),
+                            contentDescription = context.getString(R.string.home_renters_profile_image),
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(RoundedCornerShape(20.dp))
+                        )
+                        Text(
+                            text = renterData.fullName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             }
 
-            // Rental Period
             if (startDate != null && endDate != null) {
                 Text(
                     text = "${AppUtil.formatDate(startDate)} - ${AppUtil.formatDate(endDate)}",
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(top = 4.dp)
+                    modifier = Modifier.padding(top = 4.dp).weight(1f)
                 )
             }
 
-            // Rental Price
-            val rentalPrice = startDate?.let {
-                if (endDate != null) {
-                    AppUtil.calculateTotalPrice(rentedDevice.price.toDouble(),
-                        it, endDate)
-                }
-            }
             Text(
-                text = "€ $rentalPrice",
+                text = "€ ${
+                    startDate?.let { start ->
+                        endDate?.let { end ->
+                            String.format(
+                                Locale.getDefault(),
+                                "%.2f",
+                                AppUtil.calculateTotalPrice(rentedDevice.price.toDouble(), start, end).toDouble()
+                            )
+                        }
+                    } ?: "0.00"
+                }",
                 style = MaterialTheme.typography.bodyMedium,
                 color = Yellow40
             )

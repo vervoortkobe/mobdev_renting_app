@@ -1,7 +1,6 @@
 package edu.ap.mobiledevrentingapp.firebase
 
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.util.Base64
 import android.util.Log
 import com.google.firebase.FirebaseNetworkException
@@ -11,10 +10,9 @@ import com.google.firebase.auth.FirebaseAuthInvalidUserException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.FirebaseAuthWeakPasswordException
 import com.google.firebase.firestore.DocumentSnapshot
-import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FieldPath
+import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.toObject
-import kotlinx.coroutines.tasks.await
 import java.io.ByteArrayOutputStream
 import java.util.UUID
 
@@ -207,101 +205,7 @@ object FirebaseService {
             }
     }
 
-    private fun uploadSingleImage(bitmap: Bitmap, onComplete: (Boolean, String?, String?) -> Unit) {
-        val outputStream = ByteArrayOutputStream()
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
-        val base64String = Base64.encodeToString(outputStream.toByteArray(), Base64.DEFAULT)
-        val uuid = UUID.randomUUID().toString()
-
-        val data = hashMapOf(
-            "image" to base64String,
-            "id" to uuid
-        )
-
-        firestore.collection("images").document(uuid)
-            .set(data)
-            .addOnSuccessListener {
-                Log.d("UploadSingleImage", "Image uploaded!")
-                onComplete(true, uuid, null)
-            }
-            .addOnFailureListener { e ->
-                Log.e("UploadSingleImage", "Error while uploading: ", e)
-                onComplete(false, null, e.localizedMessage)
-            }
-    }
-
-    fun uploadImages(bitmaps: List<Bitmap>, onComplete: (Boolean, List<String>?, String?) -> Unit) {
-        val imageIds = mutableListOf<String>()
-        var completedUploads = 0
-
-        bitmaps.forEach { bitmap ->
-            uploadSingleImage(bitmap) { success, id, error ->
-                Log.d("UploadSingleImage", "Image upload result: $success, ID: $id, Error: $error")
-                if (success) {
-                    id?.let { imageIds.add(it) }
-                } else {
-                    onComplete(false, null, error)
-                    return@uploadSingleImage
-                }
-
-                completedUploads++
-                if (completedUploads == bitmaps.size) {
-                    onComplete(true, imageIds, null)
-                }
-            }
-        }
-    }
-
-    suspend fun getAllImages(): List<Pair<String, Bitmap>> {
-        return try {
-            val result = firestore.collection("images").get().await()
-            result.documents.mapNotNull { document ->
-                val base64String = document.getString("image")
-                val id = document.getString("id")
-                if (base64String != null && id != null) {
-                    try {
-                        val byteArray = Base64.decode(base64String, Base64.DEFAULT)
-                        val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                        Pair(id, bitmap)
-                    } catch (e: Exception) {
-                        null
-                    }
-                } else {
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    suspend fun getImageById(imageId: String): Pair<String, Bitmap>? {
-        return try {
-            val document = firestore.collection("images").document(imageId).get().await()
-            val base64String = document.getString("image")
-            if (base64String != null) {
-                val byteArray = Base64.decode(base64String, Base64.DEFAULT)
-                val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                Pair(imageId, bitmap)
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    fun saveDevice(
-        ownerId: String,
-        deviceName: String,
-        category: DeviceCategory,
-        description: String,
-        price: String,
-        images: List<String>,
-        latitude: Double,
-        longitude: Double,
-        callback: (Boolean, String?, String?) -> Unit
-    ) {
+    fun saveDevice(ownerId: String, deviceName: String, category: DeviceCategory, description: String, price: String, images: List<String>, latitude: Double, longitude: Double, callback: (Boolean, String?, String?) -> Unit) {
         val deviceId = UUID.randomUUID().toString()
         val device = hashMapOf(
             "deviceId" to deviceId,
@@ -402,7 +306,6 @@ object FirebaseService {
         }
     }
 
-
     fun getDevicesByUserId(userId: String, callback: (Boolean, List<DocumentSnapshot>?, String?) -> Unit) {
         firestore.collection("devices").whereEqualTo("ownerId", userId).get()
             .addOnCompleteListener { task ->
@@ -455,7 +358,7 @@ object FirebaseService {
             .addOnSuccessListener { querySnapshot ->
                 val rentals = querySnapshot.documents.mapNotNull { doc ->
                     val rental = doc.toObject(Rental::class.java)
-                    rental?.apply { rentalId = doc.id } // Assign rentalId here
+                    rental?.apply { rentalId = doc.id }
                 }
 
                 if (rentals.isEmpty()) {
@@ -473,27 +376,22 @@ object FirebaseService {
                             doc.toObject<Device>()?.copy(deviceId = doc.id)
                         }
 
-                        // Create a list of pairs (Device, renterName)
                         val rentedDevicesWithNames = mutableListOf<Pair<Device, String>>()
 
-                        // Fetch user details for each rental
                         rentals.forEach { rental ->
                             val device = devices.find { it.deviceId == rental.deviceId }
                             if (device != null) {
-                                // Fetch user by renterId
                                 firestore.collection("users").document(rental.renterId).get()
                                     .addOnSuccessListener { userDoc ->
                                         val userName = userDoc.getString("fullName") ?: "Unknown User"
                                         rentedDevicesWithNames.add(Pair(device, userName))
 
-                                        // Call the callback only after all users have been fetched
                                         if (rentedDevicesWithNames.size == rentals.size) {
                                             callback(rentedDevicesWithNames)
                                         }
                                     }
                                     .addOnFailureListener {
                                         Log.e("FirebaseService", "Error getting user details", it)
-                                        // Handle error, you might want to return an empty list or a default name
                                         rentedDevicesWithNames.add(Pair(device, "Unknown User"))
                                         if (rentedDevicesWithNames.size == rentals.size) {
                                             callback(rentedDevicesWithNames)
@@ -515,28 +413,27 @@ object FirebaseService {
 
     fun getUserRentals(userId: String, callback: (List<Rental>) -> Unit) {
         firestore.collection("rentals")
-            .whereEqualTo("renterId", userId) // Assuming rentals have a renterId field
+            .whereEqualTo("renterId", userId)
             .get()
             .addOnSuccessListener { documents ->
                 val rentals = documents.mapNotNull { document ->
-                    document.toObject(Rental::class.java) // Convert Firestore document to Rental object
+                    document.toObject(Rental::class.java)
                 }
-                callback(rentals) // Return the list of rentals to the callback
+                callback(rentals)
             }
             .addOnFailureListener { _ ->
-                // Handle the error
-                callback(emptyList()) // Return an empty list on failure
+                callback(emptyList())
             }
     }
 
     fun getMyRentedOutDevices(userId: String, callback: (List<Triple<Device, User, Rental>>) -> Unit) {
         firestore.collection("rentals")
-            .whereEqualTo("ownerId", userId) // Assuming rentals have an ownerId field
+            .whereEqualTo("ownerId", userId)
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val rentals = querySnapshot.documents.mapNotNull { doc ->
                     val rental = doc.toObject(Rental::class.java)
-                    rental?.apply { rentalId = doc.id } // Assign rentalId here
+                    rental?.apply { rentalId = doc.id }
                 }
 
                 if (rentals.isEmpty()) {
@@ -555,19 +452,16 @@ object FirebaseService {
                             doc.toObject<Device>()?.copy(deviceId = doc.id)
                         }
 
-                        // Create a list of triples (Device, User, Rental)
                         val rentedOutDevices = mutableListOf<Triple<Device, User, Rental>>()
 
                         rentals.forEach { rental ->
                             val device = devices.find { it.deviceId == rental.deviceId }
                             if (device != null) {
-                                // Fetch user by renterId
                                 firestore.collection("users").document(rental.renterId).get()
                                     .addOnSuccessListener { userDoc ->
                                         val user = userDoc.toObject<User>() ?: User("Unknown", "Unknown")
                                         rentedOutDevices.add(Triple(device, user, rental))
 
-                                        // Call the callback only after all users have been fetched
                                         if (rentedOutDevices.size == rentals.size) {
                                             callback(rentedOutDevices)
                                         }

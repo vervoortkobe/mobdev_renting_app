@@ -2,18 +2,30 @@ package edu.ap.mobiledevrentingapp.home
 
 import android.location.Location
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.firebase.Rental
@@ -29,13 +41,12 @@ fun HomePage(navController: NavController) {
     var userLocation by remember { mutableStateOf<Location?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var userRentals by remember { mutableStateOf<List<Rental>>(emptyList()) }
+    val context = LocalContext.current
 
-    // Fetch data on first composition
     LaunchedEffect(Unit) {
         isLoading = true
         val currentUserId = FirebaseService.getCurrentUserId()
         if (currentUserId != null) {
-            // Fetch user location
             FirebaseService.getUserById(currentUserId) { success, document, _ ->
                 if (success && document != null) {
                     userLocation = Location("").apply {
@@ -45,26 +56,21 @@ fun HomePage(navController: NavController) {
                 }
             }
 
-            // Fetch rented devices
             FirebaseService.getDevicesRentedByUser(currentUserId) { devicesWithNames ->
                 rentedDevices = devicesWithNames
             }
 
-            // Fetch my rented out devices
             FirebaseService.getMyRentedOutDevices(currentUserId) { rentedOutDevices ->
-                myRentedOutDevices = rentedOutDevices // Populate myRentedOutDevices
-                Log.d("HomePage", "My Rented Out Devices: $myRentedOutDevices") // Log rented out devices
+                myRentedOutDevices = rentedOutDevices
             }
 
-            // Fetch all rentals for the current user
             FirebaseService.getUserRentals(currentUserId) { rentals ->
-                userRentals = rentals // Assuming rentals is a list of Rental objects
+                userRentals = rentals
             }
         }
         isLoading = false
     }
 
-    // UI Content
     Box(
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
@@ -77,41 +83,39 @@ fun HomePage(navController: NavController) {
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp)
+                contentPadding = PaddingValues(8.dp)
             ) {
-                // Devices currently rented by the user
                 item {
                     Text(
-                        text = "Devices I'm Currently Renting",
+                        text = context.getString(R.string.home_currently_renting),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(bottom = 8.dp)
+                        modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 8.dp)
                     )
                 }
 
                 if (rentedDevices.isEmpty()) {
                     item {
                         Text(
-                            text = "You're not renting any devices",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = context.getString(R.string.home_no_devices_currently_renting),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 8.dp)
                         )
                     }
                 } else {
-                    items(rentedDevices) { (device, rentalId) ->
+                    items(rentedDevices) { (device, _) ->
                         userLocation?.let { location ->
-                            // Get the current date
                             val currentDate = LocalDate.now()
 
-                            // Filter rentals for the current device where the owner is the current user and the rental period is ongoing
                             val rentalPeriods = userRentals.filter { rental ->
                                 rental.deviceId == device.deviceId &&
-                                rental.ownerId == FirebaseService.getCurrentUserId() && // Assuming Rental has an ownerId field
-                                LocalDate.parse(rental.startDate) <= currentDate && // Check if rental has started
-                                LocalDate.parse(rental.endDate) >= currentDate // Check if rental has not ended
+                                rental.ownerId == FirebaseService.getCurrentUserId() &&
+                                LocalDate.parse(rental.startDate) <= currentDate &&
+                                LocalDate.parse(rental.endDate) >= currentDate
                             }
 
                             HomeDeviceCard(
                                 device = device,
-                                rentalPeriods = rentalPeriods, // Pass the filtered list of rental periods
+                                rentalPeriods = rentalPeriods,
                                 userLocation = location,
                                 onClick = {
                                     navController.navigate("device_details/${device.deviceId}")
@@ -121,33 +125,28 @@ fun HomePage(navController: NavController) {
                     }
                 }
 
-                // Devices rented out by the user
                 item {
                     Text(
-                        text = "Devices I'm Currently Renting Out",
+                        text = context.getString(R.string.home_devices_currently_renting_out),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
+                        modifier = Modifier.padding(start= 8.dp, top = 16.dp, bottom = 8.dp)
                     )
                 }
 
-                // Get the current date
                 val currentDate = LocalDate.now()
 
-                // Filter my rented out devices to show only those with ongoing rentals
-                val ongoingRentals = myRentedOutDevices.filter { (device, renter, rental) ->
-                    rental.ownerId == FirebaseService.getCurrentUserId() && // Ensure the current user is the owner
-                    LocalDate.parse(rental.startDate) <= currentDate && // Check if rental has started
-                    LocalDate.parse(rental.endDate) >= currentDate // Check if rental has not ended
+                val ongoingRentals = myRentedOutDevices.filter { (_, _, rental) ->
+                    rental.ownerId == FirebaseService.getCurrentUserId() &&
+                    LocalDate.parse(rental.startDate) <= currentDate &&
+                    LocalDate.parse(rental.endDate) >= currentDate
                 }
-
-                Log.d("HomePage", "Ongoing Rentals: $ongoingRentals")
-                Log.d("HomePage", "My Rented Out Devices: $myRentedOutDevices")
 
                 if (ongoingRentals.isEmpty()) {
                     item {
                         Text(
-                            text = "You're not renting out any devices",
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = context.getString(R.string.home_no_devices_currently_renting_out),
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 8.dp)
                         )
                     }
                 } else {

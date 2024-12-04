@@ -1,6 +1,5 @@
 package edu.ap.mobiledevrentingapp.signup
 
-import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -48,9 +47,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 
 @Composable
 fun SignupScreen(
@@ -108,15 +104,15 @@ fun SignupScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text("Personal Information", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(context.getString(R.string.signup_personal_information), fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
             OutlinedTextField(
                 value = fullName,
                 singleLine = true,
                 onValueChange = { fullName = it },
-                label = { Text("Full Name", color = Color.Black) },
+                label = { Text(context.getString(R.string.signup_full_name), color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Henry Jekyll") },
+                placeholder = { Text(context.getString(R.string.signup_full_name_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
@@ -129,10 +125,10 @@ fun SignupScreen(
                 value = phoneNumber,
                 singleLine = true,
                 onValueChange = { phoneNumber = it },
-                label = { Text("Phone Number", color = Color.Black) },
+                label = { Text(context.getString(R.string.signup_phone_number), color = Color.Black) },
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("+32123456789") },
+                placeholder = { Text(context.getString(R.string.signup_phone_number_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
@@ -145,9 +141,9 @@ fun SignupScreen(
                 value = ibanNumber,
                 singleLine = true,
                 onValueChange = { ibanNumber = it },
-                label = { Text("IBAN Number", color = Color.Black) },
+                label = { Text(context.getString(R.string.signup_iban_number), color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("BE00 0123 4567 8910") },
+                placeholder = { Text(context.getString(R.string.signup_iban_number_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
@@ -156,15 +152,15 @@ fun SignupScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Address Details", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(context.getString(R.string.signup_address_information), fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
             OutlinedTextField(
                 value = country,
                 singleLine = true,
                 onValueChange = { country = it },
-                label = { Text("Country", color = Color.Black) },
+                label = { Text(context.getString(R.string.signup_country), color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Belgium") },
+                placeholder = { Text(context.getString(R.string.signup_country_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
@@ -178,9 +174,9 @@ fun SignupScreen(
                     value = city,
                     singleLine = true,
                     onValueChange = { city = it },
-                    label = { Text("City", color = Color.Black) },
+                    label = { Text(context.getString(R.string.signup_city), color = Color.Black) },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Antwerp") },
+                    placeholder = { Text(context.getString(R.string.signup_city_placeholder)) },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Yellow40,
                         unfocusedBorderColor = Color.Black,
@@ -191,9 +187,9 @@ fun SignupScreen(
                     value = zipCode,
                     singleLine = true,
                     onValueChange = { zipCode = it },
-                    label = { Text("Zip", color = Color.Black) },
+                    label = { Text(context.getString(R.string.signup_zip_code), color = Color.Black) },
                     modifier = Modifier.width(80.dp),
-                    placeholder = { Text("1000") },
+                    placeholder = { Text(context.getString(R.string.signup_zip_code_placeholder)) },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Yellow40,
                         unfocusedBorderColor = Color.Black,
@@ -208,9 +204,9 @@ fun SignupScreen(
                     value = streetName,
                     singleLine = true,
                     onValueChange = { streetName = it },
-                    label = { Text("Street", color = Color.Black) },
+                    label = { Text(context.getString(R.string.signup_street_name), color = Color.Black) },
                     modifier = Modifier.weight(1f),
-                    placeholder = { Text("Rue Avenue") },
+                    placeholder = { Text(context.getString(R.string.signup_street_name_placeholder)) },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Yellow40,
                         unfocusedBorderColor = Color.Black,
@@ -221,9 +217,9 @@ fun SignupScreen(
                     value = addressNr,
                     singleLine = true,
                     onValueChange = { addressNr = it },
-                    label = { Text("Nr.", color = Color.Black) },
+                    label = { Text(context.getString(R.string.signup_street_number), color = Color.Black) },
                     modifier = Modifier.width(80.dp),
-                    placeholder = { Text("1") },
+                    placeholder = { Text(context.getString(R.string.signup_street_number_placeholder)) },
                     colors = OutlinedTextFieldDefaults.colors(
                         focusedBorderColor = Yellow40,
                         unfocusedBorderColor = Color.Black,
@@ -233,15 +229,15 @@ fun SignupScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Account Credentials", fontSize = 20.sp, fontWeight = FontWeight.Bold)
+            Text(context.getString(R.string.signup_account_credentials), fontSize = 20.sp, fontWeight = FontWeight.Bold)
 
             OutlinedTextField(
                 value = email,
                 singleLine = true,
                 onValueChange = { email = it },
-                label = { Text("E-mail", color = Color.Black) },
+                label = { Text(context.getString(R.string.login_email), color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("someone@example.com") },
+                placeholder = { Text(context.getString(R.string.login_email_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
@@ -254,10 +250,10 @@ fun SignupScreen(
                 value = password,
                 singleLine = true,
                 onValueChange = { password = it },
-                label = { Text("Password", color = Color.Black) },
+                label = { Text(context.getString(R.string.login_password), color = Color.Black) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("********") },
+                placeholder = { Text(context.getString(R.string.login_password_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black
@@ -273,12 +269,14 @@ fun SignupScreen(
 
                     CoroutineScope(Dispatchers.Main).launch {
                         val coordinates = getCoordinatesFromAddress(fullAddress)
-                        Log.e("Coordinates", coordinates.toString())
-                        Log.e("Coordinates", fullAddress)
 
                         if (coordinates == null) {
                             isLoading = false
-                            Toast.makeText(context, "Address not found. Please check your address.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                context,
+                                context.getString(R.string.signup_address_error),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         } else {
                             val (lat, lon) = coordinates
                             latitude = lat
@@ -292,7 +290,11 @@ fun SignupScreen(
                                 if (success) {
                                     onSignupSuccess()
                                 } else {
-                                    Toast.makeText(context, errorMessage ?: "Signup failed", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(
+                                        context,
+                                        errorMessage ?: context.getString(R.string.signup_error),
+                                        Toast.LENGTH_SHORT
+                                    ).show()
                                 }
                             }
                         }
@@ -305,7 +307,7 @@ fun SignupScreen(
                     disabledContainerColor = Color.Black
                 )
             ) {
-                Text("Sign Up", color = Color.White)
+                Text(context.getString(R.string.signup_signup), color = Color.White)
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -313,7 +315,7 @@ fun SignupScreen(
             TextButton(
                 onClick = { onNavigateToLogin() }
             ) {
-                Text("Already have an account? Login", color = Color.Black)
+                Text(context.getString(R.string.signup_login_button), color = Color.Black)
             }
 
             Spacer(modifier = Modifier.height(196.dp))

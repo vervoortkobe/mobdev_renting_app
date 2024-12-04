@@ -47,7 +47,7 @@ fun LoginScreen(
             .fillMaxSize()
     ) {
         Image(
-            painter = painterResource(id = R.drawable.background), // Replace with your image resource
+            painter = painterResource(id = R.drawable.background),
             contentDescription = null,
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
@@ -64,9 +64,9 @@ fun LoginScreen(
                 value = email,
                 singleLine = true,
                 onValueChange = { email = it },
-                label = { Text("E-mail", color = Color.Black) },
+                label = { Text(context.getString(R.string.login_email), color = Color.Black) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("someone@example.com") },
+                placeholder = { Text(context.getString(R.string.login_email_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
@@ -79,10 +79,10 @@ fun LoginScreen(
                 value = password,
                 singleLine = true,
                 onValueChange = { password = it },
-                label = { Text("Password", color = Color.Black) },
+                label = { Text(context.getString(R.string.login_password), color = Color.Black) },
                 visualTransformation = PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("********") },
+                placeholder = { Text(context.getString(R.string.login_password_placeholder)) },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Yellow40,
                     unfocusedBorderColor = Color.Black,
@@ -108,7 +108,7 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(containerColor = Yellow40)
             ) {
-                Text("Log In")
+                Text(context.getString(R.string.login_login_button))
             }
 
             Spacer(modifier = Modifier.height(8.dp))
@@ -117,7 +117,7 @@ fun LoginScreen(
                 onClick = onNavigateToSignup,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Don't have an account yet? Sign up!", color = Color.Black)
+                Text(context.getString(R.string.login_signup_button), color = Color.Black)
             }
         }
     }
