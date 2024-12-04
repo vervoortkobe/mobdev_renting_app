@@ -89,7 +89,7 @@ fun HomePage(navController: NavController) {
                     Text(
                         text = context.getString(R.string.home_currently_renting),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
-                        modifier = Modifier.padding(start= 8.dp, top = 16.dp, bottom = 8.dp)
+                        modifier = Modifier.padding(start = 8.dp, top = 16.dp, bottom = 8.dp)
                     )
                 }
 
@@ -97,7 +97,8 @@ fun HomePage(navController: NavController) {
                     item {
                         Text(
                             text = context.getString(R.string.home_no_devices_currently_renting),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 8.dp)
                         )
                     }
                 } else {
@@ -144,7 +145,8 @@ fun HomePage(navController: NavController) {
                     item {
                         Text(
                             text = context.getString(R.string.home_no_devices_currently_renting_out),
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(start = 8.dp)
                         )
                     }
                 } else {

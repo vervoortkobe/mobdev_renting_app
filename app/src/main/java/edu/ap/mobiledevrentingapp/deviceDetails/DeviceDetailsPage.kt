@@ -704,41 +704,48 @@ fun DeviceDetailsPage(
                 }
             }
 
-            Button(
-                onClick = {
-                    if (currentUser != null) {
-                        showDatePicker = true
-                    } else {
-                        Toast.makeText(
-                            context,
-                            context.getString(R.string.device_details_loading_user_data),
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Yellow40
-                )
-            ) {
-                Text(
-                    text = if (startDate != null && endDate != null) {
-                        "Pay €${
-                            AppUtil.calculateTotalPrice(
-                                device?.price?.toDoubleOrNull() ?: 0.0,
-                                startDate!!,
-                                endDate!!
-                            )
-                        }"
-                    } else {
-                        context.getString(R.string.device_details_select_period)
-                    },
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            if (device != null) {
+                if (currentUser?.userId != device!!.ownerId) {
 
+                    Button(
+                        onClick = {
+                            if (currentUser != null) {
+                                showDatePicker = true
+                            } else {
+                                Toast.makeText(
+                                    context,
+                                    context.getString(R.string.device_details_loading_user_data),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Yellow40
+                        )
+                    ) {
+                        Text(
+                            text = if (startDate != null && endDate != null) {
+                                "Pay €${
+                                    AppUtil.calculateTotalPrice(
+                                        device?.price?.toDoubleOrNull() ?: 0.0,
+                                        startDate!!,
+                                        endDate!!
+                                    )
+                                }"
+                            } else {
+                                context.getString(R.string.device_details_select_period)
+                            },
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+
+                    }
+                } else {
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
             }
         }
     }
