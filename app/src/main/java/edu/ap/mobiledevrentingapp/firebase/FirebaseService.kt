@@ -230,67 +230,6 @@ object FirebaseService {
             }
     }
 
-    fun uploadImages(bitmaps: List<Bitmap>, onComplete: (Boolean, List<String>?, String?) -> Unit) {
-        val imageIds = mutableListOf<String>()
-        var completedUploads = 0
-
-        bitmaps.forEach { bitmap ->
-            uploadSingleImage(bitmap) { success, id, error ->
-                Log.d("UploadSingleImage", "Image upload result: $success, ID: $id, Error: $error")
-                if (success) {
-                    id?.let { imageIds.add(it) }
-                } else {
-                    onComplete(false, null, error)
-                    return@uploadSingleImage
-                }
-
-                completedUploads++
-                if (completedUploads == bitmaps.size) {
-                    onComplete(true, imageIds, null)
-                }
-            }
-        }
-    }
-
-    suspend fun getAllImages(): List<Pair<String, Bitmap>> {
-        return try {
-            val result = firestore.collection("images").get().await()
-            result.documents.mapNotNull { document ->
-                val base64String = document.getString("image")
-                val id = document.getString("id")
-                if (base64String != null && id != null) {
-                    try {
-                        val byteArray = Base64.decode(base64String, Base64.DEFAULT)
-                        val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                        Pair(id, bitmap)
-                    } catch (e: Exception) {
-                        null
-                    }
-                } else {
-                    null
-                }
-            }
-        } catch (e: Exception) {
-            emptyList()
-        }
-    }
-
-    suspend fun getImageById(imageId: String): Pair<String, Bitmap>? {
-        return try {
-            val document = firestore.collection("images").document(imageId).get().await()
-            val base64String = document.getString("image")
-            if (base64String != null) {
-                val byteArray = Base64.decode(base64String, Base64.DEFAULT)
-                val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-                Pair(imageId, bitmap)
-            } else {
-                null
-            }
-        } catch (e: Exception) {
-            null
-        }
-    }
-
     fun saveDevice(ownerId: String, deviceName: String, category: DeviceCategory, description: String, price: String, images: List<String>, latitude: Double, longitude: Double, callback: (Boolean, String?, String?) -> Unit) {
         val deviceId = UUID.randomUUID().toString()
         val device = hashMapOf(
