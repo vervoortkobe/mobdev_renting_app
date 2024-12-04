@@ -41,6 +41,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.AppUtil.decode
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
@@ -92,7 +93,7 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
                 profileBitmap = null
                 Toast.makeText(
                     context,
-                    "Your user data couldn't be loaded.",
+                    context.getString(R.string.error_loading_user_data),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -125,7 +126,7 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
 
             item {
                 Text(
-                    text = "Your Devices",
+                    text = context.getString(R.string.profile_your_devices),
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.fillMaxWidth(),
                     textAlign = TextAlign.Start
@@ -137,10 +138,10 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
                     DeviceCardToDelete(device) { deviceId ->
                         FirebaseService.deleteDeviceById(deviceId) { success, error ->
                             if (success) {
-                                Toast.makeText(context, "Device deleted successfully.", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(context, context.getString(R.string.profile_device_deleted), Toast.LENGTH_SHORT).show()
                                 devices = devices?.filterNot { it["deviceId"] == deviceId }
                             } else {
-                                Toast.makeText(context, "Failed to delete device: $error", Toast.LENGTH_LONG).show()
+                                Toast.makeText(context, "${context.getString(R.string.profile_failed_device_delete)} $error", Toast.LENGTH_LONG).show()
                             }
                         }
                     }
@@ -161,7 +162,7 @@ fun ProfilePage(navController: NavController, onLogout: () -> Unit) {
         ) {
             Icon(
                 imageVector = Icons.Default.Settings,
-                contentDescription = "Settings",
+                contentDescription = context.getString(R.string.profile_settings),
                 tint = Color.Black,
                 modifier = Modifier.align(Alignment.Center)
             )
@@ -179,6 +180,8 @@ fun ProfileHeader(
     ibanNumber: String?,
     onLogout: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Box(
         modifier = Modifier
             .size(100.dp)
@@ -188,7 +191,7 @@ fun ProfileHeader(
         if (profileBitmap != null) {
             Image(
                 bitmap = profileBitmap.asImageBitmap(),
-                contentDescription = "Profile Image",
+                contentDescription = context.getString(R.string.profile_image),
                 modifier = Modifier
                     .fillMaxSize()
                     .clip(RoundedCornerShape(50.dp)),
@@ -241,7 +244,7 @@ fun ProfileHeader(
         onClick = onLogout,
         content = {
             Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout", tint = Color.Black)
-            Text(text = "Log out", color = Color.Black)
+            Text(text = context.getString(R.string.profile_logout), color = Color.Black)
         }
     )
 }

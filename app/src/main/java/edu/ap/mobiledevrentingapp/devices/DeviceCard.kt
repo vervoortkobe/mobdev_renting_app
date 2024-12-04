@@ -103,7 +103,7 @@ fun DeviceCard(
             if (deviceImages.isNotEmpty()) {
                 Image(
                     bitmap = deviceImages.first().asImageBitmap(),
-                    contentDescription = context.getString(R.string.devices_device_image),
+                    contentDescription = context.getString(R.string.device_image),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -115,7 +115,7 @@ fun DeviceCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = context.getString(R.string.devices_no_image),
+                        text = context.getString(R.string.no_image),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White
                     )

@@ -111,7 +111,7 @@ fun MapPage(navController: NavController) {
                         AppUtil.decode(markerInfo.imageUrl)?.let { it ->
                             Image(
                                 bitmap = it.asImageBitmap(),
-                                contentDescription = "Device Image",
+                                contentDescription = context.getString(R.string.device_image),
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .clip(CircleShape)
@@ -133,7 +133,7 @@ fun MapPage(navController: NavController) {
                 Marker(
                     state = userMarkerState,
                     icon = userIcon,
-                    title = "Your Location",
+                    title = context.getString(R.string.your_location),
                     snippet = "Lat: ${location.latitude}, Lon: ${location.longitude}"
                 ) {
                     Box(
@@ -147,7 +147,7 @@ fun MapPage(navController: NavController) {
                             AppUtil.decode(imageBase64)?.let { bitmap ->
                                 Image(
                                     bitmap = bitmap.asImageBitmap(),
-                                    contentDescription = "Your Profile Image",
+                                    contentDescription = context.getString(R.string.profile_image),
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .clip(CircleShape)
@@ -172,7 +172,7 @@ fun MapPage(navController: NavController) {
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
+                contentDescription = context.getString(R.string.back),
                 tint = Color.Black
             )
         }
@@ -198,7 +198,7 @@ fun MapPage(navController: NavController) {
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.user_marker_icon),
-                    contentDescription = "My Location",
+                    contentDescription = context.getString(R.string.your_location),
                     tint = Color.Unspecified,
                     modifier = Modifier.size(52.dp)
                         .padding(start = 8.dp, top = 8.dp)

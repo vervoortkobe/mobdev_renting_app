@@ -2,18 +2,30 @@ package edu.ap.mobiledevrentingapp.home
 
 import android.location.Location
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.firebase.Rental
@@ -29,6 +41,7 @@ fun HomePage(navController: NavController) {
     var userLocation by remember { mutableStateOf<Location?>(null) }
     var isLoading by remember { mutableStateOf(true) }
     var userRentals by remember { mutableStateOf<List<Rental>>(emptyList()) }
+    val context = LocalContext.current
 
     LaunchedEffect(Unit) {
         isLoading = true
@@ -49,7 +62,6 @@ fun HomePage(navController: NavController) {
 
             FirebaseService.getMyRentedOutDevices(currentUserId) { rentedOutDevices ->
                 myRentedOutDevices = rentedOutDevices
-                Log.d("HomePage", "My Rented Out Devices: $myRentedOutDevices")
             }
 
             FirebaseService.getUserRentals(currentUserId) { rentals ->
@@ -75,7 +87,7 @@ fun HomePage(navController: NavController) {
             ) {
                 item {
                     Text(
-                        text = "Devices I'm Currently Renting",
+                        text = context.getString(R.string.home_currently_renting),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(bottom = 8.dp)
                     )
@@ -84,7 +96,7 @@ fun HomePage(navController: NavController) {
                 if (rentedDevices.isEmpty()) {
                     item {
                         Text(
-                            text = "You're not renting any devices",
+                            text = context.getString(R.string.home_no_devices_currently_renting),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
@@ -114,7 +126,7 @@ fun HomePage(navController: NavController) {
 
                 item {
                     Text(
-                        text = "Devices I'm Currently Renting Out",
+                        text = context.getString(R.string.home_devices_currently_renting_out),
                         style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
                         modifier = Modifier.padding(top = 16.dp, bottom = 8.dp)
                     )
@@ -131,7 +143,7 @@ fun HomePage(navController: NavController) {
                 if (ongoingRentals.isEmpty()) {
                     item {
                         Text(
-                            text = "You're not renting out any devices",
+                            text = context.getString(R.string.home_no_devices_currently_renting_out),
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }

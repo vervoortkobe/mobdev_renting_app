@@ -3,7 +3,6 @@ package edu.ap.mobiledevrentingapp.addDevice
 import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Base64
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -123,7 +122,7 @@ fun AddDevicePage(navController: NavController) {
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = context.getString(R.string.back_button),
+                        contentDescription = context.getString(R.string.back),
                         tint = Color.Black
                     )
                 }

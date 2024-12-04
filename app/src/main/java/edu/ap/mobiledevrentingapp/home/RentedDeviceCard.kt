@@ -15,8 +15,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.Rental
@@ -34,7 +36,7 @@ fun RentedDeviceCard(
     onClick: () -> Unit
 ) {
     val deviceImage = AppUtil.decode(rentedDevice.images.firstOrNull() ?: "")?.asImageBitmap()
-
+    val context = LocalContext.current
     val startDateString = rentalPeriod.startDate
     val endDateString = rentalPeriod.endDate
 
@@ -76,7 +78,7 @@ fun RentedDeviceCard(
             if (deviceImage != null) {
                 Image(
                     bitmap = deviceImage,
-                    contentDescription = "Rented device image",
+                    contentDescription = context.getString(R.string.device_image),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -88,7 +90,7 @@ fun RentedDeviceCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No image",
+                        text = context.getString(R.string.no_image),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White
                     )
@@ -116,7 +118,7 @@ fun RentedDeviceCard(
             )
 
             Text(
-                text = "Renter: ${renterData.fullName}",
+                text = renterData.fullName,
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(top = 4.dp)
             )
@@ -125,7 +127,7 @@ fun RentedDeviceCard(
                 AppUtil.decode(profileImage)?.let {
                     Image(
                         bitmap = it.asImageBitmap(),
-                        contentDescription = "Renter's profile image",
+                        contentDescription = context.getString(R.string.home_renters_profile_image),
                         modifier = Modifier
                             .size(40.dp)
                             .clip(RoundedCornerShape(20.dp))

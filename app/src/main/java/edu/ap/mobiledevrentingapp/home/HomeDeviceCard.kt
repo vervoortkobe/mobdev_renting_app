@@ -19,8 +19,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.AppUtil
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.Rental
@@ -38,6 +40,7 @@ fun HomeDeviceCard(
     val deviceImages = remember(device) {
         device.images.mapNotNull { AppUtil.decode(it) }
     }
+    val context = LocalContext.current
 
     Row(
         modifier = Modifier
@@ -57,7 +60,7 @@ fun HomeDeviceCard(
             if (deviceImages.isNotEmpty()) {
                 Image(
                     bitmap = deviceImages.first().asImageBitmap(),
-                    contentDescription = "Device image",
+                    contentDescription = context.getString(R.string.device_image),
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop
                 )
@@ -69,7 +72,7 @@ fun HomeDeviceCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No image",
+                        text = context.getString(R.string.no_image),
                         style = MaterialTheme.typography.bodySmall,
                         color = Color.White
                     )

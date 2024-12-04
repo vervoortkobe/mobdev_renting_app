@@ -24,6 +24,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 
@@ -42,20 +43,20 @@ fun DeviceCardToDelete(device: Map<String, Any>, onDelete: (String) -> Unit) {
                     if (!renterId.isNullOrEmpty()) {
                         FirebaseService.getUserById(renterId) { success, document, error ->
                             renterName = if (success && document != null) {
-                                document.getString("fullName") ?: "Unknown Renter"
+                                document.getString("fullName") ?: context.getString(R.string.profile_unknown_user)
                             } else {
-                                error ?: "Failed to load renter details"
+                                error ?: context.getString(R.string.profile_failed_user)
                             }
                         }
                     } else {
-                        renterName = "No renter assigned"
+                        renterName = context.getString(R.string.profile_no_renter)
                     }
                 } else {
-                    renterName = "Not rented"
+                    renterName = context.getString(R.string.profile_not_rented)
                 }
             }
         } else {
-            renterName = "Invalid Device ID"
+            renterName = context.getString(R.string.profile_invalid_device)
         }
     }
 
@@ -71,12 +72,12 @@ fun DeviceCardToDelete(device: Map<String, Any>, onDelete: (String) -> Unit) {
         Column(modifier = Modifier
             .padding(16.dp)) {
             Text(
-                text = device["deviceName"]?.toString() ?: "Unknown Device",
+                text = device["deviceName"]?.toString() ?: context.getString(R.string.profile_unknown_device),
                 style = MaterialTheme.typography.titleLarge
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = device["description"]?.toString() ?: "Unknown",
+                text = device["description"]?.toString() ?: context.getString(R.string.profile_no_description),
                 style = MaterialTheme.typography.bodyMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -85,7 +86,7 @@ fun DeviceCardToDelete(device: Map<String, Any>, onDelete: (String) -> Unit) {
                 style = MaterialTheme.typography.bodySmall
             )
             Text(
-                text = "Currently being rented by: $renterName",
+                text = "${context.getString(R.string.profile_rented_by)} $renterName",
                 style = MaterialTheme.typography.bodySmall
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -97,7 +98,7 @@ fun DeviceCardToDelete(device: Map<String, Any>, onDelete: (String) -> Unit) {
                 colors = ButtonDefaults.buttonColors(containerColor = Color.Black,
                     contentColor = Yellow40)
             ) {
-                Text(text = "Delete Device")
+                Text(text = context.getString(R.string.profile_delete_device))
             }
 
             if (showConfirmationDialog) {
@@ -105,11 +106,11 @@ fun DeviceCardToDelete(device: Map<String, Any>, onDelete: (String) -> Unit) {
                     containerColor = Yellow40,
                     onDismissRequest = { showConfirmationDialog = false },
                     title = {
-                        Text(text = "Delete Device")
+                        Text(text = context.getString(R.string.profile_delete_device))
                     },
                     text = {
                         Text(
-                            text = "Are you sure you want to delete this device? This action cannot be undone."
+                            text = context.getString(R.string.profile_delete_device_confirmation),
                         )
                     },
                     confirmButton = {
@@ -119,13 +120,13 @@ fun DeviceCardToDelete(device: Map<String, Any>, onDelete: (String) -> Unit) {
                                 if (!deviceId.isNullOrEmpty()) {
                                     onDelete(deviceId)
                                 } else {
-                                    Toast.makeText(context, "Invalid Device ID", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, context.getString(R.string.profile_invalid_device), Toast.LENGTH_SHORT).show()
                                 }
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Black,
                                 contentColor = Yellow40)
                         ) {
-                            Text("Yes")
+                            Text(context.getString(R.string.yes))
                         }
                     },
                     dismissButton = {
@@ -134,7 +135,7 @@ fun DeviceCardToDelete(device: Map<String, Any>, onDelete: (String) -> Unit) {
                             colors = ButtonDefaults.buttonColors(containerColor = Color.Black,
                                 contentColor = Yellow40)
                         ) {
-                            Text("No")
+                            Text(context.getString(R.string.yes))
                         }
                     }
                 )

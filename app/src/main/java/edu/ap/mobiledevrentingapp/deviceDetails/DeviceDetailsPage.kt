@@ -2,7 +2,6 @@ package edu.ap.mobiledevrentingapp.deviceDetails
 
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.compose.foundation.Image
@@ -141,7 +140,7 @@ fun DeviceDetailsPage(
             } else {
                 Toast.makeText(
                     context,
-                    context.getString(R.string.device_details_error_loading_user_data),
+                    context.getString(R.string.error_loading_user_data),
                     Toast.LENGTH_LONG
                 ).show()
             }
@@ -188,7 +187,7 @@ fun DeviceDetailsPage(
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Spacer(modifier = Modifier.width(2.dp))
                             IconButton(onClick = { navController.popBackStack() }) {
-                                Icon(Icons.AutoMirrored.Filled.ArrowBack, context.getString(R.string.back_button))
+                                Icon(Icons.AutoMirrored.Filled.ArrowBack, context.getString(R.string.back))
                             }
                             Spacer(modifier = Modifier.width(8.dp))
                             Text(
@@ -301,7 +300,7 @@ fun DeviceDetailsPage(
                     ) { page ->
                         Image(
                             bitmap = images[page].asImageBitmap(),
-                            contentDescription = context.getString(R.string.device_details_image_slider),
+                            contentDescription = context.getString(R.string.device_image),
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clickable { 
@@ -504,7 +503,7 @@ fun DeviceDetailsPage(
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(Icons.Default.LocationOn, contentDescription = context.getString(R.string.device_details_distance_icon))
+                Icon(Icons.Default.LocationOn, contentDescription = context.getString(R.string.your_location))
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(text = "${distance.toInt()}km • ${owner?.city  ?: ""}", fontSize = 18.sp, fontWeight = FontWeight.Normal)
             }
