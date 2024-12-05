@@ -5,6 +5,7 @@ package edu.ap.mobiledevrentingapp.userView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -52,7 +53,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 
 @Composable
-fun UserListPage(viewModel: UserListViewModel = viewModel()) {
+fun UserListPage(
+    onUserClick: (String) -> Unit,
+    viewModel: UserListViewModel = viewModel()
+) {
     val uiState by viewModel.uiState.collectAsState()
 
     Scaffold(
@@ -79,7 +83,7 @@ fun UserListPage(viewModel: UserListViewModel = viewModel()) {
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(users.size) { index ->
-                                UserListItem(user = users[index])
+                                UserListItem(user = users[index], onClick = onUserClick)
                             }
                         }
                     }
@@ -98,11 +102,12 @@ fun UserListPage(viewModel: UserListViewModel = viewModel()) {
 }
 
 @Composable
-fun UserListItem(user: DocumentSnapshot) {
+fun UserListItem(user: DocumentSnapshot, onClick: (String) -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
+            .clickable { onClick(user.id)  }
     ) {
         Row(
             modifier = Modifier
@@ -142,6 +147,7 @@ fun UserListItem(user: DocumentSnapshot) {
         }
     }
 }
+
 
 class UserListViewModel : ViewModel() {
     private val _uiState = MutableStateFlow<UserListUiState>(UserListUiState.Loading)

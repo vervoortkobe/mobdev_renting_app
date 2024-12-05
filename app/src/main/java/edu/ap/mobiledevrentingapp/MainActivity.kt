@@ -43,6 +43,7 @@ import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import edu.ap.mobiledevrentingapp.deviceDetails.DeviceDetailsPage
 import edu.ap.mobiledevrentingapp.profile.ProfilePageSettings
+import edu.ap.mobiledevrentingapp.userView.UserDetailPage
 import edu.ap.mobiledevrentingapp.userView.UserListPage
 
 class MainActivity : AppCompatActivity() {
@@ -112,7 +113,19 @@ fun MainPage(onLogout: () -> Unit) {
                 requireNotNull(deviceId) { "Device ID parameter wasn't found" }
                 DeviceDetailsPage(navController = navController, deviceId = deviceId)
             }
-            composable("users") { UserListPage() }
+            composable(
+                route = "user_details/{userId}",
+                arguments = listOf(
+                    navArgument("userId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val userId = backStackEntry.arguments?.getString("userId")
+                requireNotNull(userId) { "User ID parameter wasn't found" }
+                UserDetailPage(userId = userId)
+            }
+            composable("users") { UserListPage(onUserClick = { userId ->
+                navController.navigate("user_details/$userId")
+            }) }
         }
     }
 }
