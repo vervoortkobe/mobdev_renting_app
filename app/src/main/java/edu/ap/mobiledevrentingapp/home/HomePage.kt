@@ -162,6 +162,20 @@ fun HomePage(navController: NavController) {
                     }
                 }
             }
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.BottomCenter
+            ) {
+                androidx.compose.material3.Button(
+                    onClick = {
+                        navController.navigate("users") // Navigate to the users composable
+                    }
+                ) {
+                    Text(text = context.getString(R.string.view_users))
+                }
+            }
         }
     }
 }

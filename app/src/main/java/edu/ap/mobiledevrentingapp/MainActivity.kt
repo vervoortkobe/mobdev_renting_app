@@ -43,6 +43,7 @@ import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import edu.ap.mobiledevrentingapp.deviceDetails.DeviceDetailsPage
 import edu.ap.mobiledevrentingapp.profile.ProfilePageSettings
+import edu.ap.mobiledevrentingapp.userView.UserListPage
 
 class MainActivity : AppCompatActivity() {
 
@@ -111,6 +112,7 @@ fun MainPage(onLogout: () -> Unit) {
                 requireNotNull(deviceId) { "Device ID parameter wasn't found" }
                 DeviceDetailsPage(navController = navController, deviceId = deviceId)
             }
+            composable("users") { UserListPage() }
         }
     }
 }

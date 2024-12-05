@@ -184,6 +184,22 @@ object FirebaseService {
             }
     }
 
+    fun getAllUsers(callback: (Boolean, List<DocumentSnapshot>?, String?) -> Unit) {
+        firestore.collection("users").get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val documents = task.result?.documents
+                    if (!documents.isNullOrEmpty()) {
+                        callback(true, documents, null)
+                    } else {
+                        callback(false, null, "No users found in the database.")
+                    }
+                } else {
+                    callback(false, null, "Failed to retrieve users from the database.")
+                }
+            }
+    }
+
     fun uploadUserProfileImage(userId: String, bitmap: Bitmap, onComplete: (Boolean, String?, String?) -> Unit) {
         val outputStream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outputStream)
