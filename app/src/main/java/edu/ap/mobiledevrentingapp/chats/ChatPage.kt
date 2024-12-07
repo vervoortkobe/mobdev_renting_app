@@ -8,14 +8,17 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -144,6 +147,7 @@ fun ChatPage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .windowInsetsPadding(WindowInsets.navigationBars)
                 .imePadding()
         ) {
             if (isLoading) {
@@ -160,10 +164,11 @@ fun ChatPage(
                         .weight(1f)
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    reverseLayout = false,
-                    contentPadding = PaddingValues(bottom = 8.dp)
+                    reverseLayout = true,
+                    contentPadding = PaddingValues(top = 8.dp),
+                    verticalArrangement = Arrangement.Bottom
                 ) {
-                    items(messages) { message ->
+                    items(messages.asReversed()) { message ->
                         ChatMessage(
                             message = message,
                             isCurrentUser = message.senderId == currentUserId,
