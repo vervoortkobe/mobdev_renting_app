@@ -27,6 +27,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material3.AlertDialog
@@ -431,70 +432,86 @@ fun DeviceDetailsPage(
                             )
                             .clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
-                            .clickable(
-                                enabled = owner?.userId != currentUser?.userId,
-                                onClick = {
-                                    owner?.userId?.let { ownerId ->
-                                        navController.navigate("chat/$ownerId/$deviceId")
-                                    }
-                                }
-                            )
                     ) {
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(70.dp)
-                                    .clip(CircleShape)
-                                    .background(Color.LightGray)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                ownerData.profileImage.takeIf { it.isNotEmpty() }?.let { profileImageString ->
-                                    AppUtil.decode(profileImageString)?.let { bitmap ->
-                                        Image(
-                                            bitmap = bitmap.asImageBitmap(),
-                                            contentDescription = context.getString(R.string.device_details_owner_profile_image),
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentScale = ContentScale.Crop
+                                Box(
+                                    modifier = Modifier
+                                        .size(70.dp)
+                                        .clip(CircleShape)
+                                        .background(Color.LightGray)
+                                ) {
+                                    ownerData.profileImage.takeIf { it.isNotEmpty() }?.let { profileImageString ->
+                                        AppUtil.decode(profileImageString)?.let { bitmap ->
+                                            Image(
+                                                bitmap = bitmap.asImageBitmap(),
+                                                contentDescription = context.getString(R.string.device_details_owner_profile_image),
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        }
+                                    }
+                                }
+                                Spacer(modifier = Modifier.width(16.dp))
+                                Column {
+                                    Text(
+                                        text = if (ownerData.userId == currentUser?.userId) {
+                                            "You are the owner"
+                                        } else {
+                                            ownerData.fullName
+                                        },
+                                        fontWeight = FontWeight.Bold,
+                                        fontSize = 20.sp
+                                    )
+                                    if (existingRentals.any { it.renterId == currentUser?.userId }) {
+                                        Text(
+                                            text = ownerData.phoneNumber,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 18.sp
+                                        )
+                                    }
+                                    Text(
+                                        text = if (existingRentals.any { it.renterId == currentUser?.userId }) {
+                                            "${ownerData.streetName} ${ownerData.addressNr}"
+                                        } else {
+                                            ownerData.city
+                                        },
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        fontSize = 18.sp
+                                    )
+                                    if (existingRentals.any { it.renterId == currentUser?.userId }) {
+                                        Text(
+                                            text = "${ownerData.zipCode} ${ownerData.city}",
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            fontSize = 18.sp
                                         )
                                     }
                                 }
                             }
-                            Spacer(modifier = Modifier.width(16.dp))
-                            Column {
-                                Text(
-                                    text = if (ownerData.userId == currentUser?.userId) {
-                                        "You are the owner"
-                                    } else {
-                                        ownerData.fullName
+                            if (owner?.userId != currentUser?.userId) {
+                                IconButton(
+                                    onClick = {
+                                        owner?.userId?.let { ownerId ->
+                                            navController.navigate("chat/$ownerId/$deviceId")
+                                        }
                                     },
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 20.sp
-                                )
-                                if (existingRentals.any { it.renterId == currentUser?.userId }) {
-                                    Text(
-                                        text = ownerData.phoneNumber,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 18.sp
-                                    )
-                                }
-                                Text(
-                                    text = if (existingRentals.any { it.renterId == currentUser?.userId }) {
-                                        "${ownerData.streetName} ${ownerData.addressNr}"
-                                    } else {
-                                        ownerData.city
-                                    },
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    fontSize = 18.sp
-                                )
-                                if (existingRentals.any { it.renterId == currentUser?.userId }) {
-                                    Text(
-                                        text = "${ownerData.zipCode} ${ownerData.city}",
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        fontSize = 18.sp
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .size(40.dp)
+                                        .background(Yellow40, RoundedCornerShape(20.dp))
+                                ) {
+                                    Icon(
+                                        Icons.AutoMirrored.Filled.Send,
+                                        contentDescription = "Message",
+                                        tint = Color.White
                                     )
                                 }
                             }
