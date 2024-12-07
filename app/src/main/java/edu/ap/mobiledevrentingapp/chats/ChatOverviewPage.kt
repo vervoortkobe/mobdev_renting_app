@@ -46,6 +46,7 @@ import edu.ap.mobiledevrentingapp.firebase.Chat
 import edu.ap.mobiledevrentingapp.firebase.Device
 import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.firebase.User
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -89,7 +90,7 @@ fun ChatOverviewPage(navController: NavController) {
         ) {
             if (isLoading) {
                 CircularProgressIndicator(
-                    modifier = Modifier.align(Alignment.Center)
+                    modifier = Modifier.align(Alignment.Center), color = Yellow40
                 )
             } else if (chats.isEmpty()) {
                 Text(
@@ -154,7 +155,7 @@ private fun ChatItem(chat: Chat, otherUser: User, device: Device, onClick: () ->
                 )
                 Text(
                     text = device.deviceName,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = Yellow40,
                     fontSize = 14.sp
                 )
                 Text(

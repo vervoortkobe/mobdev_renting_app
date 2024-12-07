@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -29,6 +30,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -140,13 +142,14 @@ fun ChatPage(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .imePadding()
         ) {
             if (isLoading) {
                 Box(
                     modifier = Modifier.fillMaxSize(),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    CircularProgressIndicator(color = Yellow40)
                 }
             } else {
                 LazyColumn(
@@ -181,6 +184,11 @@ fun ChatPage(
                             .padding(bottom = 8.dp),
                         placeholder = { Text("Type a message") },
                         shape = RoundedCornerShape(24.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Yellow40,
+                            unfocusedBorderColor = Yellow40,
+                            disabledBorderColor = Yellow40,
+                        ),
                         trailingIcon = {
                             Button(
                                 onClick = {
@@ -259,11 +267,11 @@ private fun ChatMessage(message: Chat, isCurrentUser: Boolean, otherUser: User?)
         ) {
             Text(
                 text = message.message,
-                color = if (isCurrentUser) Color.Black else MaterialTheme.colorScheme.onSecondaryContainer
+                color = if (isCurrentUser) Color.White else MaterialTheme.colorScheme.onSecondaryContainer
             )
             Text(
                 text = formatTimestamp(message.timestamp),
-                color = if (isCurrentUser) Color.Black.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
+                color = if (isCurrentUser) Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.align(Alignment.End)
             )
