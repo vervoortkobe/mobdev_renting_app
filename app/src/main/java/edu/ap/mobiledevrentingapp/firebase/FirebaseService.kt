@@ -517,7 +517,7 @@ object FirebaseService {
                 firestore.collection("chats")
                     .whereEqualTo("receiverId", userId)
                     .get()
-                    .addOnSuccessListener { receivedChats ->
+                    .addOnSuccessListener getChats@{ receivedChats ->
                         val allChats = (sentChats.documents + receivedChats.documents)
                             .mapNotNull { it.toObject<Chat>() }
                             .distinctBy { listOf(it.senderId, it.receiverId, it.deviceId).sorted() }
@@ -527,7 +527,7 @@ object FirebaseService {
 
                         if (allChats.isEmpty()) {
                             callback(emptyList())
-                            return@addOnSuccessListener
+                            return@getChats
                         }
 
                         for (chat in allChats) {
