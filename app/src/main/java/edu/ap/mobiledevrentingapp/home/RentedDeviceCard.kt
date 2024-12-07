@@ -15,6 +15,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,7 +47,8 @@ fun RentedDeviceCard(
     rentedDevice: Device,
     rentalPeriod: Rental,
     renterData: User,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onMessageClick: () -> Unit
 ) {
     val deviceImage = AppUtil.decode(rentedDevice.images.firstOrNull() ?: "")?.asImageBitmap()
     val context = LocalContext.current
@@ -127,23 +132,40 @@ fun RentedDeviceCard(
                 modifier = Modifier.padding(end = 8.dp)
             )
 
-
-
             renterData.profileImage.let { profileImage ->
                 AppUtil.decode(profileImage)?.let {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Image(
-                            bitmap = it.asImageBitmap(),
-                            contentDescription = context.getString(R.string.home_renters_profile_image),
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Image(
+                                bitmap = it.asImageBitmap(),
+                                contentDescription = context.getString(R.string.home_renters_profile_image),
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(RoundedCornerShape(20.dp))
+                            )
+                            Text(
+                                text = renterData.fullName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(start = 8.dp, top = 4.dp)
+                            )
+                        }
+                        IconButton(
+                            onClick = { onMessageClick() },
                             modifier = Modifier
+                                .padding(end = 8.dp)
                                 .size(40.dp)
-                                .clip(RoundedCornerShape(20.dp))
-                        )
-                        Text(
-                            text = renterData.fullName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
+                                .background(Yellow40, RoundedCornerShape(20.dp))
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Send,
+                                contentDescription = "Message",
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
             }

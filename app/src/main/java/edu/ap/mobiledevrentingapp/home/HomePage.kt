@@ -134,6 +134,9 @@ fun HomePage(navController: NavController) {
                             renterData = renter,
                             onClick = {
                                 navController.navigate("device_details/${device.deviceId}")
+                            },
+                            onMessageClick = {
+                                navController.navigate("chat/${renter.userId}")
                             }
                         )
                     }
