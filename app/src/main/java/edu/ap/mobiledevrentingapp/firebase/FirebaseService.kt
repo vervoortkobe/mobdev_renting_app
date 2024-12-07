@@ -328,7 +328,7 @@ object FirebaseService {
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val rentals = querySnapshot.documents.mapNotNull { doc ->
-                    doc.toObject(Rental::class.java)
+                    doc.toObject<Rental>()
                 }
                 callback(rentals)
             }
@@ -519,7 +519,7 @@ object FirebaseService {
                     .get()
                     .addOnSuccessListener { receivedChats ->
                         val allChats = (sentChats.documents + receivedChats.documents)
-                            .map { it.toObject<Chat>()!! }
+                            .mapNotNull { it.toObject<Chat>() }
                             .distinctBy { listOf(it.senderId, it.receiverId, it.deviceId).sorted() }
 
                         val result = mutableListOf<Triple<Chat, User, Device>>()

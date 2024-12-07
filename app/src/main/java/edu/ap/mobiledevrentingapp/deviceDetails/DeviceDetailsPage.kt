@@ -431,6 +431,14 @@ fun DeviceDetailsPage(
                             )
                             .clip(RoundedCornerShape(8.dp))
                             .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f))
+                            .clickable(
+                                enabled = owner?.userId != currentUser?.userId,
+                                onClick = {
+                                    owner?.userId?.let { ownerId ->
+                                        navController.navigate("chat/$ownerId/$deviceId")
+                                    }
+                                }
+                            )
                     ) {
                         Row(
                             modifier = Modifier
@@ -458,7 +466,11 @@ fun DeviceDetailsPage(
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
                                 Text(
-                                    text = ownerData.fullName,
+                                    text = if (ownerData.userId == currentUser?.userId) {
+                                        "You are the owner"
+                                    } else {
+                                        ownerData.fullName
+                                    },
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 20.sp
                                 )
