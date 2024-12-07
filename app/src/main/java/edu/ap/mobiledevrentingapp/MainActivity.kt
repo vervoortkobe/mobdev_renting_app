@@ -11,9 +11,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -145,9 +146,10 @@ fun BottomNavigationBar(navController: NavHostController) {
     ) {
         val currentDestination = navController.currentBackStackEntryAsState().value?.destination
         val items = listOf(
+            NavigationItem("map", Icons.Filled.LocationOn, "Map"),
             NavigationItem("devices", Icons.AutoMirrored.Filled.List, "Devices"),
             NavigationItem("home", Icons.Filled.Home, "Home"),
-            NavigationItem("chats", Icons.Filled.Send, "Chats"),
+            NavigationItem("chats", Icons.AutoMirrored.Filled.Send, "Chats"),
             NavigationItem("profile", Icons.Filled.Person, "Profile")
         )
 
