@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -26,23 +27,25 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavType
 import androidx.navigation.navArgument
 import com.google.firebase.auth.FirebaseAuth
 import edu.ap.mobiledevrentingapp.addDevice.AddDevicePage
+import edu.ap.mobiledevrentingapp.chats.ChatOverviewPage
+import edu.ap.mobiledevrentingapp.chats.ChatPage
+import edu.ap.mobiledevrentingapp.deviceDetails.DeviceDetailsPage
 import edu.ap.mobiledevrentingapp.devices.DevicesPage
 import edu.ap.mobiledevrentingapp.home.HomePage
 import edu.ap.mobiledevrentingapp.login.LoginActivity
 import edu.ap.mobiledevrentingapp.map.MapPage
 import edu.ap.mobiledevrentingapp.profile.ProfilePage
+import edu.ap.mobiledevrentingapp.profile.ProfilePageSettings
 import edu.ap.mobiledevrentingapp.ui.theme.MobileDevRentingAppTheme
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
-import edu.ap.mobiledevrentingapp.deviceDetails.DeviceDetailsPage
-import edu.ap.mobiledevrentingapp.profile.ProfilePageSettings
 
 class MainActivity : AppCompatActivity() {
 
@@ -111,6 +114,22 @@ fun MainPage(onLogout: () -> Unit) {
                 requireNotNull(deviceId) { "Device ID parameter wasn't found" }
                 DeviceDetailsPage(navController = navController, deviceId = deviceId)
             }
+            composable("chats") { 
+                ChatOverviewPage(navController = navController)
+            }
+            composable(
+                route = "chat/{otherUserId}/{deviceId}",
+                arguments = listOf(
+                    navArgument("otherUserId") { type = NavType.StringType },
+                    navArgument("deviceId") { type = NavType.StringType }
+                )
+            ) { backStackEntry ->
+                val otherUserId = backStackEntry.arguments?.getString("otherUserId")
+                val deviceId = backStackEntry.arguments?.getString("deviceId")
+                requireNotNull(otherUserId) { "Other User ID parameter wasn't found" }
+                requireNotNull(deviceId) { "Device ID parameter wasn't found" }
+                ChatPage(navController = navController, otherUserId = otherUserId, deviceId = deviceId)
+            }
         }
     }
 }
@@ -128,6 +147,7 @@ fun BottomNavigationBar(navController: NavHostController) {
         val items = listOf(
             NavigationItem("devices", Icons.AutoMirrored.Filled.List, "Devices"),
             NavigationItem("home", Icons.Filled.Home, "Home"),
+            NavigationItem("chats", Icons.Filled.Send, "Chats"),
             NavigationItem("profile", Icons.Filled.Person, "Profile")
         )
 
