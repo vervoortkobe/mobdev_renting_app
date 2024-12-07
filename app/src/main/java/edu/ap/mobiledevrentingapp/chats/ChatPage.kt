@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
@@ -158,7 +160,8 @@ fun ChatPage(
                         .weight(1f)
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp),
-                    reverseLayout = false
+                    reverseLayout = false,
+                    contentPadding = PaddingValues(bottom = 8.dp)
                 ) {
                     items(messages) { message ->
                         ChatMessage(
@@ -170,54 +173,66 @@ fun ChatPage(
                     }
                 }
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                        .padding(16.dp)
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface,
+                    shadowElevation = 8.dp
                 ) {
-                    OutlinedTextField(
-                        value = newMessage,
-                        onValueChange = { newMessage = it },
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp),
-                        placeholder = { Text("Type a message") },
-                        shape = RoundedCornerShape(24.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Yellow40,
-                            unfocusedBorderColor = Yellow40,
-                            disabledBorderColor = Yellow40,
-                        ),
-                        trailingIcon = {
-                            Button(
-                                onClick = {
-                                    if (newMessage.isNotBlank() && currentUserId != null) {
-                                        FirebaseService.sendChat(
-                                            currentUserId,
-                                            otherUserId,
-                                            newMessage,
-                                            deviceId
-                                        ) { success, _ ->
-                                            if (success) {
-                                                newMessage = ""
-                                                FirebaseService.getChatMessages(currentUserId, otherUserId, deviceId) { chatMessages ->
-                                                    messages = chatMessages
-                                                    coroutineScope.launch {
-                                                        listState.animateScrollToItem(messages.size)
+                            .padding(16.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = newMessage,
+                            onValueChange = { 
+                                newMessage = it
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(messages.size)
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = 8.dp),
+                            placeholder = { Text("Type a message") },
+                            shape = RoundedCornerShape(24.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Yellow40,
+                                unfocusedBorderColor = Yellow40,
+                                disabledBorderColor = Yellow40,
+                            ),
+                            trailingIcon = {
+                                Button(
+                                    onClick = {
+                                        if (newMessage.isNotBlank() && currentUserId != null) {
+                                            FirebaseService.sendChat(
+                                                currentUserId,
+                                                otherUserId,
+                                                newMessage,
+                                                deviceId
+                                            ) { success, _ ->
+                                                if (success) {
+                                                    newMessage = ""
+                                                    FirebaseService.getChatMessages(currentUserId, otherUserId, deviceId) { chatMessages ->
+                                                        messages = chatMessages
+                                                        coroutineScope.launch {
+                                                            listState.animateScrollToItem(messages.size)
+                                                        }
                                                     }
                                                 }
                                             }
                                         }
-                                    }
-                                },
-                                modifier = Modifier.padding(end = 8.dp),
-                                colors = ButtonDefaults.buttonColors(containerColor = Yellow40)
-                            ) {
-                                Text("Send")
+                                    },
+                                    modifier = Modifier.padding(end = 8.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = Yellow40)
+                                ) {
+                                    Text("Send")
+                                }
                             }
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
