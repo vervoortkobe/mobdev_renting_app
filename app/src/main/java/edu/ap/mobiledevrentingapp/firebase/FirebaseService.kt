@@ -112,7 +112,20 @@ object FirebaseService {
             }
     }
 
-    private fun saveUser(userId: String, fullName: String, phoneNumber: String, ibanNumber: String, country: String, city: String, zipCode: String, streetName: String, addressNr: String, latitude: Double, longitude: Double, callback: (Boolean, String?) -> Unit) {
+    private fun saveUser(
+        userId: String,
+        fullName: String,
+        phoneNumber: String,
+        ibanNumber: String,
+        country: String,
+        city: String,
+        zipCode: String,
+        streetName: String,
+        addressNr: String,
+        latitude: Double,
+        longitude: Double,
+        callback: (Boolean, String?) -> Unit
+    ) {
         val data = hashMapOf(
             "userId" to userId,
             "fullName" to fullName,
@@ -124,7 +137,8 @@ object FirebaseService {
             "streetName" to streetName,
             "addressNr" to addressNr,
             "latitude" to latitude,
-            "longitude" to longitude
+            "longitude" to longitude,
+            "rating" to hashMapOf<String, Int>()
         )
 
         firestore.collection("users").document(userId)
@@ -168,6 +182,65 @@ object FirebaseService {
             }
     }
 
+    fun submitRating(
+        userId: String,
+        raterId: String,
+        newRating: Int,
+        callback: (Boolean, String?) -> Unit
+    ) {
+        val userDoc = FirebaseFirestore.getInstance().collection("users").document(userId)
+
+        userDoc.get().addOnSuccessListener { document ->
+            if (document.exists()) {
+                val currentRatings = document.get("rating") as? MutableMap<String, Int> ?: mutableMapOf()
+
+                // Update or add the rating
+                currentRatings[raterId] = newRating
+
+                userDoc.update("rating", currentRatings)
+                    .addOnSuccessListener { callback(true, null) }
+                    .addOnFailureListener { callback(false, "Failed to submit rating.") }
+            } else {
+                callback(false, "User not found.")
+            }
+        }.addOnFailureListener {
+            callback(false, "Failed to retrieve user data.")
+        }
+    }
+
+    fun updateRating(userId: String, rating: Int, callback: (Boolean, String?) -> Unit) {
+        val db = FirebaseFirestore.getInstance()
+        val userRef = db.collection("users").document(userId)
+
+        userRef.update("rating", rating)
+            .addOnSuccessListener {
+                callback(true, null)
+            }
+            .addOnFailureListener { exception ->
+                callback(false, exception.message)
+            }
+    }
+
+    fun getUserRating(userId: String, callback: (Boolean, Double?, String?) -> Unit) {
+        firestore.collection("users").document(userId).get()
+            .addOnSuccessListener { document ->
+                if (document.exists()) {
+                    val ratings = document.get("rating") as? Map<String, Int> ?: mapOf()
+                    if (ratings.isNotEmpty()) {
+                        val averageRating = ratings.values.average()
+                        callback(true, averageRating, null)
+                    } else {
+                        callback(true, 0.0, "No ratings available.")
+                    }
+                } else {
+                    callback(false, null, "User not found.")
+                }
+            }
+            .addOnFailureListener {
+                callback(false, null, "Failed to retrieve ratings.")
+            }
+    }
+
     fun getUserById(userId: String, callback: (Boolean, DocumentSnapshot?, String?) -> Unit) {
         firestore.collection("users").document(userId).get()
             .addOnCompleteListener { task ->
@@ -180,6 +253,22 @@ object FirebaseService {
                     }
                 } else {
                     callback(false, null, "Failed to retrieve the details of the current user.")
+                }
+            }
+    }
+
+    fun getAllUsers(callback: (Boolean, List<DocumentSnapshot>?, String?) -> Unit) {
+        firestore.collection("users").get()
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val documents = task.result?.documents
+                    if (!documents.isNullOrEmpty()) {
+                        callback(true, documents, null)
+                    } else {
+                        callback(false, null, "No users found in the database.")
+                    }
+                } else {
+                    callback(false, null, "Failed to retrieve users from the database.")
                 }
             }
     }

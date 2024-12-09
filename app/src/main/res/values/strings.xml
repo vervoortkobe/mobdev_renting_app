@@ -8,6 +8,7 @@
     <string name="yes">Yes</string>
     <string name="no">No</string>
     <string name="arrow_back">ArrowBack</string>
+    <string name="view_users">All Users</string>
 
     <!-- addDevice strings -->
     <string name="add_device_images_max_images_exceeded">You can select up to 5 images.</string>
