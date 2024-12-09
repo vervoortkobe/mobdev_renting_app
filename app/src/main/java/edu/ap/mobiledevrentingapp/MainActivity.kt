@@ -127,7 +127,7 @@ fun MainPage(onLogout: () -> Unit) {
             ) { backStackEntry ->
                 val userId = backStackEntry.arguments?.getString("userId")
                 requireNotNull(userId) { "User ID parameter wasn't found" }
-                UserDetailPage(userId = userId)
+                UserDetailPage(userId = userId, navController = navController)
             }
             composable("users") { UserListPage(onUserClick = { userId ->
                 navController.navigate("user_details/$userId")
