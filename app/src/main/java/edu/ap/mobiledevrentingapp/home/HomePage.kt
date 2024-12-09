@@ -12,6 +12,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -197,7 +199,8 @@ fun HomePage(navController: NavController) {
                     .padding(16.dp),
                 contentAlignment = Alignment.BottomCenter
             ) {
-                androidx.compose.material3.Button(
+                Button(
+                    colors = ButtonDefaults.buttonColors(containerColor = Yellow40),
                     onClick = {
                         navController.navigate("users") // Navigate to the users composable
                     }

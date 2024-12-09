@@ -8,7 +8,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
@@ -38,16 +36,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.google.firebase.firestore.DocumentSnapshot
-import edu.ap.mobiledevrentingapp.firebase.AppUtil
-import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.google.firebase.firestore.DocumentSnapshot
 import edu.ap.mobiledevrentingapp.R
 import edu.ap.mobiledevrentingapp.firebase.AppUtil.decode
+import edu.ap.mobiledevrentingapp.firebase.FirebaseService
+import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -67,7 +64,7 @@ fun UserListPage(
         Box(modifier = Modifier.padding(padding)) {
             when (uiState) {
                 is UserListUiState.Loading -> {
-                    CircularProgressIndicator(modifier = Modifier.fillMaxSize())
+                    CircularProgressIndicator(color = Yellow40)
                 }
                 is UserListUiState.Success -> {
                     val users = (uiState as UserListUiState.Success).users
@@ -172,7 +169,7 @@ class UserListViewModel : ViewModel() {
 
 // UI State
 sealed class UserListUiState {
-    object Loading : UserListUiState()
+    data object Loading : UserListUiState()
     data class Success(val users: List<DocumentSnapshot>) : UserListUiState()
     data class Error(val message: String) : UserListUiState()
 }

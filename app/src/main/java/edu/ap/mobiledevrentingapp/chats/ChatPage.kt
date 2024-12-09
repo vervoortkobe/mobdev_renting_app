@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -63,9 +62,6 @@ import edu.ap.mobiledevrentingapp.firebase.FirebaseService
 import edu.ap.mobiledevrentingapp.firebase.User
 import edu.ap.mobiledevrentingapp.ui.theme.Yellow40
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -242,64 +238,4 @@ fun ChatPage(
             }
         }
     }
-}
-
-@Composable
-private fun ChatMessage(message: Chat, isCurrentUser: Boolean, otherUser: User?) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        horizontalArrangement = if (isCurrentUser) Arrangement.End else Arrangement.Start
-    ) {
-        if (!isCurrentUser) {
-            Box(
-                modifier = Modifier
-                    .size(32.dp)
-                    .clip(CircleShape)
-                    .background(Color.LightGray)
-            ) {
-                otherUser?.profileImage?.takeIf { it.isNotEmpty() }?.let { imageString ->
-                    AppUtil.decode(imageString)?.let { bitmap ->
-                        Image(
-                            bitmap = bitmap.asImageBitmap(),
-                            contentDescription = "Profile image",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-                }
-            }
-            Spacer(modifier = Modifier.width(8.dp))
-        }
-
-        Column(
-            modifier = Modifier
-                .widthIn(max = 280.dp)
-                .background(
-                    color = when {
-                        isCurrentUser -> Yellow40
-                        else -> MaterialTheme.colorScheme.secondaryContainer
-                    },
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(12.dp)
-        ) {
-            Text(
-                text = message.message,
-                color = if (isCurrentUser) Color.White else MaterialTheme.colorScheme.onSecondaryContainer
-            )
-            Text(
-                text = formatTimestamp(message.timestamp),
-                color = if (isCurrentUser) Color.White.copy(alpha = 0.7f) else MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.7f),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.align(Alignment.End)
-            )
-        }
-    }
-}
-
-private fun formatTimestamp(timestamp: Long): String {
-    val sdf = SimpleDateFormat("HH:mm", Locale.getDefault())
-    return sdf.format(Date(timestamp))
 }
