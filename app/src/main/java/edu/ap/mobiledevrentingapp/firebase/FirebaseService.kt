@@ -344,7 +344,7 @@ object FirebaseService {
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val rentals = querySnapshot.documents.mapNotNull { doc ->
-                    doc.toObject(Rental::class.java)
+                    doc.toObject<Rental>()
                 }
                 callback(rentals)
             }
@@ -373,7 +373,7 @@ object FirebaseService {
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val rentals = querySnapshot.documents.mapNotNull { doc ->
-                    val rental = doc.toObject(Rental::class.java)
+                    val rental = doc.toObject<Rental>()
                     rental?.apply { rentalId = doc.id }
                 }
 
@@ -433,7 +433,7 @@ object FirebaseService {
             .get()
             .addOnSuccessListener { documents ->
                 val rentals = documents.mapNotNull { document ->
-                    document.toObject(Rental::class.java)
+                    document.toObject<Rental>()
                 }
                 callback(rentals)
             }
@@ -448,7 +448,7 @@ object FirebaseService {
             .get()
             .addOnSuccessListener { querySnapshot ->
                 val rentals = querySnapshot.documents.mapNotNull { doc ->
-                    val rental = doc.toObject(Rental::class.java)
+                    val rental = doc.toObject<Rental>()
                     rental?.apply { rentalId = doc.id }
                 }
 
@@ -499,6 +499,87 @@ object FirebaseService {
             }
             .addOnFailureListener {
                 Log.e("FirebaseService", "Error getting rentals", it)
+                callback(emptyList())
+            }
+    }
+
+    fun sendChat(senderId: String, receiverId: String, message: String, deviceId: String, callback: (Boolean, String?) -> Unit) {
+        val chatId = UUID.randomUUID().toString()
+        val chat = Chat(
+            id = chatId,
+            senderId = senderId,
+            receiverId = receiverId,
+            message = message,
+            timestamp = System.currentTimeMillis(),
+            deviceId = deviceId
+        )
+
+        firestore.collection("chats")
+            .document(chatId)
+            .set(chat)
+            .addOnSuccessListener {
+                callback(true, null)
+            }
+            .addOnFailureListener { e ->
+                callback(false, e.message)
+            }
+    }
+
+    fun getChatsForUser(userId: String, callback: (List<Triple<Chat, User, Device>>) -> Unit) {
+        firestore.collection("chats")
+            .whereEqualTo("senderId", userId)
+            .get()
+            .addOnSuccessListener { sentChats ->
+                firestore.collection("chats")
+                    .whereEqualTo("receiverId", userId)
+                    .get()
+                    .addOnSuccessListener getChats@{ receivedChats ->
+                        val allChats = (sentChats.documents + receivedChats.documents)
+                            .mapNotNull { it.toObject<Chat>() }
+                            .distinctBy { listOf(it.senderId, it.receiverId, it.deviceId).sorted() }
+
+                        val result = mutableListOf<Triple<Chat, User, Device>>()
+                        var completed = 0
+
+                        if (allChats.isEmpty()) {
+                            callback(emptyList())
+                            return@getChats
+                        }
+
+                        for (chat in allChats) {
+                            val otherUserId = if (chat.senderId == userId) chat.receiverId else chat.senderId
+                            getUserById(otherUserId) { userSuccess, userDoc, _ ->
+                                if (userSuccess && userDoc != null) {
+                                    getDeviceById(chat.deviceId) { deviceSuccess, deviceDoc, _ ->
+                                        if (deviceSuccess && deviceDoc != null) {
+                                            val user = userDoc.toObject<User>()!!
+                                            val device = deviceDoc.toObject<Device>()!!
+                                            result.add(Triple(chat, user, device))
+                                        }
+                                        completed++
+                                        if (completed == allChats.size) {
+                                            callback(result.sortedByDescending { it.first.timestamp })
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+            }
+    }
+
+    fun getChatMessages(userId1: String, userId2: String, deviceId: String, callback: (List<Chat>) -> Unit) {
+        firestore.collection("chats")
+            .whereIn("senderId", listOf(userId1, userId2))
+            .whereIn("receiverId", listOf(userId1, userId2))
+            .whereEqualTo("deviceId", deviceId)
+            .get()
+            .addOnSuccessListener { documents ->
+                val chats = documents.mapNotNull { it.toObject<Chat>() }
+                    .sortedBy { it.timestamp }
+                callback(chats)
+            }
+            .addOnFailureListener {
                 callback(emptyList())
             }
     }
